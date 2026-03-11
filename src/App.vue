@@ -516,7 +516,7 @@ onMounted(async () => {
 
       <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
 
-      <div class="status-row">
+      <div v-if="store.unlocked" class="status-row">
         <span v-if="store.fileName">Файл: {{ store.fileName }}</span>
         <span v-else>Файл не выбран</span>
         <span v-if="store.usingFallbackStorage" class="warn">File API недоступен, используем localStorage</span>
