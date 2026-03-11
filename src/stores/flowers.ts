@@ -18,6 +18,13 @@ import { fetchWikimediaImage, getPlaceholderImage } from '../utils/wikimedia'
 const LOCAL_STORAGE_KEY = 'flowers-baza-fallback'
 const ACTIVE_SECTION_KEY = 'flowers-baza-active-section'
 const PROJECT_JSON_PATH = `${import.meta.env.BASE_URL}data/flowers.json`
+const HYDRANGEA_ID = '49771275-f9ae-4bd3-9fe6-d42bda7b5dfd'
+const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de'
+const CARNATION_COMMON_ID = 'e44cee36-55f1-4532-8ab3-9d60ea7175dc'
+const CARNATION_MOON_ID = 'ff7772fb-f770-4702-8963-f717440d617c'
+const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1'
+const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3'
+const ALSTROMERII_ID = 'd9821a47-a022-4147-a88e-4857ed43deb9'
 
 function isSectionKey(value: string | null): value is SectionKey {
   return value === 'osnovnye' || value === 'sezonnye'
@@ -33,9 +40,21 @@ function hasFallbackData(): boolean {
 }
 
 function normalizeItem(item: FlowerItem): FlowerItem {
+  const popularSizes = item.id === HYDRANGEA_ID
+    ? [3, 5, 7, 9, 11]
+    : item.id === CHRYZA_SINGLE_ID
+      ? [3, 5, 7, 9, 11]
+      : item.id === CARNATION_COMMON_ID || item.id === CARNATION_MOON_ID
+        ? [9, 11, 15, 25, 35]
+        : item.id === CHRYZA_BUSH_250_ID || item.id === CHRYZA_BUSH_300_ID
+          ? [3, 5, 7, 11, 15]
+          : item.id === ALSTROMERII_ID
+            ? [5, 7, 9, 11, 15]
+            : item.popularSizes?.length ? item.popularSizes.map((s) => Number(s)) : [...DEFAULT_SIZES]
+
   return {
     ...item,
-    popularSizes: item.popularSizes?.length ? item.popularSizes.map((s) => Number(s)) : [...DEFAULT_SIZES],
+    popularSizes,
     unitPrice: Number(item.unitPrice) || 0,
     packagingPrice: Number(item.packagingPrice) || 0,
     pistachioQty: Number(item.pistachioQty) || 0,

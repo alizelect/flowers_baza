@@ -17,17 +17,18 @@ const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1';
 const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de';
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3';
 const MAIN_ORDER = [
-    'розы по 150',
-    'розы по 250',
-    'розы по 300',
-    'альстромерии',
-    'гвоздики - обычные',
-    'гвоздики - лунные',
-    'хриза - кустовая по 250',
-    'хриза - кустовая по 300',
-    'хриза - одноголовая',
-    'гортензии',
+    'РОЗЫ по 150',
+    'РОЗЫ по 250',
+    'РОЗЫ по 300',
+    'АЛЬСТРОМЕРИИ',
+    'ГВОЗДИКИ - обычные',
+    'ГВОЗДИКИ - лунные',
+    'ХРИЗА - кустовая по 250',
+    'ХРИЗА - кустовая по 300',
+    'ХРИЗА - одноголовая',
+    'ГОРТЕНЗИИ',
 ];
+const MAIN_ORDER_INDEX = new Map(MAIN_ORDER.map((name, index) => [name, index]));
 const ROSE_150_PISTACHIO_QTY_BY_ODD = [
     0, 0, 0, 2, 2, 2, 3, 3, 3, 3,
     4, 4, 4, 4, 5, 5, 5, 5, 6, 6,
@@ -192,11 +193,11 @@ const visibleRows = computed(() => {
     const bySection = store.filteredBySection;
     return [...bySection].sort((a, b) => {
         if (store.activeSection === 'osnovnye') {
-            const ai = MAIN_ORDER.indexOf(a.flowerName.toLowerCase());
-            const bi = MAIN_ORDER.indexOf(b.flowerName.toLowerCase());
-            const an = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
-            const bn = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
-            return an - bn;
+            const ai = MAIN_ORDER_INDEX.get(a.flowerName.trim()) ?? Number.MAX_SAFE_INTEGER;
+            const bi = MAIN_ORDER_INDEX.get(b.flowerName.trim()) ?? Number.MAX_SAFE_INTEGER;
+            if (ai !== bi)
+                return ai - bi;
+            return a.flowerName.localeCompare(b.flowerName, 'ru');
         }
         return a.flowerName.localeCompare(b.flowerName, 'ru');
     });
@@ -224,6 +225,9 @@ function isGroupStart(item, index) {
     }
     const previous = visibleRows.value[index - 1];
     if (!previous) {
+        return false;
+    }
+    if (isChryzaBush300(previous) && isChryzaSingle(item)) {
         return false;
     }
     return getFlowerGroup(previous) !== getFlowerGroup(item);
@@ -264,7 +268,7 @@ function isRose300(item) {
 }
 function isAlstroemerii(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('альстромер');
+    return name.includes('альстромерии');
 }
 function isCarnationCommon(item) {
     const name = item.flowerName.trim().toLowerCase();
@@ -276,14 +280,14 @@ function isCarnationMoon(item) {
 }
 function isPeonies(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('пион') || name.includes('рџрёрѕрн');
+    return name.includes('пионы');
 }
 function isTulips(item) {
     return item.id === '327eb882-6a93-45c5-bb20-8a53b19bc27e';
 }
 function isHydrangea(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('гортенз');
+    return name.includes('гортензии');
 }
 function isChryzaSingle(item) {
     return item.id === CHRYZA_SINGLE_ID;
@@ -474,13 +478,16 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.h1, __VLS_intrinsicElements.h1
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "toolbar-actions" },
 });
-__VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-    ...{ onClick: (__VLS_ctx.onChooseFile) },
-});
-__VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-    ...{ onClick: (__VLS_ctx.openCreate) },
-    disabled: (!__VLS_ctx.store.unlocked),
-});
+if (__VLS_ctx.store.unlocked) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+        ...{ onClick: (__VLS_ctx.onChooseFile) },
+    });
+}
+if (__VLS_ctx.store.unlocked) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+        ...{ onClick: (__VLS_ctx.openCreate) },
+    });
+}
 if (!__VLS_ctx.store.unlocked) {
     /** @type {[typeof AuthGate, ]} */ ;
     // @ts-ignore
@@ -498,26 +505,28 @@ if (!__VLS_ctx.store.unlocked) {
     };
     var __VLS_9;
 }
-__VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-    ...{ class: "status-row" },
-});
-if (__VLS_ctx.store.fileName) {
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-    (__VLS_ctx.store.fileName);
-}
-else {
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-}
-if (__VLS_ctx.store.usingFallbackStorage) {
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "warn" },
+if (__VLS_ctx.store.unlocked) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "status-row" },
     });
-}
-if (__VLS_ctx.store.saveError) {
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "error" },
-    });
-    (__VLS_ctx.store.saveError);
+    if (__VLS_ctx.store.fileName) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+        (__VLS_ctx.store.fileName);
+    }
+    else {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+    }
+    if (__VLS_ctx.store.usingFallbackStorage) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "warn" },
+        });
+    }
+    if (__VLS_ctx.store.saveError) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "error" },
+        });
+        (__VLS_ctx.store.saveError);
+    }
 }
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "table-wrap" },
@@ -550,20 +559,33 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.col)({
 __VLS_asFunctionalElement(__VLS_intrinsicElements.col)({
     ...{ style: {} },
 });
-__VLS_asFunctionalElement(__VLS_intrinsicElements.col)({
-    ...{ style: {} },
-});
+if (__VLS_ctx.store.unlocked) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.col)({
+        ...{ style: {} },
+    });
+}
 __VLS_asFunctionalElement(__VLS_intrinsicElements.thead, __VLS_intrinsicElements.thead)({});
 __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({});
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
+__VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+    ...{ class: "popular-sizes-title" },
+});
+__VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
+    ...{ class: "offer-divider" },
+});
+__VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
+    ...{ class: "promo-divider" },
+});
+__VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
+    ...{ class: "price-divider" },
+});
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
-__VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
-__VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
-__VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
-__VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
+if (__VLS_ctx.store.unlocked) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
+}
 __VLS_asFunctionalElement(__VLS_intrinsicElements.tbody, __VLS_intrinsicElements.tbody)({});
 for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({
@@ -598,7 +620,7 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
             } },
         ...{ class: "qty-reset" },
         type: "button",
-        'aria-label': "����� �� 1",
+        'aria-label': "сброс на 1",
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
         ...{ class: "qty-reset-icon" },
@@ -619,7 +641,38 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
         });
         (size);
     }
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
+        ...{ class: "offer-divider" },
+        ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
+    });
+    (__VLS_ctx.formatPrice(__VLS_ctx.calcWithoutPromoForRow(item, __VLS_ctx.getQty(item))));
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
+        ...{ class: "promo-divider" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "promo-col" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.select, __VLS_intrinsicElements.select)({
+        ...{ onChange: (...[$event]) => {
+                __VLS_ctx.store.patchFlower(item.id, { discountPercent: Number($event.target.value), isPromoEnabled: true });
+            } },
+        ...{ class: "center-input" },
+        value: (item.discountPercent),
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
+        value: (10),
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
+        value: (15),
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "center-cell" },
+        ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
+    });
+    (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
+        ...{ class: "price-divider" },
+    });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
         ...{ onInput: (...[$event]) => {
                 __VLS_ctx.store.patchFlower(item.id, { unitPrice: Number($event.target.value) || 0 });
@@ -663,54 +716,34 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
         min: "0",
         value: (__VLS_ctx.isPistachioLocked(item) ? '' : __VLS_ctx.getPistachioQty(item, __VLS_ctx.getQty(item))),
     });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
-        ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
-    });
-    (__VLS_ctx.formatPrice(__VLS_ctx.calcWithoutPromoForRow(item, __VLS_ctx.getQty(item))));
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "promo-col" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.select, __VLS_intrinsicElements.select)({
-        ...{ onChange: (...[$event]) => {
-                __VLS_ctx.store.patchFlower(item.id, { discountPercent: Number($event.target.value), isPromoEnabled: true });
-            } },
-        ...{ class: "center-input" },
-        value: (item.discountPercent),
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
-        value: (10),
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
-        value: (15),
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "center-cell" },
-        ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
-    });
-    (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "row-actions" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-        ...{ onClick: (...[$event]) => {
-                __VLS_ctx.openEdit(item);
-            } },
-        disabled: (!__VLS_ctx.store.unlocked),
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-        ...{ onClick: (...[$event]) => {
-                __VLS_ctx.store.deleteFlower(item.id);
-            } },
-        disabled: (!__VLS_ctx.store.unlocked),
-        ...{ class: "danger" },
-    });
+    if (__VLS_ctx.store.unlocked) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "row-actions" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+            ...{ onClick: (...[$event]) => {
+                    if (!(__VLS_ctx.store.unlocked))
+                        return;
+                    __VLS_ctx.openEdit(item);
+                } },
+            disabled: (!__VLS_ctx.store.unlocked),
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+            ...{ onClick: (...[$event]) => {
+                    if (!(__VLS_ctx.store.unlocked))
+                        return;
+                    __VLS_ctx.store.deleteFlower(item.id);
+                } },
+            disabled: (!__VLS_ctx.store.unlocked),
+            ...{ class: "danger" },
+        });
+    }
 }
 if (!__VLS_ctx.visibleRows.length) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({});
     __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
-        colspan: "9",
+        colspan: (__VLS_ctx.store.unlocked ? 9 : 8),
         ...{ class: "empty" },
     });
 }
@@ -751,6 +784,10 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['error']} */ ;
 /** @type {__VLS_StyleScopedClasses['table-wrap']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-table']} */ ;
+/** @type {__VLS_StyleScopedClasses['popular-sizes-title']} */ ;
+/** @type {__VLS_StyleScopedClasses['offer-divider']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-divider']} */ ;
+/** @type {__VLS_StyleScopedClasses['price-divider']} */ ;
 /** @type {__VLS_StyleScopedClasses['flower-name-cell']} */ ;
 /** @type {__VLS_StyleScopedClasses['qty-cell']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
@@ -758,6 +795,12 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['qty-reset']} */ ;
 /** @type {__VLS_StyleScopedClasses['qty-reset-icon']} */ ;
 /** @type {__VLS_StyleScopedClasses['sizes']} */ ;
+/** @type {__VLS_StyleScopedClasses['offer-divider']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-divider']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-col']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-cell']} */ ;
+/** @type {__VLS_StyleScopedClasses['price-divider']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
@@ -765,9 +808,6 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['pistachio-cell']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
-/** @type {__VLS_StyleScopedClasses['promo-col']} */ ;
-/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
-/** @type {__VLS_StyleScopedClasses['center-cell']} */ ;
 /** @type {__VLS_StyleScopedClasses['row-actions']} */ ;
 /** @type {__VLS_StyleScopedClasses['danger']} */ ;
 /** @type {__VLS_StyleScopedClasses['empty']} */ ;

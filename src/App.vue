@@ -24,17 +24,20 @@ const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de'
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3'
 
 const MAIN_ORDER = [
-  'розы по 150',
-  'розы по 250',
-  'розы по 300',
-  'альстромерии',
-  'гвоздики - обычные',
-  'гвоздики - лунные',
-  'хриза - кустовая по 250',
-  'хриза - кустовая по 300',
-  'хриза - одноголовая',
-  'гортензии',
+  'РОЗЫ по 150',
+  'РОЗЫ по 250',
+  'РОЗЫ по 300',
+  'АЛЬСТРОМЕРИИ',
+  'ГВОЗДИКИ - обычные',
+  'ГВОЗДИКИ - лунные',
+  'ХРИЗА - кустовая по 250',
+  'ХРИЗА - кустовая по 300',
+  'ХРИЗА - одноголовая',
+  'ГОРТЕНЗИИ',
+
 ]
+
+const MAIN_ORDER_INDEX = new Map(MAIN_ORDER.map((name, index) => [name, index]))
 
 const ROSE_150_PISTACHIO_QTY_BY_ODD = [
   0, 0, 0, 2, 2, 2, 3, 3, 3, 3,
@@ -220,11 +223,10 @@ const visibleRows = computed(() => {
   const bySection = store.filteredBySection
   return [...bySection].sort((a, b) => {
     if (store.activeSection === 'osnovnye') {
-      const ai = MAIN_ORDER.indexOf(a.flowerName.toLowerCase())
-      const bi = MAIN_ORDER.indexOf(b.flowerName.toLowerCase())
-      const an = ai === -1 ? Number.MAX_SAFE_INTEGER : ai
-      const bn = bi === -1 ? Number.MAX_SAFE_INTEGER : bi
-      return an - bn
+      const ai = MAIN_ORDER_INDEX.get(a.flowerName.trim()) ?? Number.MAX_SAFE_INTEGER
+      const bi = MAIN_ORDER_INDEX.get(b.flowerName.trim()) ?? Number.MAX_SAFE_INTEGER
+      if (ai !== bi) return ai - bi
+      return a.flowerName.localeCompare(b.flowerName, 'ru')
     }
     return a.flowerName.localeCompare(b.flowerName, 'ru')
   })
@@ -247,6 +249,9 @@ function isGroupStart(item: FlowerItem, index: number): boolean {
   }
   const previous = visibleRows.value[index - 1]
   if (!previous) {
+    return false
+  }
+  if (isChryzaBush300(previous) && isChryzaSingle(item)) {
     return false
   }
   return getFlowerGroup(previous) !== getFlowerGroup(item)
@@ -295,7 +300,7 @@ function isRose300(item: FlowerItem): boolean {
 
 function isAlstroemerii(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
-  return name.includes('альстромер')
+  return name.includes('альстромерии')
 }
 
 function isCarnationCommon(item: FlowerItem): boolean {
@@ -310,7 +315,7 @@ function isCarnationMoon(item: FlowerItem): boolean {
 
 function isPeonies(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
-  return name.includes('пион') || name.includes('рџрёрѕрн')
+  return name.includes('пионы')
 }
 
 function isTulips(item: FlowerItem): boolean {
@@ -319,7 +324,7 @@ function isTulips(item: FlowerItem): boolean {
 
 function isHydrangea(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
-  return name.includes('гортенз')
+  return name.includes('гортензии')
 }
 
 function isChryzaSingle(item: FlowerItem): boolean {
@@ -530,23 +535,23 @@ onMounted(async () => {
             <col style="width: 9%" />
             <col style="width: 14%" />
             <col style="width: 9%" />
-            <col style="width: 9%" />
-            <col style="width: 9%" />
-            <col style="width: 9%" />
             <col style="width: 11%" />
-            <col style="width: 14%" />
+            <col style="width: 9%" />
+            <col style="width: 9%" />
+            <col style="width: 9%" />
+            <col v-if="store.unlocked" style="width: 14%" />
           </colgroup>
           <thead>
             <tr>
               <th>Вид цветка</th>
               <th>Количество</th>
-              <th>Популярные размеры</th>
-              <th>Цена цветка</th>
+              <th><span class="popular-sizes-title">Популярные размеры</span></th>
+              <th class="offer-divider">Без акции</th>
+              <th class="promo-divider">Акция</th>
+              <th class="price-divider">Цена цветка</th>
               <th>Упаковка</th>
               <th>Фисташка</th>
-              <th>Без акции</th>
-              <th>Акция</th>
-              <th>Действия</th>
+              <th v-if="store.unlocked">Действия</th>
             </tr>
           </thead>
           <tbody>
@@ -563,7 +568,7 @@ onMounted(async () => {
                     :value="getQty(item)"
                     @change="chooseQty(item, Number(($event.target as HTMLInputElement).value))"
                   />
-                  <button class="qty-reset" type="button" aria-label="����� �� 1" @click="resetQty(item)">
+                  <button class="qty-reset" type="button" aria-label="сброс на 1" @click="resetQty(item)">
                     <img class="qty-reset-icon" :src="resetIcon" alt="" />
                   </button>
                 </div>
@@ -580,7 +585,21 @@ onMounted(async () => {
                   </button>
                 </div>
               </td>
-              <td>
+              <td class="offer-divider" :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</td>
+              <td class="promo-divider">
+                <div class="promo-col">
+                  <select
+                    class="center-input"
+                    :value="item.discountPercent"
+                    @change="store.patchFlower(item.id, { discountPercent: Number(($event.target as HTMLSelectElement).value), isPromoEnabled: true })"
+                  >
+                    <option :value="10">10</option>
+                    <option :value="15">15</option>
+                  </select>
+                  <span class="center-cell" :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span>
+                </div>
+              </td>
+              <td class="price-divider">
                 <input
                   class="short-input center-input"
                   :disabled="!store.unlocked"
@@ -618,22 +637,7 @@ onMounted(async () => {
                   />
                 </div>
               </td>
-
-              <td :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</td>
-              <td>
-                <div class="promo-col">
-                  <select
-                    class="center-input"
-                    :value="item.discountPercent"
-                    @change="store.patchFlower(item.id, { discountPercent: Number(($event.target as HTMLSelectElement).value), isPromoEnabled: true })"
-                  >
-                    <option :value="10">10</option>
-                    <option :value="15">15</option>
-                  </select>
-                  <span class="center-cell" :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span>
-                </div>
-              </td>
-              <td>
+              <td v-if="store.unlocked">
                 <div class="row-actions">
                   <button :disabled="!store.unlocked" @click="openEdit(item)">Ред.</button>
                   <button :disabled="!store.unlocked" class="danger" @click="store.deleteFlower(item.id)">Удалить</button>
@@ -641,7 +645,7 @@ onMounted(async () => {
               </td>
             </tr>
             <tr v-if="!visibleRows.length">
-              <td colspan="9" class="empty">Записей нет в этой категории</td>
+              <td :colspan="store.unlocked ? 9 : 8" class="empty">Записей нет в этой категории</td>
             </tr>
           </tbody>
         </table>
