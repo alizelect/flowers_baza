@@ -5,6 +5,7 @@ import { DEFAULT_SIZES } from '../types';
 import { fetchWikimediaImage, getPlaceholderImage } from '../utils/wikimedia';
 const LOCAL_STORAGE_KEY = 'flowers-baza-fallback';
 const ACTIVE_SECTION_KEY = 'flowers-baza-active-section';
+const PROJECT_JSON_PATH = `${import.meta.env.BASE_URL}data/flowers.json`;
 function isSectionKey(value) {
     return value === 'osnovnye' || value === 'sezonnye';
 }
@@ -72,16 +73,17 @@ export const useFlowersStore = defineStore('flowers', () => {
         }
         const parsed = JSON.parse(raw);
         flowers.value = (parsed.items || []).map(normalizeItem);
+        fileName.value = 'localStorage';
     }
     async function loadFromProjectJson() {
         try {
-            const response = await fetch('/data/flowers.json', { cache: 'no-store' });
+            const response = await fetch(PROJECT_JSON_PATH, { cache: 'no-store' });
             if (!response.ok) {
                 return false;
             }
             const db = (await response.json());
             flowers.value = (db.items || []).map(normalizeItem);
-            fileName.value = 'flowers.json';
+            fileName.value = 'data/flowers.json';
             saveError.value = '';
             return true;
         }
@@ -96,11 +98,9 @@ export const useFlowersStore = defineStore('flowers', () => {
         saveError.value = '';
         if (!isFileSystemApiAvailable()) {
             usingFallbackStorage.value = true;
-            if (hasFallbackData()) {
+            const loaded = await loadFromProjectJson();
+            if (!loaded && hasFallbackData()) {
                 await loadFromFallback();
-            }
-            else {
-                await loadFromProjectJson();
             }
             return;
         }
@@ -132,28 +132,18 @@ export const useFlowersStore = defineStore('flowers', () => {
         try {
             if (!isFileSystemApiAvailable()) {
                 usingFallbackStorage.value = true;
-                if (hasFallbackData()) {
+                const loaded = await loadFromProjectJson();
+                if (!loaded && hasFallbackData()) {
                     await loadFromFallback();
-                }
-                else {
-                    const loaded = await loadFromProjectJson();
-                    if (!loaded) {
-                        await loadFromFallback();
-                    }
                 }
                 return;
             }
             const stored = await loadStoredHandle();
             if (!stored) {
                 usingFallbackStorage.value = true;
-                if (hasFallbackData()) {
+                const loaded = await loadFromProjectJson();
+                if (!loaded && hasFallbackData()) {
                     await loadFromFallback();
-                }
-                else {
-                    const loaded = await loadFromProjectJson();
-                    if (!loaded) {
-                        await loadFromFallback();
-                    }
                 }
                 return;
             }
@@ -162,14 +152,9 @@ export const useFlowersStore = defineStore('flowers', () => {
             if (!canRead || !canWrite) {
                 await clearStoredHandle();
                 usingFallbackStorage.value = true;
-                if (hasFallbackData()) {
+                const loaded = await loadFromProjectJson();
+                if (!loaded && hasFallbackData()) {
                     await loadFromFallback();
-                }
-                else {
-                    const loaded = await loadFromProjectJson();
-                    if (!loaded) {
-                        await loadFromFallback();
-                    }
                 }
                 return;
             }
