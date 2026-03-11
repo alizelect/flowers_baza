@@ -509,8 +509,8 @@ onMounted(async () => {
       <header class="toolbar">
         <h1>Прайс букетов: {{ SECTION_LABELS[store.activeSection] }}</h1>
         <div class="toolbar-actions">
-          <button @click="onChooseFile">Выбрать JSON</button>
-          <button :disabled="!store.unlocked" @click="openCreate">Добавить цветок</button>
+          <button v-if="store.unlocked" @click="onChooseFile">Выбрать JSON</button>
+          <button v-if="store.unlocked" @click="openCreate">Добавить цветок</button>
         </div>
       </header>
 
