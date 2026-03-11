@@ -1,0 +1,411 @@
+:root {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #1f2a1f;
+  background: linear-gradient(140deg, #f7fff8 0%, #f1f6ff 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(140px, 160px) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: #0f3a2b;
+  color: #fff;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-btn {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: #fff;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-btn.active {
+  background: #f8d146;
+  color: #1f2a1f;
+  border-color: #f8d146;
+}
+
+.content {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.status-row {
+  display: flex;
+  gap: 14px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.table-wrap {
+  flex: 1;
+  min-height: 260px;
+  max-height: calc(100vh - 190px);
+  overflow-y: auto;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #dfe6df;
+  background: #fff;
+}
+
+.price-table {
+  width: 100%;
+  min-width: 980px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.price-table th,
+.price-table td {
+  border-bottom: 1px solid #e8ece8;
+  padding: 4px 5px;
+  vertical-align: middle;
+}
+
+.price-table th {
+  background: #f0f7f2;
+  text-align: center;
+  font-weight: 600;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.price-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.price-table tbody tr.is-active td {
+  background: #fff4cf;
+}
+
+.price-table tbody tr.is-active td:first-child {
+  box-shadow: inset 3px 0 0 #f0c735;
+  font-weight: 600;
+}
+.price-table td:first-child {
+  text-align: left;
+}
+
+.price-table td:not(:first-child) {
+  text-align: center;
+}
+
+/* Less gap between Вид цветка and Количество */
+.price-table th:nth-child(1),
+.price-table td:nth-child(1) {
+  padding-right: 0;
+}
+
+.price-table th:nth-child(2),
+.price-table td:nth-child(2) {
+  padding-left: 0;
+  min-width: 96px;
+}
+
+/* More gap between Без акции and Акция */
+.price-table th:nth-child(7),
+.price-table td:nth-child(7) {
+  padding-right: 12px;
+}
+
+.price-table th:nth-child(8),
+.price-table td:nth-child(8) {
+  padding-left: 12px;
+}
+
+/* Compact checkbox-only pistachio cell */
+.price-table th:nth-child(6),
+.price-table td:nth-child(6) {
+  padding-left: 0;
+  padding-right: 0;
+  min-width: 90px;
+}
+
+.price-table td:nth-child(6) input {
+  margin: 0;
+}
+
+.pistachio-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.price-table input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #0f3a2b;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.price-table input[type='checkbox']:checked {
+  background: #2f8f69;
+  border-color: #2f8f69;
+}
+
+.price-table input[type='checkbox']:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.short-input {
+  width: 64px;
+}
+
+.center-input {
+  text-align: center;
+}
+
+.price-strong {
+  font-weight: 700;
+}
+.center-cell {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+}
+
+.sizes,
+.row-actions,
+.promo-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sizes {
+  gap: 3px;
+  flex-wrap: nowrap;
+}
+
+.sizes button {
+  padding: 2px 5px;
+  white-space: nowrap;
+}
+
+.sizes button.active {
+  background: #2f8f69;
+  color: #fff;
+}
+
+.promo-col {
+  gap: 10px;
+}
+
+.row-actions {
+  gap: 6px;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
+.auth-wrap {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 12px;
+  align-items: center;
+}
+
+.warn {
+  color: #8a5b00;
+}
+
+.error {
+  color: #b40000;
+}
+
+.danger {
+  background: #d12020;
+  color: #fff;
+}
+
+.empty {
+  text-align: center;
+  color: #6b756b;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  width: min(900px, 100%);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modal-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.primary {
+  background: #0f3a2b;
+  color: #fff;
+}
+
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    flex-direction: row;
+    align-items: center;
+    overflow: auto;
+  }
+
+  .content {
+    overflow: auto;
+  }
+
+  .table-wrap {
+    max-height: none;
+    overflow-x: auto;
+  }
+
+  .price-table {
+    min-width: 980px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.qty-select {
+  width: 58px;
+}
+
+.qty-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  gap: 2px;
+}
+
+.qty-reset {
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.qty-reset-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+
+
+
+.qty-select::-webkit-outer-spin-button,
+.qty-select::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.qty-select[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.flower-name-cell {
+  cursor: pointer;
+}
+
+.price-table tbody tr.group-start td {
+  border-top: 14px solid #f7faf7;
+}
+

@@ -1,0 +1,265 @@
+{
+  "updatedAt": "2026-03-11T15:01:28.730Z",
+  "items": [
+    {
+      "id": "d0dc5c2b-3db1-4da0-bf0b-42e2fdf154f4",
+      "section": "osnovnye",
+      "flowerName": "РОЗЫ по 150",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 150,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": true,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "1354086d-4d1d-4bea-b5b9-060321c104e7",
+      "section": "osnovnye",
+      "flowerName": "РОЗЫ по 250",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 250,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": false,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "409c4663-69f2-40a6-a24b-c9c7b82c0248",
+      "section": "osnovnye",
+      "flowerName": "РОЗЫ по 300",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 300,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": false,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "d9821a47-a022-4147-a88e-4857ed43deb9",
+      "section": "osnovnye",
+      "flowerName": "АЛЬСТРОМЕРИИ",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 200,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": false,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "e44cee36-55f1-4532-8ab3-9d60ea7175dc",
+      "section": "osnovnye",
+      "flowerName": "ГВОЗДИКИ - обычные",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 100,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 15,
+      "isPromoEnabled": true,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "ff7772fb-f770-4702-8963-f717440d617c",
+      "section": "osnovnye",
+      "flowerName": "ГВОЗДИКИ - лунные",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 130,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 15,
+      "isPromoEnabled": true,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "72e51316-081c-46c8-8be2-86871bd63ec1",
+      "section": "osnovnye",
+      "flowerName": "ХРИЗА - кустовая по 250",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 250,
+      "packagingPrice": 0,
+      "hasPistachio": false,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": false,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "d30dc4f7-bba6-4ca5-88bf-11bb46dca6de",
+      "section": "osnovnye",
+      "flowerName": "ХРИЗА - одноголовая",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 290,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": false,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "49771275-f9ae-4bd3-9fe6-d42bda7b5dfd",
+      "section": "osnovnye",
+      "flowerName": "ГОРТЕНЗИИ",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 890,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": false,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "17d7c4a3-1abb-4e58-951a-ef0c8fbae0d6",
+      "section": "sezonnye",
+      "flowerName": "ПИОНЫ по 690",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 690,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": true,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "e31992bf-884c-4cae-b99f-d5dbc4a35c6f",
+      "section": "sezonnye",
+      "flowerName": "ПИОНЫ по 790",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 790,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": true,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "327eb882-6a93-45c5-bb20-8a53b19bc27e",
+      "section": "sezonnye",
+      "flowerName": "ТЮЛЬПАНЫ по 220",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 220,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": true,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "6aab0f2f-8d6e-42b7-a23e-c140b3563db3",
+      "section": "osnovnye",
+      "flowerName": "ХРИЗА - кустовая по 300",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 300,
+      "packagingPrice": 0,
+      "hasPistachio": false,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": false,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    }
+  ]
+}
