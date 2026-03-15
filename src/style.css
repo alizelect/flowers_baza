@@ -547,6 +547,17 @@ select {
   gap: 6px;
 }
 
+.mobile-field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mobile-field-head-inline {
+  min-height: 20px;
+}
+
 .mobile-label {
   font-size: 12px;
   line-height: 1.2;
@@ -603,6 +614,10 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.mobile-checkbox-inline {
+  gap: 0;
 }
 
 .mobile-empty {
@@ -682,7 +697,7 @@ select {
 }
 
 @media (max-width: 760px) {
-  .desktop-auth-panel {
+  .desktop-inline-auth {
     display: none;
   }
 
@@ -856,27 +871,12 @@ select {
   line-height: 1.1;
 }
 
-.desktop-auth-panel {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 30;
-  width: min(360px, calc(100vw - 36px));
+.desktop-inline-auth {
+  margin: 0 0 18px;
 }
 
-.desktop-auth-panel .auth-wrap {
+.desktop-inline-auth .auth-wrap {
   margin: 0;
-  padding: 12px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid #dfe6df;
-  box-shadow: 0 12px 30px rgba(15, 58, 43, 0.14);
-  align-items: stretch;
-}
-
-.desktop-auth-panel .auth-wrap input,
-.desktop-auth-panel .auth-wrap button {
-  width: 100%;
 }
 .content > .toolbar {
   margin-bottom: 18px;

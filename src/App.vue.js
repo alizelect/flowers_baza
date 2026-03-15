@@ -294,17 +294,17 @@ function isMobileCategoryOpen(key) {
     return getMobileOpenCategoryKey() === key;
 }
 function selectMobileCategory(key) {
-    mobileOpenCategory.value = key;
+    mobileOpenCategory.value = isMobileCategoryOpen(key) ? null : key;
 }
 function getFlowerGroup(item) {
+    if (isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item))
+        return 'chryza';
     if (isRose150(item) || isRose250(item) || isRose300(item))
         return 'rose';
     if (isAlstroemerii(item))
         return 'alstroemerii';
     if (isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item))
         return 'carnation';
-    if (isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item))
-        return 'chryza';
     if (isHydrangea(item))
         return 'hydrangea';
     if (isPeonies(item))
@@ -634,6 +634,26 @@ if (__VLS_ctx.store.unlocked) {
         ...{ onClick: (__VLS_ctx.openCreate) },
     });
     (__VLS_ctx.uiLabels.addFlower);
+}
+__VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+    ...{ class: "desktop-inline-auth" },
+});
+if (!__VLS_ctx.store.unlocked) {
+    /** @type {[typeof AuthGate, ]} */ ;
+    // @ts-ignore
+    const __VLS_14 = __VLS_asFunctionalComponent(AuthGate, new AuthGate({
+        ...{ 'onUnlocked': {} },
+    }));
+    const __VLS_15 = __VLS_14({
+        ...{ 'onUnlocked': {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_14));
+    let __VLS_17;
+    let __VLS_18;
+    let __VLS_19;
+    const __VLS_20 = {
+        onUnlocked: (__VLS_ctx.store.setUnlocked)
+    };
+    var __VLS_16;
 }
 if (__VLS_ctx.store.unlocked) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -1244,15 +1264,15 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "mobile-field" },
                 });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-field-head mobile-field-head-inline" },
+                });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
                 (__VLS_ctx.uiLabels.pistachio);
-                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-                    ...{ class: "pistachio-cell mobile-pistachio-cell" },
-                });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
-                    ...{ class: "mobile-checkbox" },
+                    ...{ class: "mobile-checkbox mobile-checkbox-inline" },
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
                     ...{ onChange: (...[$event]) => {
@@ -1266,8 +1286,9 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                     checked: (__VLS_ctx.isPistachioLocked(item) ? false : item.hasPistachio),
                     disabled: (__VLS_ctx.isPistachioLocked(item)),
                 });
-                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-                (__VLS_ctx.uiLabels.enable);
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "pistachio-cell mobile-pistachio-cell" },
+                });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
                     ...{ onInput: (...[$event]) => {
                             if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
@@ -1291,26 +1312,6 @@ else {
         ...{ class: "empty mobile-empty" },
     });
     (__VLS_ctx.uiLabels.empty);
-}
-__VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-    ...{ class: "desktop-auth-panel" },
-});
-if (!__VLS_ctx.store.unlocked) {
-    /** @type {[typeof AuthGate, ]} */ ;
-    // @ts-ignore
-    const __VLS_14 = __VLS_asFunctionalComponent(AuthGate, new AuthGate({
-        ...{ 'onUnlocked': {} },
-    }));
-    const __VLS_15 = __VLS_14({
-        ...{ 'onUnlocked': {} },
-    }, ...__VLS_functionalComponentArgsRest(__VLS_14));
-    let __VLS_17;
-    let __VLS_18;
-    let __VLS_19;
-    const __VLS_20 = {
-        onUnlocked: (__VLS_ctx.store.setUnlocked)
-    };
-    var __VLS_16;
 }
 /** @type {[typeof FlowerEditorModal, ]} */ ;
 // @ts-ignore
@@ -1346,6 +1347,7 @@ var __VLS_23;
 /** @type {__VLS_StyleScopedClasses['toolbar']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar-title']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar-actions']} */ ;
+/** @type {__VLS_StyleScopedClasses['desktop-inline-auth']} */ ;
 /** @type {__VLS_StyleScopedClasses['status-row']} */ ;
 /** @type {__VLS_StyleScopedClasses['warn']} */ ;
 /** @type {__VLS_StyleScopedClasses['error']} */ ;
@@ -1441,16 +1443,18 @@ var __VLS_23;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field-head']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field-head-inline']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-checkbox']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-checkbox-inline']} */ ;
 /** @type {__VLS_StyleScopedClasses['pistachio-cell']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-pistachio-cell']} */ ;
-/** @type {__VLS_StyleScopedClasses['mobile-checkbox']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['empty']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-empty']} */ ;
-/** @type {__VLS_StyleScopedClasses['desktop-auth-panel']} */ ;
 var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {

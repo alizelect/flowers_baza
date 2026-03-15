@@ -329,14 +329,14 @@ function isMobileCategoryOpen(key: string): boolean {
 }
 
 function selectMobileCategory(key: string): void {
-  mobileOpenCategory.value = key
+  mobileOpenCategory.value = isMobileCategoryOpen(key) ? null : key
 }
 
 function getFlowerGroup(item: FlowerItem): string {
+  if (isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item)) return 'chryza'
   if (isRose150(item) || isRose250(item) || isRose300(item)) return 'rose'
   if (isAlstroemerii(item)) return 'alstroemerii'
   if (isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item)) return 'carnation'
-  if (isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item)) return 'chryza'
   if (isHydrangea(item)) return 'hydrangea'
   if (isPeonies(item)) return 'peony'
   if (isTulips(item)) return 'tulip'
@@ -652,7 +652,9 @@ onMounted(async () => {
         </div>
       </header>
 
-
+      <div class="desktop-inline-auth">
+        <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
+      </div>
 
       <div v-if="store.unlocked" class="status-row">
         <span v-if="store.fileName">{{ uiLabels.file }}: {{ store.fileName }}</span>
@@ -943,17 +945,18 @@ onMounted(async () => {
                   </label>
 
                   <div class="mobile-field">
-                    <span class="mobile-label">{{ uiLabels.pistachio }}</span>
-                    <div class="pistachio-cell mobile-pistachio-cell">
-                      <label class="mobile-checkbox">
+                    <div class="mobile-field-head mobile-field-head-inline">
+                      <span class="mobile-label">{{ uiLabels.pistachio }}</span>
+                      <label class="mobile-checkbox mobile-checkbox-inline">
                         <input
                           type="checkbox"
                           :checked="isPistachioLocked(item) ? false : item.hasPistachio"
                           :disabled="isPistachioLocked(item)"
                           @change="store.patchFlower(item.id, { hasPistachio: ($event.target as HTMLInputElement).checked })"
                         />
-                        <span>{{ uiLabels.enable }}</span>
                       </label>
+                    </div>
+                    <div class="pistachio-cell mobile-pistachio-cell">
                       <input
                         class="short-input center-input mobile-input"
                         :disabled="!store.unlocked || isPistachioLocked(item) || usesAutoPistachioQty(item)"
@@ -974,9 +977,6 @@ onMounted(async () => {
       </div>
     </main>
 
-    <div class="desktop-auth-panel">
-      <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
-    </div>
 
     <FlowerEditorModal
       :model-value="editorOpen"
