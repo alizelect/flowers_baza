@@ -825,7 +825,8 @@ select {
     flex-wrap: nowrap;
     gap: 6px;
     position: static;
-    min-height: 0;
+    min-height: 126px;
+    align-content: start;
   }
 
   .sidebar h2 {
@@ -843,8 +844,9 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
     align-items: start;
-    min-height: 0;
+    min-height: 74px;
     grid-auto-rows: 34px;
+    align-content: start;
   }
 
   button,
@@ -892,7 +894,7 @@ select {
   .sidebar {
     padding: 8px 12px;
     gap: 6px;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .sidebar-footer {
