@@ -553,7 +553,7 @@ select {
 }
 
 .mobile-card-row-top {
-  grid-template-columns: minmax(0, 112px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 168px) minmax(0, 1fr);
   align-items: start;
   column-gap: 12px;
 }
@@ -606,18 +606,21 @@ select {
 }
 
 .mobile-field-sizes .mobile-label {
-  width: 100%;
-  text-align: center;
+  width: auto;
+  min-width: max-content;
+  text-align: left;
+  justify-self: end;
 }
 
 .mobile-field-sizes .sizes {
-  width: 100%;
-  justify-content: flex-end;
+  width: auto;
+  max-width: 100%;
+  justify-content: flex-start;
 }
 
 .mobile-metrics {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
   gap: 10px;
 }
 
@@ -633,6 +636,15 @@ select {
 .mobile-metric strong {
   font-size: 24px;
   line-height: 1;
+  white-space: nowrap;
+}
+
+.mobile-metric:first-child strong {
+  font-size: 21px;
+}
+
+.mobile-metric:last-child strong {
+  font-size: 25px;
 }
 
 .mobile-promo-value {
@@ -664,10 +676,13 @@ select {
 
 .mobile-card-row-bottom .mobile-field-head-inline {
   justify-content: center;
+  align-items: center;
+  min-height: 14px;
 }
 
 .mobile-card-row-bottom .mobile-field-head-inline .mobile-label {
   text-align: center;
+  line-height: 1;
 }
 
 .mobile-card-row-bottom .mix-price-item {
@@ -680,6 +695,7 @@ select {
 
 .mobile-card-row-bottom .mobile-pistachio-cell {
   justify-content: center;
+  align-items: center;
   flex-wrap: nowrap;
 }
 
@@ -790,6 +806,9 @@ select {
     justify-items: stretch;
     flex-wrap: nowrap;
     gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 6;
   }
 
   .sidebar h2 {
@@ -807,6 +826,7 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     align-items: start;
+    min-height: 92px;
   }
 
   button,
@@ -919,7 +939,7 @@ select {
   }
 
   .mobile-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
   }
 
   .mobile-promo-value {
@@ -938,7 +958,16 @@ select {
   }
 
   .mobile-field-qty .qty-cell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 32px;
+    align-items: center;
     justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .mobile-field-qty .qty-select {
+    width: 100%;
+    height: 34px;
   }
 
   .qty-select,
@@ -948,9 +977,11 @@ select {
   }
 
   .qty-reset {
-    flex: 0 0 40px;
-    width: 40px;
-    height: 40px;
+    flex: 0 0 32px;
+    width: 32px;
+    height: 34px;
+    min-height: 34px;
+    padding: 1px;
   }
 
   .mix-price-item {
@@ -965,7 +996,7 @@ select {
 
   .sizes {
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 
   .mobile-card-row-bottom {
