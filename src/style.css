@@ -38,6 +38,11 @@ select {
   padding-top: 14px;
 }
 
+.sidebar-menu-list {
+  display: grid;
+  gap: 3px;
+}
+
 .menu-btn {
   border: 1px solid rgba(255, 255, 255, 0.3);
   background: transparent;
@@ -548,8 +553,9 @@ select {
 }
 
 .mobile-card-row-top {
-  grid-template-columns: minmax(0, 110px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 112px) minmax(0, 1fr);
   align-items: start;
+  column-gap: 12px;
 }
 
 .mobile-card-row-bottom {
@@ -559,6 +565,7 @@ select {
 
 .mobile-field-compact {
   gap: 4px;
+  align-content: start;
 }
 
 .mobile-field-pistachio {
@@ -594,6 +601,20 @@ select {
   max-width: none;
 }
 
+.mobile-field-sizes {
+  justify-items: end;
+}
+
+.mobile-field-sizes .mobile-label {
+  width: 100%;
+  text-align: center;
+}
+
+.mobile-field-sizes .sizes {
+  width: 100%;
+  justify-content: flex-end;
+}
+
 .mobile-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -606,6 +627,7 @@ select {
   padding: 12px;
   border-radius: 14px;
   background: #f5f9f5;
+  min-width: 0;
 }
 
 .mobile-metric strong {
@@ -622,10 +644,43 @@ select {
 
 .mobile-promo-value select {
   width: 72px;
+  flex: 0 0 72px;
 }
 
 .mobile-mix-price-fields {
   justify-content: flex-start;
+}
+
+.mobile-card-row-bottom .mobile-label,
+.mobile-card-row-bottom .mix-price-qty {
+  text-align: center;
+}
+
+.mobile-card-row-bottom .mobile-input,
+.mobile-card-row-bottom .mobile-pistachio-cell,
+.mobile-card-row-bottom .mobile-mix-price-fields {
+  width: 100%;
+}
+
+.mobile-card-row-bottom .mobile-field-head-inline {
+  justify-content: center;
+}
+
+.mobile-card-row-bottom .mobile-field-head-inline .mobile-label {
+  text-align: center;
+}
+
+.mobile-card-row-bottom .mix-price-item {
+  align-items: stretch;
+}
+
+.mobile-card-row-bottom .mix-price-item .short-input {
+  width: 100%;
+}
+
+.mobile-card-row-bottom .mobile-pistachio-cell {
+  justify-content: center;
+  flex-wrap: nowrap;
 }
 
 .mobile-pistachio-cell {
@@ -729,15 +784,29 @@ select {
   }
 
   .sidebar {
-    flex-wrap: wrap;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    justify-items: stretch;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .sidebar h2 {
+    margin: 0;
   }
 
   .sidebar-footer {
-    order: -1;
-    flex: 0 0 100%;
-    margin: 0 0 8px;
+    order: 0;
+    margin: 0;
     padding-top: 0;
+  }
+
+  .sidebar-menu-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    align-items: start;
   }
 
   button,
@@ -784,7 +853,7 @@ select {
 
   .sidebar {
     padding: 12px;
-    gap: 8px;
+    gap: 10px;
   }
 
   .sidebar-footer {
@@ -792,11 +861,22 @@ select {
     padding-top: 0;
   }
 
+  .sidebar .auth-wrap {
+    gap: 8px;
+  }
+
+  .sidebar .auth-wrap input,
+  .sidebar .auth-wrap button,
   .menu-btn {
-    flex: 0 0 auto;
+    min-height: 42px;
+  }
+
+  .menu-btn {
+    width: 100%;
     border-radius: 999px;
     padding: 8px 12px;
     white-space: nowrap;
+    text-align: center;
   }
 
   .modal {
@@ -839,16 +919,16 @@ select {
   }
 
   .mobile-metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .mobile-promo-value {
-    align-items: stretch;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
   }
 
   .mobile-promo-value select {
-    width: 100%;
+    width: 72px;
   }
 
   .mobile-field-qty .qty-cell,
@@ -885,7 +965,12 @@ select {
 
   .sizes {
     flex-wrap: wrap;
-    justify-content: flex-start;
+    justify-content: flex-end;
+  }
+
+  .mobile-card-row-bottom {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 8px;
   }
 
   .auth-wrap {

@@ -14,14 +14,16 @@ const sidebarTitle = '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438'
     <div class="sidebar-footer">
       <slot />
     </div>
-    <button
-      v-for="key in sections"
-      :key="key"
-      class="menu-btn"
-      :class="{ active: active === key }"
-      @click="emit('change', key)"
-    >
-      {{ SECTION_LABELS[key] }}
-    </button>
+    <div class="sidebar-menu-list">
+      <button
+        v-for="key in sections"
+        :key="key"
+        class="menu-btn"
+        :class="{ active: active === key }"
+        @click="emit('change', key)"
+      >
+        {{ SECTION_LABELS[key] }}
+      </button>
+    </div>
   </aside>
 </template>
