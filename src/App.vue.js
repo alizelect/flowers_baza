@@ -559,7 +559,7 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
     ...{ onClick: (__VLS_ctx.handlePageClick) },
     ...{ class: "layout" },
 });
-/** @type {[typeof SidebarMenu, ]} */ ;
+/** @type {[typeof SidebarMenu, typeof SidebarMenu, ]} */ ;
 // @ts-ignore
 const __VLS_0 = __VLS_asFunctionalComponent(SidebarMenu, new SidebarMenu({
     ...{ 'onChange': {} },
@@ -575,6 +575,24 @@ let __VLS_5;
 const __VLS_6 = {
     onChange: (__VLS_ctx.onSectionChange)
 };
+__VLS_2.slots.default;
+if (!__VLS_ctx.store.unlocked) {
+    /** @type {[typeof AuthGate, ]} */ ;
+    // @ts-ignore
+    const __VLS_7 = __VLS_asFunctionalComponent(AuthGate, new AuthGate({
+        ...{ 'onUnlocked': {} },
+    }));
+    const __VLS_8 = __VLS_7({
+        ...{ 'onUnlocked': {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_7));
+    let __VLS_10;
+    let __VLS_11;
+    let __VLS_12;
+    const __VLS_13 = {
+        onUnlocked: (__VLS_ctx.store.setUnlocked)
+    };
+    var __VLS_9;
+}
 var __VLS_2;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.main, __VLS_intrinsicElements.main)({
     ...{ class: "content" },
@@ -1256,23 +1274,6 @@ else {
         ...{ class: "empty mobile-empty" },
     });
     (__VLS_ctx.uiLabels.empty);
-}
-if (!__VLS_ctx.store.unlocked) {
-    /** @type {[typeof AuthGate, ]} */ ;
-    // @ts-ignore
-    const __VLS_7 = __VLS_asFunctionalComponent(AuthGate, new AuthGate({
-        ...{ 'onUnlocked': {} },
-    }));
-    const __VLS_8 = __VLS_7({
-        ...{ 'onUnlocked': {} },
-    }, ...__VLS_functionalComponentArgsRest(__VLS_7));
-    let __VLS_10;
-    let __VLS_11;
-    let __VLS_12;
-    const __VLS_13 = {
-        onUnlocked: (__VLS_ctx.store.setUnlocked)
-    };
-    var __VLS_9;
 }
 /** @type {[typeof FlowerEditorModal, ]} */ ;
 // @ts-ignore

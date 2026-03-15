@@ -33,6 +33,11 @@ select {
   gap: 3px;
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 14px;
+}
+
 .menu-btn {
   border: 1px solid rgba(255, 255, 255, 0.3);
   background: transparent;
@@ -329,6 +334,21 @@ select {
   gap: 3px;
   margin: 8px 0 12px;
   align-items: center;
+}
+
+.sidebar .auth-wrap {
+  margin: 0;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.sidebar .auth-wrap input,
+.sidebar .auth-wrap button {
+  width: 100%;
+}
+
+.sidebar .auth-wrap .error {
+  color: #ffd7d7;
 }
 
 .warn {
@@ -707,6 +727,11 @@ select {
   .sidebar {
     padding: 12px;
     gap: 8px;
+  }
+
+  .sidebar-footer {
+    margin-top: 0;
+    padding-top: 0;
   }
 
   .menu-btn {

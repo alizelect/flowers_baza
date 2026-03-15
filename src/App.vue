@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import AuthGate from './components/AuthGate.vue'
 import FlowerEditorModal from './components/FlowerEditorModal.vue'
@@ -624,7 +624,9 @@ onMounted(async () => {
 
 <template>
   <div class="layout" @click="handlePageClick">
-    <SidebarMenu :active="store.activeSection" @change="onSectionChange" />
+    <SidebarMenu :active="store.activeSection" @change="onSectionChange">
+      <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
+    </SidebarMenu>
 
     <main class="content">
       <header class="toolbar">
@@ -956,8 +958,6 @@ onMounted(async () => {
         <div v-else class="empty mobile-empty">{{ uiLabels.empty }}</div>
       </div>
     </main>
-
-    <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
 
     <FlowerEditorModal
       :model-value="editorOpen"

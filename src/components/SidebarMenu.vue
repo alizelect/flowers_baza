@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { SECTION_LABELS, type SectionKey } from '../types'
 
 defineProps<{ active: SectionKey }>()
@@ -19,5 +19,8 @@ const sections = Object.keys(SECTION_LABELS) as SectionKey[]
     >
       {{ SECTION_LABELS[key] }}
     </button>
+    <div class="sidebar-footer">
+      <slot />
+    </div>
   </aside>
 </template>

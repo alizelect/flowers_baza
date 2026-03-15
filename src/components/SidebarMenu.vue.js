@@ -21,8 +21,15 @@ for (const [key] of __VLS_getVForSourceType((__VLS_ctx.sections))) {
     });
     (__VLS_ctx.SECTION_LABELS[key]);
 }
+__VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+    ...{ class: "sidebar-footer" },
+});
+var __VLS_0 = {};
 /** @type {__VLS_StyleScopedClasses['sidebar']} */ ;
 /** @type {__VLS_StyleScopedClasses['menu-btn']} */ ;
+/** @type {__VLS_StyleScopedClasses['sidebar-footer']} */ ;
+// @ts-ignore
+var __VLS_1 = __VLS_0;
 var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {
@@ -35,11 +42,12 @@ const __VLS_self = (await import('vue')).defineComponent({
     __typeEmits: {},
     __typeProps: {},
 });
-export default (await import('vue')).defineComponent({
+const __VLS_component = (await import('vue')).defineComponent({
     setup() {
         return {};
     },
     __typeEmits: {},
     __typeProps: {},
 });
+export default {};
 ; /* PartiallyEnd: #4569/main.vue */
