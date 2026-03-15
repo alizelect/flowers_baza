@@ -1,4 +1,4 @@
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 import AuthGate from './components/AuthGate.vue';
 import FlowerEditorModal from './components/FlowerEditorModal.vue';
 import SidebarMenu from './components/SidebarMenu.vue';
@@ -297,7 +297,19 @@ function isMobileCategoryOpen(key) {
     return getMobileOpenCategoryKey() === key;
 }
 function selectMobileCategory(key) {
-    mobileOpenCategory.value = isMobileCategoryOpen(key) ? null : key;
+    const shouldOpen = !isMobileCategoryOpen(key);
+    mobileOpenCategory.value = shouldOpen ? key : null;
+    if (!shouldOpen || typeof window === 'undefined' || window.innerWidth > 760) {
+        return;
+    }
+    void nextTick(() => {
+        const section = document.querySelector('[data-mobile-section="' + key + '"]');
+        const content = section?.querySelector('.mobile-section-list');
+        if (!content) {
+            return;
+        }
+        content.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
 }
 function getFlowerGroup(item) {
     if (isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item))
@@ -973,6 +985,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.section, __VLS_intrinsicElements.section)({
             key: (section.key),
             ...{ class: "mobile-section" },
+            'data-mobile-section': (section.key),
         });
         if (section.collapsible) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({

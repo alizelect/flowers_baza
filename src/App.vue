@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import AuthGate from './components/AuthGate.vue'
 import FlowerEditorModal from './components/FlowerEditorModal.vue'
 import SidebarMenu from './components/SidebarMenu.vue'
@@ -332,7 +332,19 @@ function isMobileCategoryOpen(key: string): boolean {
 }
 
 function selectMobileCategory(key: string): void {
-  mobileOpenCategory.value = isMobileCategoryOpen(key) ? null : key
+  const shouldOpen = !isMobileCategoryOpen(key)
+  mobileOpenCategory.value = shouldOpen ? key : null
+  if (!shouldOpen || typeof window === 'undefined' || window.innerWidth > 760) {
+    return
+  }
+  void nextTick(() => {
+    const section = document.querySelector<HTMLElement>('[data-mobile-section="' + key + '"]')
+    const content = section?.querySelector<HTMLElement>('.mobile-section-list')
+    if (!content) {
+      return
+    }
+    content.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
 }
 
 function getFlowerGroup(item: FlowerItem): string {
@@ -815,7 +827,7 @@ onMounted(async () => {
       </div>
       <div class="mobile-cards" :class="{ 'mobile-cards-grouped': mobileCardSections.length > 0 }">
         <template v-if="mobileCardSections.some((section) => section.items.length)">
-          <section v-for="section in mobileCardSections" :key="section.key" class="mobile-section">
+          <section v-for="section in mobileCardSections" :key="section.key" class="mobile-section" :data-mobile-section="section.key">
             <button
               v-if="section.collapsible"
               type="button"
