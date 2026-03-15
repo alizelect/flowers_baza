@@ -705,6 +705,18 @@ select {
     display: block;
   }
 
+  .sidebar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .sidebar-footer {
+    order: -1;
+    flex: 0 0 100%;
+    margin: 0 0 8px;
+    padding-top: 0;
+  }
+
   button,
   input,
   select {

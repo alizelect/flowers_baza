@@ -5,11 +5,15 @@ defineProps<{ active: SectionKey }>()
 const emit = defineEmits<{ change: [SectionKey] }>()
 
 const sections = Object.keys(SECTION_LABELS) as SectionKey[]
+const sidebarTitle = '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438'
 </script>
 
 <template>
   <aside class="sidebar">
-    <h2>Категории</h2>
+    <h2>{{ sidebarTitle }}</h2>
+    <div class="sidebar-footer">
+      <slot />
+    </div>
     <button
       v-for="key in sections"
       :key="key"
@@ -19,8 +23,5 @@ const sections = Object.keys(SECTION_LABELS) as SectionKey[]
     >
       {{ SECTION_LABELS[key] }}
     </button>
-    <div class="sidebar-footer">
-      <slot />
-    </div>
   </aside>
 </template>

@@ -286,6 +286,9 @@ function getMobileOpenCategoryKey() {
     if (!firstSection) {
         return null;
     }
+    if (mobileOpenCategory.value === null) {
+        return null;
+    }
     return mobileCardSections.value.some((section) => section.key === mobileOpenCategory.value)
         ? mobileOpenCategory.value
         : firstSection.key;
