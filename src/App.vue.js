@@ -576,6 +576,9 @@ const __VLS_6 = {
     onChange: (__VLS_ctx.onSectionChange)
 };
 __VLS_2.slots.default;
+__VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+    ...{ class: "sidebar-mobile-auth" },
+});
 if (!__VLS_ctx.store.unlocked) {
     /** @type {[typeof AuthGate, ]} */ ;
     // @ts-ignore
@@ -600,7 +603,9 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.main, __VLS_intrinsicElements.
 __VLS_asFunctionalElement(__VLS_intrinsicElements.header, __VLS_intrinsicElements.header)({
     ...{ class: "toolbar" },
 });
-__VLS_asFunctionalElement(__VLS_intrinsicElements.h1, __VLS_intrinsicElements.h1)({});
+__VLS_asFunctionalElement(__VLS_intrinsicElements.h1, __VLS_intrinsicElements.h1)({
+    ...{ class: "toolbar-title" },
+});
 (__VLS_ctx.uiLabels.title);
 (__VLS_ctx.SECTION_LABELS[__VLS_ctx.store.activeSection]);
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -1275,37 +1280,59 @@ else {
     });
     (__VLS_ctx.uiLabels.empty);
 }
+__VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+    ...{ class: "desktop-auth-panel" },
+});
+if (!__VLS_ctx.store.unlocked) {
+    /** @type {[typeof AuthGate, ]} */ ;
+    // @ts-ignore
+    const __VLS_14 = __VLS_asFunctionalComponent(AuthGate, new AuthGate({
+        ...{ 'onUnlocked': {} },
+    }));
+    const __VLS_15 = __VLS_14({
+        ...{ 'onUnlocked': {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_14));
+    let __VLS_17;
+    let __VLS_18;
+    let __VLS_19;
+    const __VLS_20 = {
+        onUnlocked: (__VLS_ctx.store.setUnlocked)
+    };
+    var __VLS_16;
+}
 /** @type {[typeof FlowerEditorModal, ]} */ ;
 // @ts-ignore
-const __VLS_14 = __VLS_asFunctionalComponent(FlowerEditorModal, new FlowerEditorModal({
+const __VLS_21 = __VLS_asFunctionalComponent(FlowerEditorModal, new FlowerEditorModal({
     ...{ 'onClose': {} },
     ...{ 'onSave': {} },
     modelValue: (__VLS_ctx.editorOpen),
     initial: (__VLS_ctx.editorItem),
     section: (__VLS_ctx.store.activeSection),
 }));
-const __VLS_15 = __VLS_14({
+const __VLS_22 = __VLS_21({
     ...{ 'onClose': {} },
     ...{ 'onSave': {} },
     modelValue: (__VLS_ctx.editorOpen),
     initial: (__VLS_ctx.editorItem),
     section: (__VLS_ctx.store.activeSection),
-}, ...__VLS_functionalComponentArgsRest(__VLS_14));
-let __VLS_17;
-let __VLS_18;
-let __VLS_19;
-const __VLS_20 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_21));
+let __VLS_24;
+let __VLS_25;
+let __VLS_26;
+const __VLS_27 = {
     onClose: (...[$event]) => {
         __VLS_ctx.editorOpen = false;
     }
 };
-const __VLS_21 = {
+const __VLS_28 = {
     onSave: (__VLS_ctx.saveEditor)
 };
-var __VLS_16;
+var __VLS_23;
 /** @type {__VLS_StyleScopedClasses['layout']} */ ;
+/** @type {__VLS_StyleScopedClasses['sidebar-mobile-auth']} */ ;
 /** @type {__VLS_StyleScopedClasses['content']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar']} */ ;
+/** @type {__VLS_StyleScopedClasses['toolbar-title']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar-actions']} */ ;
 /** @type {__VLS_StyleScopedClasses['status-row']} */ ;
 /** @type {__VLS_StyleScopedClasses['warn']} */ ;
@@ -1411,6 +1438,7 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['empty']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-empty']} */ ;
+/** @type {__VLS_StyleScopedClasses['desktop-auth-panel']} */ ;
 var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {

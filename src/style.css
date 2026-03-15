@@ -682,6 +682,14 @@ select {
 }
 
 @media (max-width: 760px) {
+  .desktop-auth-panel {
+    display: none;
+  }
+
+  .sidebar-mobile-auth {
+    display: block;
+  }
+
   button,
   input,
   select {
@@ -837,3 +845,43 @@ select {
 }
 
 
+
+.sidebar-mobile-auth {
+  display: none;
+}
+
+.toolbar-title {
+  margin: 0;
+  font-size: 1.725rem;
+  line-height: 1.1;
+}
+
+.desktop-auth-panel {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 30;
+  width: min(360px, calc(100vw - 36px));
+}
+
+.desktop-auth-panel .auth-wrap {
+  margin: 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #dfe6df;
+  box-shadow: 0 12px 30px rgba(15, 58, 43, 0.14);
+  align-items: stretch;
+}
+
+.desktop-auth-panel .auth-wrap input,
+.desktop-auth-panel .auth-wrap button {
+  width: 100%;
+}
+.content > .toolbar {
+  margin-bottom: 18px;
+}
+
+.content > .status-row {
+  margin: 0 0 22px;
+}

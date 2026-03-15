@@ -625,12 +625,14 @@ onMounted(async () => {
 <template>
   <div class="layout" @click="handlePageClick">
     <SidebarMenu :active="store.activeSection" @change="onSectionChange">
-      <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
+      <div class="sidebar-mobile-auth">
+        <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
+      </div>
     </SidebarMenu>
 
     <main class="content">
       <header class="toolbar">
-        <h1>{{ uiLabels.title }}: {{ SECTION_LABELS[store.activeSection] }}</h1>
+        <h1 class="toolbar-title">{{ uiLabels.title }}: {{ SECTION_LABELS[store.activeSection] }}</h1>
         <div class="toolbar-actions">
           <button v-if="store.unlocked" @click="onChooseFile">{{ uiLabels.chooseJson }}</button>
           <button v-if="store.unlocked" @click="openCreate">{{ uiLabels.addFlower }}</button>
@@ -958,6 +960,10 @@ onMounted(async () => {
         <div v-else class="empty mobile-empty">{{ uiLabels.empty }}</div>
       </div>
     </main>
+
+    <div class="desktop-auth-panel">
+      <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
+    </div>
 
     <FlowerEditorModal
       :model-value="editorOpen"
