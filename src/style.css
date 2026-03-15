@@ -1013,10 +1013,16 @@ select {
     width: 100%;
   }
 
-  .mix-price-fields,
-  .mobile-mix-price-fields {
+  .mix-price-fields {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .mobile-card-row-bottom .mobile-mix-price-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    align-items: start;
   }
 
   .sizes {
