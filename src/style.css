@@ -564,12 +564,8 @@ select {
 }
 
 .mobile-card-row-bottom > .mobile-field {
-  grid-template-rows: 22px minmax(0, auto);
+  grid-template-rows: 26px minmax(0, auto);
   align-items: start;
-}
-
-.mobile-card-row-bottom > label.mobile-field {
-  padding-top: 8px;
 }
 
 .mobile-field-compact {
@@ -677,6 +673,13 @@ select {
   text-align: center;
 }
 
+.mobile-card-row-bottom > label.mobile-field > .mobile-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+}
+
 .mobile-card-row-bottom .mobile-input,
 .mobile-card-row-bottom .mobile-pistachio-cell,
 .mobile-card-row-bottom .mobile-mix-price-fields {
@@ -686,8 +689,8 @@ select {
 .mobile-card-row-bottom .mobile-field-head-inline {
   justify-content: center;
   align-items: center;
-  min-height: 22px;
-  height: 22px;
+  min-height: 26px;
+  height: 26px;
   margin-top: 0;
 }
 
@@ -696,7 +699,8 @@ select {
   line-height: 1;
   display: inline-flex;
   align-items: center;
-  min-height: 22px;
+  justify-content: center;
+  min-height: 26px;
 }
 
 .mobile-card-row-bottom .mix-price-item {
@@ -819,13 +823,9 @@ select {
     align-items: stretch;
     justify-items: stretch;
     flex-wrap: nowrap;
-    gap: 10px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 20;
-    min-height: 140px;
+    gap: 6px;
+    position: static;
+    min-height: 0;
   }
 
   .sidebar h2 {
@@ -841,10 +841,10 @@ select {
   .sidebar-menu-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 6px;
     align-items: start;
-    min-height: 84px;
-    grid-auto-rows: 36px;
+    min-height: 0;
+    grid-auto-rows: 34px;
   }
 
   button,
@@ -854,7 +854,7 @@ select {
   }
 
   .content {
-    padding: 158px 10px 10px;
+    padding: 26px 10px 10px;
   }
 
   .toolbar {
@@ -890,9 +890,9 @@ select {
   }
 
   .sidebar {
-    padding: 12px;
-    gap: 10px;
-    overflow: hidden;
+    padding: 8px 12px;
+    gap: 6px;
+    overflow: visible;
   }
 
   .sidebar-footer {
@@ -907,13 +907,13 @@ select {
   .sidebar .auth-wrap input,
   .sidebar .auth-wrap button,
   .menu-btn {
-    min-height: 36px;
+    min-height: 34px;
   }
 
   .menu-btn {
     width: 100%;
     border-radius: 999px;
-    padding: 8px 12px;
+    padding: 6px 10px;
     white-space: nowrap;
     text-align: center;
   }
