@@ -25,6 +25,7 @@ const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de'
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3'
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01'
 const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'] as const
+const MOBILE_SEASONAL_CATEGORY_ORDER = ['peony', 'tulip'] as const
 const uiLabels = {
   title: '\u041f\u0440\u0430\u0439\u0441 \u0431\u0443\u043a\u0435\u0442\u043e\u0432',
   chooseJson: '\u0412\u044b\u0431\u0440\u0430\u0442\u044c JSON',
@@ -47,6 +48,8 @@ const uiLabels = {
   delete: '\u0423\u0434\u0430\u043b\u0438\u0442\u044c',
   enable: '\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u044c',
   empty: '\u0417\u0430\u043f\u0438\u0441\u0435\u0439 \u043d\u0435\u0442 \u0432 \u044d\u0442\u043e\u0439 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438',
+  peonies: '\u041f\u0438\u043e\u043d\u044b',
+  tulips: '\u0422\u044e\u043b\u044c\u043f\u0430\u043d\u044b',
   mobileQtyReset: '\u0441\u0431\u0440\u043e\u0441 \u043d\u0430 \u043c\u0438\u043d\u0438\u043c\u0443\u043c',
 } as const
 const MOBILE_PRIMARY_CATEGORY_LABELS: Record<(typeof MOBILE_PRIMARY_CATEGORY_ORDER)[number], string> = {
@@ -286,23 +289,33 @@ const visibleRows = computed(() => {
   })
 })
 
-const mobileCardSections = computed(() => {
-  if (store.activeSection !== 'osnovnye') {
-    return [{ key: 'all', label: '', items: visibleRows.value, collapsible: false }]
-  }
-
-  return MOBILE_PRIMARY_CATEGORY_ORDER
-    .map((key) => ({
+const mobileSectionDefinitions = computed(() => {
+  if (store.activeSection === 'osnovnye') {
+    return MOBILE_PRIMARY_CATEGORY_ORDER.map((key) => ({
       key,
       label: MOBILE_PRIMARY_CATEGORY_LABELS[key],
-      items: visibleRows.value.filter((item) => getFlowerGroup(item) === key),
-      collapsible: true,
+      matcher: (item: FlowerItem) => getFlowerGroup(item) === key,
     }))
-    .filter((section) => section.items.length > 0)
+  }
+
+  return MOBILE_SEASONAL_CATEGORY_ORDER.map((key) => ({
+    key,
+    label: key === 'peony' ? uiLabels.peonies : uiLabels.tulips,
+    matcher: (item: FlowerItem) => getFlowerGroup(item) === key,
+  }))
 })
 
+const mobileCardSections = computed(() => mobileSectionDefinitions.value
+  .map((section) => ({
+    key: section.key,
+    label: section.label,
+    items: visibleRows.value.filter(section.matcher),
+    collapsible: true,
+  }))
+  .filter((section) => section.items.length > 0))
+
 function getMobileOpenCategoryKey(): string | null {
-  const firstSection = mobileCardSections.value.find((section) => section.collapsible)
+  const firstSection = mobileCardSections.value[0]
   if (!firstSection) {
     return null
   }
@@ -593,9 +606,9 @@ function handlePageClick(event: MouseEvent): void {
 
 function onSectionChange(section: SectionKey): void {
   store.activeSection = section
-  if (section === 'osnovnye') {
-    mobileOpenCategory.value = MOBILE_PRIMARY_CATEGORY_ORDER[0]
-  }
+  mobileOpenCategory.value = section === 'osnovnye'
+    ? MOBILE_PRIMARY_CATEGORY_ORDER[0]
+    : MOBILE_SEASONAL_CATEGORY_ORDER[0]
 }
 
 function openCreate(): void {
@@ -795,7 +808,7 @@ onMounted(async () => {
           </tbody>
         </table>
       </div>
-      <div class="mobile-cards" :class="{ 'mobile-cards-grouped': store.activeSection === 'osnovnye' }">
+      <div class="mobile-cards" :class="{ 'mobile-cards-grouped': mobileCardSections.length > 0 }">
         <template v-if="mobileCardSections.some((section) => section.items.length)">
           <section v-for="section in mobileCardSections" :key="section.key" class="mobile-section">
             <button
