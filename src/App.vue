@@ -605,7 +605,7 @@ function isPistachioLocked(item: FlowerItem): boolean {
 }
 
 function hidesMobilePistachio(item: FlowerItem): boolean {
-  return isChryzaBush250(item) || isChryzaBush300(item)
+  return isTulips(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 
 function usesAutoPistachioQty(item: FlowerItem): boolean {

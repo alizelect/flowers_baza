@@ -540,7 +540,7 @@ function isPistachioLocked(item) {
     return isTulips(item) || isChryzaBush250(item) || isChryzaBush300(item);
 }
 function hidesMobilePistachio(item) {
-    return isChryzaBush250(item) || isChryzaBush300(item);
+    return isTulips(item) || isChryzaBush250(item) || isChryzaBush300(item);
 }
 function usesAutoPistachioQty(item) {
     return isRose150(item) || isRose250(item) || isRose300(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item);
