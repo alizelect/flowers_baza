@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import AuthGate from './components/AuthGate.vue'
 import FlowerEditorModal from './components/FlowerEditorModal.vue'
@@ -26,24 +26,24 @@ const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3'
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01'
 const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'] as const
 const MOBILE_PRIMARY_CATEGORY_LABELS: Record<(typeof MOBILE_PRIMARY_CATEGORY_ORDER)[number], string> = {
-  rose: 'Розы',
-  alstroemerii: 'Альстромерии',
-  carnation: 'Гвоздики',
-  chryza: 'Хризантемы',
-  hydrangea: 'Гортензии',
+  rose: 'Р РѕР·С‹',
+  alstroemerii: 'РђР»СЊСЃС‚СЂРѕРјРµСЂРёРё',
+  carnation: 'Р“РІРѕР·РґРёРєРё',
+  chryza: 'РҐСЂРёР·Р°РЅС‚РµРјС‹',
+  hydrangea: 'Р“РѕСЂС‚РµРЅР·РёРё',
 }
 const MAIN_ORDER = [
-  'Р РћР—Р« РїРѕ 150',
-  'Р РћР—Р« РїРѕ 250',
-  'Р РћР—Р« РїРѕ 300',
-  'РђР›Р¬РЎРўР РћРњР•Р РР',
-  'Р“Р’РћР—Р”РРљР - РѕР±С‹С‡РЅС‹Рµ',
-  'Р“Р’РћР—Р”РРљР - Р»СѓРЅРЅС‹Рµ',
-  'Р“Р’РћР—Р”РРљР - РјРёРєСЃ',
-  'РҐР РР—Рђ - РєСѓСЃС‚РѕРІР°СЏ РїРѕ 250',
-  'РҐР РР—Рђ - РєСѓСЃС‚РѕРІР°СЏ РїРѕ 300',
-  'РҐР РР—Рђ - РѕРґРЅРѕРіРѕР»РѕРІР°СЏ',
-  'Р“РћР РўР•РќР—РР',
+  'Р В Р С›Р вЂ”Р В« Р С—Р С• 150',
+  'Р В Р С›Р вЂ”Р В« Р С—Р С• 250',
+  'Р В Р С›Р вЂ”Р В« Р С—Р С• 300',
+  'Р С’Р вЂєР В¬Р РЋР СћР В Р С›Р СљР вЂўР В Р ВР В',
+  'Р вЂњР вЂ™Р С›Р вЂ”Р вЂќР ВР С™Р В - Р С•Р В±РЎвЂ№РЎвЂЎР Р…РЎвЂ№Р Вµ',
+  'Р вЂњР вЂ™Р С›Р вЂ”Р вЂќР ВР С™Р В - Р В»РЎС“Р Р…Р Р…РЎвЂ№Р Вµ',
+  'Р вЂњР вЂ™Р С›Р вЂ”Р вЂќР ВР С™Р В - Р СР С‘Р С”РЎРѓ',
+  'Р ТђР В Р ВР вЂ”Р С’ - Р С”РЎС“РЎРѓРЎвЂљР С•Р Р†Р В°РЎРЏ Р С—Р С• 250',
+  'Р ТђР В Р ВР вЂ”Р С’ - Р С”РЎС“РЎРѓРЎвЂљР С•Р Р†Р В°РЎРЏ Р С—Р С• 300',
+  'Р ТђР В Р ВР вЂ”Р С’ - Р С•Р Т‘Р Р…Р С•Р С–Р С•Р В»Р С•Р Р†Р В°РЎРЏ',
+  'Р вЂњР С›Р В Р СћР вЂўР СњР вЂ”Р ВР В',
 
 ]
 
@@ -369,17 +369,17 @@ function isRose300(item: FlowerItem): boolean {
 
 function isAlstroemerii(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
-  return name.includes('Р°Р»СЊСЃС‚СЂРѕРјРµСЂРёРё')
+  return name.includes('Р В°Р В»РЎРЉРЎРѓРЎвЂљРЎР‚Р С•Р СР ВµРЎР‚Р С‘Р С‘')
 }
 
 function isCarnationCommon(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
-  return name.includes('РіРІРѕР·РґРёРєРё - РѕР±С‹С‡РЅС‹Рµ')
+  return name.includes('Р С–Р Р†Р С•Р В·Р Т‘Р С‘Р С”Р С‘ - Р С•Р В±РЎвЂ№РЎвЂЎР Р…РЎвЂ№Р Вµ')
 }
 
 function isCarnationMoon(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
-  return name.includes('РіРІРѕР·РґРёРєРё - Р»СѓРЅРЅС‹Рµ')
+  return name.includes('Р С–Р Р†Р С•Р В·Р Т‘Р С‘Р С”Р С‘ - Р В»РЎС“Р Р…Р Р…РЎвЂ№Р Вµ')
 }
 
 function isCarnationMix(item: FlowerItem): boolean {
@@ -388,7 +388,7 @@ function isCarnationMix(item: FlowerItem): boolean {
 
 function isPeonies(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
-  return name.includes('РїРёРѕРЅС‹')
+  return name.includes('Р С—Р С‘Р С•Р Р…РЎвЂ№')
 }
 
 function isTulips(item: FlowerItem): boolean {
@@ -397,7 +397,7 @@ function isTulips(item: FlowerItem): boolean {
 
 function isHydrangea(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
-  return name.includes('РіРѕСЂС‚РµРЅР·РёРё')
+  return name.includes('Р С–Р С•РЎР‚РЎвЂљР ВµР Р…Р В·Р С‘Р С‘')
 }
 
 function isChryzaSingle(item: FlowerItem): boolean {
@@ -605,19 +605,19 @@ onMounted(async () => {
 
     <main class="content">
       <header class="toolbar">
-        <h1>РџСЂР°Р№СЃ Р±СѓРєРµС‚РѕРІ: {{ SECTION_LABELS[store.activeSection] }}</h1>
+        <h1>Р СџРЎР‚Р В°Р в„–РЎРѓ Р В±РЎС“Р С”Р ВµРЎвЂљР С•Р Р†: {{ SECTION_LABELS[store.activeSection] }}</h1>
         <div class="toolbar-actions">
-          <button v-if="store.unlocked" @click="onChooseFile">Р’С‹Р±СЂР°С‚СЊ JSON</button>
-          <button v-if="store.unlocked" @click="openCreate">Р”РѕР±Р°РІРёС‚СЊ С†РІРµС‚РѕРє</button>
+          <button v-if="store.unlocked" @click="onChooseFile">Р вЂ™РЎвЂ№Р В±РЎР‚Р В°РЎвЂљРЎРЉ JSON</button>
+          <button v-if="store.unlocked" @click="openCreate">Р вЂќР С•Р В±Р В°Р Р†Р С‘РЎвЂљРЎРЉ РЎвЂ Р Р†Р ВµРЎвЂљР С•Р С”</button>
         </div>
       </header>
 
-      <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
+
 
       <div v-if="store.unlocked" class="status-row">
-        <span v-if="store.fileName">Р¤Р°Р№Р»: {{ store.fileName }}</span>
-        <span v-else>Р¤Р°Р№Р» РЅРµ РІС‹Р±СЂР°РЅ</span>
-        <span v-if="store.usingFallbackStorage" class="warn">File API РЅРµРґРѕСЃС‚СѓРїРµРЅ, РёСЃРїРѕР»СЊР·СѓРµРј localStorage</span>
+        <span v-if="store.fileName">Р В¤Р В°Р в„–Р В»: {{ store.fileName }}</span>
+        <span v-else>Р В¤Р В°Р в„–Р В» Р Р…Р Вµ Р Р†РЎвЂ№Р В±РЎР‚Р В°Р Р…</span>
+        <span v-if="store.usingFallbackStorage" class="warn">File API Р Р…Р ВµР Т‘Р С•РЎРѓРЎвЂљРЎС“Р С—Р ВµР Р…, Р С‘РЎРѓР С—Р С•Р В»РЎРЉР В·РЎС“Р ВµР С localStorage</span>
         <span v-if="store.saveError" class="error">{{ store.saveError }}</span>
       </div>
 
@@ -636,15 +636,15 @@ onMounted(async () => {
           </colgroup>
           <thead>
             <tr>
-              <th>Р’РёРґ С†РІРµС‚РєР°</th>
-              <th>РљРѕР»РёС‡РµСЃС‚РІРѕ</th>
-              <th><span class="popular-sizes-title">РџРѕРїСѓР»СЏСЂРЅС‹Рµ СЂР°Р·РјРµСЂС‹</span></th>
-              <th class="offer-divider">Р‘РµР· Р°РєС†РёРё</th>
-              <th class="promo-divider">РђРєС†РёСЏ</th>
-              <th class="price-divider">Р¦РµРЅР° С†РІРµС‚РєР°</th>
-              <th>РЈРїР°РєРѕРІРєР°</th>
-              <th>Р¤РёСЃС‚Р°С€РєР°</th>
-              <th v-if="store.unlocked">Р”РµР№СЃС‚РІРёСЏ</th>
+              <th>Р вЂ™Р С‘Р Т‘ РЎвЂ Р Р†Р ВµРЎвЂљР С”Р В°</th>
+              <th>Р С™Р С•Р В»Р С‘РЎвЂЎР ВµРЎРѓРЎвЂљР Р†Р С•</th>
+              <th><span class="popular-sizes-title">Р СџР С•Р С—РЎС“Р В»РЎРЏРЎР‚Р Р…РЎвЂ№Р Вµ РЎР‚Р В°Р В·Р СР ВµРЎР‚РЎвЂ№</span></th>
+              <th class="offer-divider">Р вЂР ВµР В· Р В°Р С”РЎвЂ Р С‘Р С‘</th>
+              <th class="promo-divider">Р С’Р С”РЎвЂ Р С‘РЎРЏ</th>
+              <th class="price-divider">Р В¦Р ВµР Р…Р В° РЎвЂ Р Р†Р ВµРЎвЂљР С”Р В°</th>
+              <th>Р Р€Р С—Р В°Р С”Р С•Р Р†Р С”Р В°</th>
+              <th>Р В¤Р С‘РЎРѓРЎвЂљР В°РЎв‚¬Р С”Р В°</th>
+              <th v-if="store.unlocked">Р вЂќР ВµР в„–РЎРѓРЎвЂљР Р†Р С‘РЎРЏ</th>
             </tr>
           </thead>
           <tbody>
@@ -661,7 +661,7 @@ onMounted(async () => {
                     :value="getQty(item)"
                     @change="chooseQty(item, Number(($event.target as HTMLInputElement).value))"
                   />
-                  <button class="qty-reset" type="button" aria-label="СЃР±СЂРѕСЃ РЅР° 1" @click="resetQty(item)">
+                  <button class="qty-reset" type="button" aria-label="РЎРѓР В±РЎР‚Р С•РЎРѓ Р Р…Р В° 1" @click="resetQty(item)">
                     <img class="qty-reset-icon" :src="resetIcon" alt="" />
                   </button>
                 </div>
@@ -712,7 +712,7 @@ onMounted(async () => {
                       :value="item.unitPrice"
                       @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
                     />
-                    <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} С€С‚.</span>
+                    <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} РЎв‚¬РЎвЂљ.</span>
                   </div>
                   <div class="mix-price-item">
                     <input
@@ -723,7 +723,7 @@ onMounted(async () => {
                       :value="item.secondaryUnitPrice || 0"
                       @input="store.patchFlower(item.id, { secondaryUnitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
                     />
-                    <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} С€С‚.</span>
+                    <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} РЎв‚¬РЎвЂљ.</span>
                   </div>
                 </div>
               </td>
@@ -757,13 +757,13 @@ onMounted(async () => {
               </td>
               <td v-if="store.unlocked">
                 <div class="row-actions">
-                  <button :disabled="!store.unlocked" @click="openEdit(item)">Р РµРґ.</button>
-                  <button :disabled="!store.unlocked" class="danger" @click="store.deleteFlower(item.id)">РЈРґР°Р»РёС‚СЊ</button>
+                  <button :disabled="!store.unlocked" @click="openEdit(item)">Р В Р ВµР Т‘.</button>
+                  <button :disabled="!store.unlocked" class="danger" @click="store.deleteFlower(item.id)">Р Р€Р Т‘Р В°Р В»Р С‘РЎвЂљРЎРЉ</button>
                 </div>
               </td>
             </tr>
             <tr v-if="!visibleRows.length">
-              <td :colspan="store.unlocked ? 9 : 8" class="empty">Р—Р°РїРёСЃРµР№ РЅРµС‚ РІ СЌС‚РѕР№ РєР°С‚РµРіРѕСЂРёРё</td>
+              <td :colspan="store.unlocked ? 9 : 8" class="empty">Р вЂ”Р В°Р С—Р С‘РЎРѓР ВµР в„– Р Р…Р ВµРЎвЂљ Р Р† РЎРЊРЎвЂљР С•Р в„– Р С”Р В°РЎвЂљР ВµР С–Р С•РЎР‚Р С‘Р С‘</td>
             </tr>
           </tbody>
         </table>
@@ -779,7 +779,7 @@ onMounted(async () => {
               @click="selectMobileCategory(section.key)"
             >
               <span>{{ section.label }}</span>
-              <span class="mobile-category-toggle-icon">{{ isMobileCategoryOpen(section.key) ? '−' : '+' }}</span>
+              <span class="mobile-category-toggle-icon">{{ isMobileCategoryOpen(section.key) ? 'в€’' : '+' }}</span>
             </button>
 
             <div v-if="!section.collapsible || isMobileCategoryOpen(section.key)" class="mobile-section-list">
@@ -794,14 +794,14 @@ onMounted(async () => {
                     {{ item.flowerName }}
                   </button>
                   <div v-if="store.unlocked" class="mobile-card-actions">
-                    <button type="button" @click="openEdit(item)">Ред.</button>
-                    <button type="button" class="danger" @click="store.deleteFlower(item.id)">Удалить</button>
+                    <button type="button" @click="openEdit(item)">Р РµРґ.</button>
+                    <button type="button" class="danger" @click="store.deleteFlower(item.id)">РЈРґР°Р»РёС‚СЊ</button>
                   </div>
                 </div>
 
                 <div class="mobile-card-grid">
                   <div class="mobile-field mobile-field-qty">
-                    <span class="mobile-label">Количество</span>
+                    <span class="mobile-label">РљРѕР»РёС‡РµСЃС‚РІРѕ</span>
                     <div class="qty-cell">
                       <input
                         class="center-input qty-select"
@@ -812,14 +812,14 @@ onMounted(async () => {
                         :value="getQty(item)"
                         @change="chooseQty(item, Number(($event.target as HTMLInputElement).value))"
                       />
-                      <button class="qty-reset" type="button" aria-label="сброс на минимум" @click="resetQty(item)">
+                      <button class="qty-reset" type="button" aria-label="СЃР±СЂРѕСЃ РЅР° РјРёРЅРёРјСѓРј" @click="resetQty(item)">
                         <img class="qty-reset-icon" :src="resetIcon" alt="" />
                       </button>
                     </div>
                   </div>
 
                   <div class="mobile-field mobile-field-sizes">
-                    <span class="mobile-label">Популярные размеры</span>
+                    <span class="mobile-label">РџРѕРїСѓР»СЏСЂРЅС‹Рµ СЂР°Р·РјРµСЂС‹</span>
                     <div class="sizes">
                       <button
                         v-for="size in item.popularSizes"
@@ -834,11 +834,11 @@ onMounted(async () => {
 
                   <div class="mobile-metrics">
                     <div class="mobile-metric">
-                      <span class="mobile-label">Без акции</span>
+                      <span class="mobile-label">Р‘РµР· Р°РєС†РёРё</span>
                       <strong :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</strong>
                     </div>
                     <div class="mobile-metric">
-                      <span class="mobile-label">Акция</span>
+                      <span class="mobile-label">РђРєС†РёСЏ</span>
                       <div class="mobile-promo-value">
                         <select
                           class="center-input"
@@ -854,7 +854,7 @@ onMounted(async () => {
                   </div>
 
                   <label class="mobile-field">
-                    <span class="mobile-label">Цена цветка</span>
+                    <span class="mobile-label">Р¦РµРЅР° С†РІРµС‚РєР°</span>
                     <input
                       v-if="!isCarnationMix(item)"
                       class="short-input center-input mobile-input"
@@ -874,7 +874,7 @@ onMounted(async () => {
                           :value="item.unitPrice"
                           @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
                         />
-                        <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} шт.</span>
+                        <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} С€С‚.</span>
                       </div>
                       <div class="mix-price-item">
                         <input
@@ -885,13 +885,13 @@ onMounted(async () => {
                           :value="item.secondaryUnitPrice || 0"
                           @input="store.patchFlower(item.id, { secondaryUnitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
                         />
-                        <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} шт.</span>
+                        <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} С€С‚.</span>
                       </div>
                     </div>
                   </label>
 
                   <label class="mobile-field">
-                    <span class="mobile-label">Упаковка</span>
+                    <span class="mobile-label">РЈРїР°РєРѕРІРєР°</span>
                     <input
                       class="short-input center-input mobile-input"
                       :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
@@ -903,7 +903,7 @@ onMounted(async () => {
                   </label>
 
                   <div class="mobile-field">
-                    <span class="mobile-label">Фисташка</span>
+                    <span class="mobile-label">Р¤РёСЃС‚Р°С€РєР°</span>
                     <div class="pistachio-cell mobile-pistachio-cell">
                       <label class="mobile-checkbox">
                         <input
@@ -912,7 +912,7 @@ onMounted(async () => {
                           :disabled="isPistachioLocked(item)"
                           @change="store.patchFlower(item.id, { hasPistachio: ($event.target as HTMLInputElement).checked })"
                         />
-                        <span>Включить</span>
+                        <span>Р’РєР»СЋС‡РёС‚СЊ</span>
                       </label>
                       <input
                         class="short-input center-input mobile-input"
@@ -930,9 +930,11 @@ onMounted(async () => {
           </section>
         </template>
 
-        <div v-else class="empty mobile-empty">Записей нет в этой категории</div>
+        <div v-else class="empty mobile-empty">Р—Р°РїРёСЃРµР№ РЅРµС‚ РІ СЌС‚РѕР№ РєР°С‚РµРіРѕСЂРёРё</div>
       </div>
     </main>
+
+    <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
 
     <FlowerEditorModal
       :model-value="editorOpen"
@@ -943,6 +945,7 @@ onMounted(async () => {
     />
   </div>
 </template>
+
 
 
 

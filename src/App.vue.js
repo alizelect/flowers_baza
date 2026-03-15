@@ -20,24 +20,24 @@ const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3';
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01';
 const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'];
 const MOBILE_PRIMARY_CATEGORY_LABELS = {
-    rose: 'Розы',
-    alstroemerii: 'Альстромерии',
-    carnation: 'Гвоздики',
-    chryza: 'Хризантемы',
-    hydrangea: 'Гортензии',
+    rose: 'Р РѕР·С‹',
+    alstroemerii: 'РђР»СЊСЃС‚СЂРѕРјРµСЂРёРё',
+    carnation: 'Р“РІРѕР·РґРёРєРё',
+    chryza: 'РҐСЂРёР·Р°РЅС‚РµРјС‹',
+    hydrangea: 'Р“РѕСЂС‚РµРЅР·РёРё',
 };
 const MAIN_ORDER = [
-    'Р РћР—Р« РїРѕ 150',
-    'Р РћР—Р« РїРѕ 250',
-    'Р РћР—Р« РїРѕ 300',
-    'РђР›Р¬РЎРўР РћРњР•Р РР',
-    'Р“Р’РћР—Р”РРљР - РѕР±С‹С‡РЅС‹Рµ',
-    'Р“Р’РћР—Р”РРљР - Р»СѓРЅРЅС‹Рµ',
-    'Р“Р’РћР—Р”РРљР - РјРёРєСЃ',
-    'РҐР РР—Рђ - РєСѓСЃС‚РѕРІР°СЏ РїРѕ 250',
-    'РҐР РР—Рђ - РєСѓСЃС‚РѕРІР°СЏ РїРѕ 300',
-    'РҐР РР—Рђ - РѕРґРЅРѕРіРѕР»РѕРІР°СЏ',
-    'Р“РћР РўР•РќР—РР',
+    'Р В Р С›Р вЂ”Р В« Р С—Р С• 150',
+    'Р В Р С›Р вЂ”Р В« Р С—Р С• 250',
+    'Р В Р С›Р вЂ”Р В« Р С—Р С• 300',
+    'Р С’Р вЂєР В¬Р РЋР СћР В Р С›Р СљР вЂўР В Р ВР В',
+    'Р вЂњР вЂ™Р С›Р вЂ”Р вЂќР ВР С™Р В - Р С•Р В±РЎвЂ№РЎвЂЎР Р…РЎвЂ№Р Вµ',
+    'Р вЂњР вЂ™Р С›Р вЂ”Р вЂќР ВР С™Р В - Р В»РЎС“Р Р…Р Р…РЎвЂ№Р Вµ',
+    'Р вЂњР вЂ™Р С›Р вЂ”Р вЂќР ВР С™Р В - Р СР С‘Р С”РЎРѓ',
+    'Р ТђР В Р ВР вЂ”Р С’ - Р С”РЎС“РЎРѓРЎвЂљР С•Р Р†Р В°РЎРЏ Р С—Р С• 250',
+    'Р ТђР В Р ВР вЂ”Р С’ - Р С”РЎС“РЎРѓРЎвЂљР С•Р Р†Р В°РЎРЏ Р С—Р С• 300',
+    'Р ТђР В Р ВР вЂ”Р С’ - Р С•Р Т‘Р Р…Р С•Р С–Р С•Р В»Р С•Р Р†Р В°РЎРЏ',
+    'Р вЂњР С›Р В Р СћР вЂўР СњР вЂ”Р ВР В',
 ];
 const MAIN_ORDER_INDEX = new Map(MAIN_ORDER.map((name, index) => [name, index]));
 function getMainOrderIndex(item) {
@@ -332,29 +332,29 @@ function isRose300(item) {
 }
 function isAlstroemerii(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('Р°Р»СЊСЃС‚СЂРѕРјРµСЂРёРё');
+    return name.includes('Р В°Р В»РЎРЉРЎРѓРЎвЂљРЎР‚Р С•Р СР ВµРЎР‚Р С‘Р С‘');
 }
 function isCarnationCommon(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('РіРІРѕР·РґРёРєРё - РѕР±С‹С‡РЅС‹Рµ');
+    return name.includes('Р С–Р Р†Р С•Р В·Р Т‘Р С‘Р С”Р С‘ - Р С•Р В±РЎвЂ№РЎвЂЎР Р…РЎвЂ№Р Вµ');
 }
 function isCarnationMoon(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('РіРІРѕР·РґРёРєРё - Р»СѓРЅРЅС‹Рµ');
+    return name.includes('Р С–Р Р†Р С•Р В·Р Т‘Р С‘Р С”Р С‘ - Р В»РЎС“Р Р…Р Р…РЎвЂ№Р Вµ');
 }
 function isCarnationMix(item) {
     return item.id === CARNATION_MIX_ID;
 }
 function isPeonies(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('РїРёРѕРЅС‹');
+    return name.includes('Р С—Р С‘Р С•Р Р…РЎвЂ№');
 }
 function isTulips(item) {
     return item.id === '327eb882-6a93-45c5-bb20-8a53b19bc27e';
 }
 function isHydrangea(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('РіРѕСЂС‚РµРЅР·РёРё');
+    return name.includes('Р С–Р С•РЎР‚РЎвЂљР ВµР Р…Р В·Р С‘Р С‘');
 }
 function isChryzaSingle(item) {
     return item.id === CHRYZA_SINGLE_ID;
@@ -573,23 +573,6 @@ if (__VLS_ctx.store.unlocked) {
         ...{ onClick: (__VLS_ctx.openCreate) },
     });
 }
-if (!__VLS_ctx.store.unlocked) {
-    /** @type {[typeof AuthGate, ]} */ ;
-    // @ts-ignore
-    const __VLS_7 = __VLS_asFunctionalComponent(AuthGate, new AuthGate({
-        ...{ 'onUnlocked': {} },
-    }));
-    const __VLS_8 = __VLS_7({
-        ...{ 'onUnlocked': {} },
-    }, ...__VLS_functionalComponentArgsRest(__VLS_7));
-    let __VLS_10;
-    let __VLS_11;
-    let __VLS_12;
-    const __VLS_13 = {
-        onUnlocked: (__VLS_ctx.store.setUnlocked)
-    };
-    var __VLS_9;
-}
 if (__VLS_ctx.store.unlocked) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "status-row" },
@@ -705,7 +688,7 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
             } },
         ...{ class: "qty-reset" },
         type: "button",
-        'aria-label': "СЃР±СЂРѕСЃ РЅР° 1",
+        'aria-label': "РЎРѓР В±РЎР‚Р С•РЎРѓ Р Р…Р В° 1",
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
         ...{ class: "qty-reset-icon" },
@@ -907,7 +890,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                 ...{ class: "mobile-category-toggle-icon" },
             });
-            (__VLS_ctx.isMobileCategoryOpen(section.key) ? '−' : '+');
+            (__VLS_ctx.isMobileCategoryOpen(section.key) ? 'в€’' : '+');
         }
         if (!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -1001,7 +984,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                         } },
                     ...{ class: "qty-reset" },
                     type: "button",
-                    'aria-label': "сброс на минимум",
+                    'aria-label': "СЃР±СЂРѕСЃ РЅР° РјРёРЅРёРјСѓРј",
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
                     ...{ class: "qty-reset-icon" },
@@ -1216,6 +1199,23 @@ else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "empty mobile-empty" },
     });
+}
+if (!__VLS_ctx.store.unlocked) {
+    /** @type {[typeof AuthGate, ]} */ ;
+    // @ts-ignore
+    const __VLS_7 = __VLS_asFunctionalComponent(AuthGate, new AuthGate({
+        ...{ 'onUnlocked': {} },
+    }));
+    const __VLS_8 = __VLS_7({
+        ...{ 'onUnlocked': {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_7));
+    let __VLS_10;
+    let __VLS_11;
+    let __VLS_12;
+    const __VLS_13 = {
+        onUnlocked: (__VLS_ctx.store.setUnlocked)
+    };
+    var __VLS_9;
 }
 /** @type {[typeof FlowerEditorModal, ]} */ ;
 // @ts-ignore
