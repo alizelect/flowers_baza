@@ -8,6 +8,7 @@ const form = reactive({
     flowerName: '',
     photoUrl: '',
     unitPrice: 0,
+    secondaryUnitPrice: 0,
     packagingPrice: 0,
     hasPistachio: true,
     pistachioQty: 0,
@@ -26,6 +27,7 @@ watch(() => props.modelValue, () => {
         flowerName: props.initial?.flowerName || '',
         photoUrl: '',
         unitPrice: props.initial?.unitPrice ?? 0,
+        secondaryUnitPrice: props.initial?.secondaryUnitPrice ?? 0,
         packagingPrice: props.initial?.packagingPrice ?? 0,
         hasPistachio: props.initial?.hasPistachio ?? true,
         pistachioQty: props.initial?.pistachioQty ?? 0,
@@ -64,6 +66,14 @@ if (__VLS_ctx.modelValue) {
         min: "0",
     });
     (__VLS_ctx.form.unitPrice);
+    if (__VLS_ctx.form.flowerName === 'ГВОЗДИКИ - микс') {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({});
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+            type: "number",
+            min: "0",
+        });
+        (__VLS_ctx.form.secondaryUnitPrice);
+    }
     __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({});
     __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
         type: "number",

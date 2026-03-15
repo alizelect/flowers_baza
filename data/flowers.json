@@ -122,6 +122,27 @@
       ]
     },
     {
+      "id": "9f340ce7-5f4a-4f3d-8e8f-1e165566aa01",
+      "section": "osnovnye",
+      "flowerName": "ГВОЗДИКИ - микс",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 100,
+      "secondaryUnitPrice": 130,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": true,
+      "popularSizes": [
+        9,
+        11,
+        15,
+        25,
+        35
+      ]
+    },
+    {
       "id": "72e51316-081c-46c8-8be2-86871bd63ec1",
       "section": "osnovnye",
       "flowerName": "ХРИЗА - кустовая по 250",

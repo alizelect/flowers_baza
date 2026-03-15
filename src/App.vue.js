@@ -16,6 +16,7 @@ const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1);
 const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1';
 const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de';
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3';
+const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01';
 const MAIN_ORDER = [
     'РОЗЫ по 150',
     'РОЗЫ по 250',
@@ -23,12 +24,18 @@ const MAIN_ORDER = [
     'АЛЬСТРОМЕРИИ',
     'ГВОЗДИКИ - обычные',
     'ГВОЗДИКИ - лунные',
+    'ГВОЗДИКИ - микс',
     'ХРИЗА - кустовая по 250',
     'ХРИЗА - кустовая по 300',
     'ХРИЗА - одноголовая',
     'ГОРТЕНЗИИ',
 ];
 const MAIN_ORDER_INDEX = new Map(MAIN_ORDER.map((name, index) => [name, index]));
+function getMainOrderIndex(item) {
+    if (isCarnationMix(item))
+        return 5.5;
+    return MAIN_ORDER_INDEX.get(item.flowerName.trim()) ?? Number.MAX_SAFE_INTEGER;
+}
 const ROSE_150_PISTACHIO_QTY_BY_ODD = [
     0, 0, 0, 2, 2, 2, 3, 3, 3, 3,
     4, 4, 4, 4, 5, 5, 5, 5, 6, 6,
@@ -68,6 +75,13 @@ const CARNATION_MOON_PISTACHIO_QTY_BY_ODD = [
     8, 8, 9, 9, 9, 9, 10, 10, 10, 10,
     11, 11, 11, 11, 12, 12, 12, 12, 13, 13,
     13,
+];
+const CARNATION_MIX_PISTACHIO_QTY_BY_ODD = [
+    0, 0, 0, 2, 2, 2, 3, 3, 3, 3,
+    3, 4, 4, 4, 4, 5, 5, 5, 5, 6,
+    6, 6, 6, 7, 7, 7, 7, 8, 8, 8,
+    8, 9, 9, 9, 9, 10, 10, 10, 10, 11,
+    11, 11, 11, 12, 12, 12, 12, 13, 13, 13,
 ];
 const ALSTROMERII_PISTACHIO_QTY_BY_ODD = [
     0, 1, 1, 1, 2, 2, 3, 3, 3, 4,
@@ -127,8 +141,8 @@ const ALSTROMERII_PACKAGING_BY_ODD = [
     1290,
 ];
 const CARNATION_COMMON_PACKAGING_BY_ODD = [
-    190, 190, 190, 210, 210, 210, 270, 270, 270, 270,
-    370, 330, 330, 330, 330, 390, 490, 490, 490, 450,
+    90, 190, 190, 190, 210, 210, 210, 270, 270, 270,
+    270, 370, 330, 330, 330, 330, 390, 490, 490, 490,
     450, 450, 550, 610, 610, 610, 710, 570, 570, 570,
     570, 730, 730, 730, 730, 690, 690, 690, 690, 750,
     750, 750, 750, 810, 810, 810, 810, 770, 770, 770,
@@ -140,6 +154,13 @@ const CARNATION_MOON_PACKAGING_BY_ODD = [
     640, 680, 680, 720, 660, 700, 800, 740, 780, 820,
     720, 760, 800, 840, 840, 880, 920, 960, 960, 900,
     940,
+];
+const CARNATION_MIX_PACKAGING_BY_ODD = [
+    160, 130, 200, 190, 260, 230, 360, 230, 300, 370,
+    340, 370, 340, 410, 380, 410, 480, 450, 420, 450,
+    520, 590, 560, 690, 660, 630, 700, 630, 700, 670,
+    640, 670, 640, 710, 680, 810, 780, 750, 820, 750,
+    820, 790, 760, 890, 860, 930, 900, 930, 900, 970,
 ];
 const HYDRANGEA_PACKAGING_BY_ODD = [
     200, 340, 420, 500, 620, 700, 820, 900, 1020, 1200,
@@ -193,8 +214,8 @@ const visibleRows = computed(() => {
     const bySection = store.filteredBySection;
     return [...bySection].sort((a, b) => {
         if (store.activeSection === 'osnovnye') {
-            const ai = MAIN_ORDER_INDEX.get(a.flowerName.trim()) ?? Number.MAX_SAFE_INTEGER;
-            const bi = MAIN_ORDER_INDEX.get(b.flowerName.trim()) ?? Number.MAX_SAFE_INTEGER;
+            const ai = getMainOrderIndex(a);
+            const bi = getMainOrderIndex(b);
             if (ai !== bi)
                 return ai - bi;
             return a.flowerName.localeCompare(b.flowerName, 'ru');
@@ -207,7 +228,7 @@ function getFlowerGroup(item) {
         return 'rose';
     if (isAlstroemerii(item))
         return 'alstroemerii';
-    if (isCarnationCommon(item) || isCarnationMoon(item))
+    if (isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item))
         return 'carnation';
     if (isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item))
         return 'chryza';
@@ -232,24 +253,30 @@ function isGroupStart(item, index) {
     }
     return getFlowerGroup(previous) !== getFlowerGroup(item);
 }
+function getMinQty(item) {
+    return isCarnationMix(item) ? 3 : 1;
+}
 function getMaxQty(item) {
     return 101;
 }
 function normalizeQty(item, value) {
     const odd = toOdd(value);
+    const min = getMinQty(item);
     const max = getMaxQty(item);
-    if (odd < 1)
-        return 1;
+    if (odd < min)
+        return min;
     if (odd > max)
         return max;
     return odd;
 }
 function getQtyOptions(item) {
+    if (isCarnationMix(item))
+        return oddOptions.slice(1);
     return isHydrangea(item) || isChryzaSingle(item) ? hydrangeaOddOptions : oddOptions;
 }
 function getQty(item) {
     if (!qtyMap[item.id]) {
-        qtyMap[item.id] = 1;
+        qtyMap[item.id] = getMinQty(item);
     }
     qtyMap[item.id] = normalizeQty(item, qtyMap[item.id]);
     return qtyMap[item.id];
@@ -278,6 +305,9 @@ function isCarnationMoon(item) {
     const name = item.flowerName.trim().toLowerCase();
     return name.includes('гвоздики - лунные');
 }
+function isCarnationMix(item) {
+    return item.id === CARNATION_MIX_ID;
+}
 function isPeonies(item) {
     const name = item.flowerName.trim().toLowerCase();
     return name.includes('пионы');
@@ -299,13 +329,13 @@ function isChryzaBush300(item) {
     return item.id === CHRYZA_BUSH_300_ID;
 }
 function hasAutoPackagingByQty(item) {
-    return isRose150(item) || isRose250(item) || isRose300(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isHydrangea(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item);
+    return isRose150(item) || isRose250(item) || isRose300(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item);
 }
 function getPackagingPrice(item, qty) {
     if (!hasAutoPackagingByQty(item)) {
         return item.packagingPrice;
     }
-    const idx = (toOdd(qty) - 1) / 2;
+    const idx = isCarnationMix(item) ? (toOdd(qty) - 3) / 2 : (toOdd(qty) - 1) / 2;
     if (isTulips(item)) {
         return TULIP_PACKAGING_BY_ODD[idx] ?? TULIP_PACKAGING_BY_ODD[TULIP_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice;
     }
@@ -327,6 +357,9 @@ function getPackagingPrice(item, qty) {
     if (isCarnationMoon(item)) {
         return CARNATION_MOON_PACKAGING_BY_ODD[idx] ?? CARNATION_MOON_PACKAGING_BY_ODD[CARNATION_MOON_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice;
     }
+    if (isCarnationMix(item)) {
+        return CARNATION_MIX_PACKAGING_BY_ODD[idx] ?? CARNATION_MIX_PACKAGING_BY_ODD[CARNATION_MIX_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice;
+    }
     if (isPeonies(item)) {
         return PEONY_PACKAGING_BY_ODD[idx] ?? PEONY_PACKAGING_BY_ODD[PEONY_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice;
     }
@@ -342,7 +375,7 @@ function getPistachioQty(item, qty) {
     if (isPistachioLocked(item)) {
         return 0;
     }
-    const idx = (toOdd(qty) - 1) / 2;
+    const idx = isCarnationMix(item) ? (toOdd(qty) - 3) / 2 : (toOdd(qty) - 1) / 2;
     if (isRose150(item)) {
         return ROSE_150_PISTACHIO_QTY_BY_ODD[idx] ?? 0;
     }
@@ -357,6 +390,9 @@ function getPistachioQty(item, qty) {
     }
     if (isCarnationMoon(item)) {
         return CARNATION_MOON_PISTACHIO_QTY_BY_ODD[idx] ?? CARNATION_MOON_PISTACHIO_QTY_BY_ODD[CARNATION_MOON_PISTACHIO_QTY_BY_ODD.length - 1] ?? 0;
+    }
+    if (isCarnationMix(item)) {
+        return CARNATION_MIX_PISTACHIO_QTY_BY_ODD[idx] ?? CARNATION_MIX_PISTACHIO_QTY_BY_ODD[CARNATION_MIX_PISTACHIO_QTY_BY_ODD.length - 1] ?? 0;
     }
     if (isAlstroemerii(item)) {
         return ALSTROMERII_PISTACHIO_QTY_BY_ODD[idx] ?? 0;
@@ -397,7 +433,7 @@ function chooseQty(item, value) {
     activeRowId.value = item.id;
 }
 function resetQty(item) {
-    qtyMap[item.id] = 1;
+    qtyMap[item.id] = getMinQty(item);
     activeRowId.value = item.id;
 }
 function chooseSize(item, size) {
@@ -407,8 +443,17 @@ function chooseSize(item, size) {
 function formatPrice(value) {
     return String(Math.round(value));
 }
+function getMixQtySplit(qty) {
+    return {
+        primary: Math.ceil(qty / 2),
+        secondary: Math.floor(qty / 2),
+    };
+}
 function isPistachioLocked(item) {
     return isTulips(item) || isChryzaBush250(item) || isChryzaBush300(item);
+}
+function usesAutoPistachioQty(item) {
+    return isRose150(item) || isRose250(item) || isRose300(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item);
 }
 function clearActiveRow() {
     activeRowId.value = '';
@@ -529,7 +574,7 @@ if (__VLS_ctx.store.unlocked) {
     }
 }
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-    ...{ class: "table-wrap" },
+    ...{ class: "table-wrap desktop-table-wrap" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.table, __VLS_intrinsicElements.table)({
     ...{ class: "price-table" },
@@ -609,7 +654,7 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
             } },
         ...{ class: "center-input qty-select" },
         type: "number",
-        min: "1",
+        min: (__VLS_ctx.getMinQty(item)),
         max: "101",
         step: "2",
         value: (__VLS_ctx.getQty(item)),
@@ -673,16 +718,63 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
         ...{ class: "price-divider" },
     });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-        ...{ onInput: (...[$event]) => {
-                __VLS_ctx.store.patchFlower(item.id, { unitPrice: Number($event.target.value) || 0 });
-            } },
-        ...{ class: "short-input center-input" },
-        disabled: (!__VLS_ctx.store.unlocked),
-        type: "number",
-        min: "0",
-        value: (item.unitPrice),
-    });
+    if (!__VLS_ctx.isCarnationMix(item)) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+            ...{ onInput: (...[$event]) => {
+                    if (!(!__VLS_ctx.isCarnationMix(item)))
+                        return;
+                    __VLS_ctx.store.patchFlower(item.id, { unitPrice: Number($event.target.value) || 0 });
+                } },
+            ...{ class: "short-input center-input" },
+            disabled: (!__VLS_ctx.store.unlocked),
+            type: "number",
+            min: "0",
+            value: (item.unitPrice),
+        });
+    }
+    else {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "mix-price-fields" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "mix-price-item" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+            ...{ onInput: (...[$event]) => {
+                    if (!!(!__VLS_ctx.isCarnationMix(item)))
+                        return;
+                    __VLS_ctx.store.patchFlower(item.id, { unitPrice: Number($event.target.value) || 0 });
+                } },
+            ...{ class: "short-input center-input" },
+            disabled: (!__VLS_ctx.store.unlocked),
+            type: "number",
+            min: "0",
+            value: (item.unitPrice),
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "mix-price-qty" },
+        });
+        (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).primary);
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "mix-price-item" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+            ...{ onInput: (...[$event]) => {
+                    if (!!(!__VLS_ctx.isCarnationMix(item)))
+                        return;
+                    __VLS_ctx.store.patchFlower(item.id, { secondaryUnitPrice: Number($event.target.value) || 0 });
+                } },
+            ...{ class: "short-input center-input" },
+            disabled: (!__VLS_ctx.store.unlocked),
+            type: "number",
+            min: "0",
+            value: (item.secondaryUnitPrice || 0),
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "mix-price-qty" },
+        });
+        (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).secondary);
+    }
     __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
     __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
         ...{ onInput: (...[$event]) => {
@@ -711,7 +803,7 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
                 __VLS_ctx.store.patchFlower(item.id, { pistachioQty: Number($event.target.value) || 0 });
             } },
         ...{ class: "short-input center-input" },
-        disabled: (!__VLS_ctx.store.unlocked || __VLS_ctx.isPistachioLocked(item) || __VLS_ctx.isRose150(item) || __VLS_ctx.isRose250(item) || __VLS_ctx.isRose300(item) || __VLS_ctx.isCarnationCommon(item) || __VLS_ctx.isCarnationMoon(item) || __VLS_ctx.isAlstroemerii(item) || __VLS_ctx.isHydrangea(item) || __VLS_ctx.isPeonies(item) || __VLS_ctx.isChryzaSingle(item)),
+        disabled: (!__VLS_ctx.store.unlocked || __VLS_ctx.isPistachioLocked(item) || __VLS_ctx.usesAutoPistachioQty(item)),
         type: "number",
         min: "0",
         value: (__VLS_ctx.isPistachioLocked(item) ? '' : __VLS_ctx.getPistachioQty(item, __VLS_ctx.getQty(item))),
@@ -745,6 +837,258 @@ if (!__VLS_ctx.visibleRows.length) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
         colspan: (__VLS_ctx.store.unlocked ? 9 : 8),
         ...{ class: "empty" },
+    });
+}
+__VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+    ...{ class: "mobile-cards" },
+});
+for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.article, __VLS_intrinsicElements.article)({
+        key: (item.id),
+        ...{ class: "mobile-card" },
+        ...{ class: ({ 'is-active': __VLS_ctx.activeRowId === item.id, 'group-start': __VLS_ctx.isGroupStart(item, index) }) },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "mobile-card-header" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+        ...{ onClick: (...[$event]) => {
+                __VLS_ctx.activeRowId = item.id;
+            } },
+        ...{ class: "mobile-flower-name" },
+        type: "button",
+    });
+    (item.flowerName);
+    if (__VLS_ctx.store.unlocked) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "mobile-card-actions" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+            ...{ onClick: (...[$event]) => {
+                    if (!(__VLS_ctx.store.unlocked))
+                        return;
+                    __VLS_ctx.openEdit(item);
+                } },
+            type: "button",
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+            ...{ onClick: (...[$event]) => {
+                    if (!(__VLS_ctx.store.unlocked))
+                        return;
+                    __VLS_ctx.store.deleteFlower(item.id);
+                } },
+            type: "button",
+            ...{ class: "danger" },
+        });
+    }
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "mobile-card-grid" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "mobile-field mobile-field-qty" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "mobile-label" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "qty-cell" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+        ...{ onChange: (...[$event]) => {
+                __VLS_ctx.chooseQty(item, Number($event.target.value));
+            } },
+        ...{ class: "center-input qty-select" },
+        type: "number",
+        min: (__VLS_ctx.getMinQty(item)),
+        max: "101",
+        step: "2",
+        value: (__VLS_ctx.getQty(item)),
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+        ...{ onClick: (...[$event]) => {
+                __VLS_ctx.resetQty(item);
+            } },
+        ...{ class: "qty-reset" },
+        type: "button",
+        'aria-label': "����� �� �������",
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
+        ...{ class: "qty-reset-icon" },
+        src: (__VLS_ctx.resetIcon),
+        alt: "",
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "mobile-field mobile-field-sizes" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "mobile-label" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "sizes" },
+    });
+    for (const [size] of __VLS_getVForSourceType((item.popularSizes))) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+            ...{ onClick: (...[$event]) => {
+                    __VLS_ctx.chooseSize(item, size);
+                } },
+            key: (size),
+            ...{ class: ({ active: __VLS_ctx.getQty(item) === size }) },
+        });
+        (size);
+    }
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "mobile-metrics" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "mobile-metric" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "mobile-label" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
+        ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
+    });
+    (__VLS_ctx.formatPrice(__VLS_ctx.calcWithoutPromoForRow(item, __VLS_ctx.getQty(item))));
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "mobile-metric" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "mobile-label" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "mobile-promo-value" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.select, __VLS_intrinsicElements.select)({
+        ...{ onChange: (...[$event]) => {
+                __VLS_ctx.store.patchFlower(item.id, { discountPercent: Number($event.target.value), isPromoEnabled: true });
+            } },
+        ...{ class: "center-input" },
+        value: (item.discountPercent),
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
+        value: (10),
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
+        value: (15),
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
+        ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
+    });
+    (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
+        ...{ class: "mobile-field" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "mobile-label" },
+    });
+    if (!__VLS_ctx.isCarnationMix(item)) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+            ...{ onInput: (...[$event]) => {
+                    if (!(!__VLS_ctx.isCarnationMix(item)))
+                        return;
+                    __VLS_ctx.store.patchFlower(item.id, { unitPrice: Number($event.target.value) || 0 });
+                } },
+            ...{ class: "short-input center-input mobile-input" },
+            disabled: (!__VLS_ctx.store.unlocked),
+            type: "number",
+            min: "0",
+            value: (item.unitPrice),
+        });
+    }
+    else {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "mix-price-fields mobile-mix-price-fields" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "mix-price-item" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+            ...{ onInput: (...[$event]) => {
+                    if (!!(!__VLS_ctx.isCarnationMix(item)))
+                        return;
+                    __VLS_ctx.store.patchFlower(item.id, { unitPrice: Number($event.target.value) || 0 });
+                } },
+            ...{ class: "short-input center-input mobile-input" },
+            disabled: (!__VLS_ctx.store.unlocked),
+            type: "number",
+            min: "0",
+            value: (item.unitPrice),
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "mix-price-qty" },
+        });
+        (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).primary);
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "mix-price-item" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+            ...{ onInput: (...[$event]) => {
+                    if (!!(!__VLS_ctx.isCarnationMix(item)))
+                        return;
+                    __VLS_ctx.store.patchFlower(item.id, { secondaryUnitPrice: Number($event.target.value) || 0 });
+                } },
+            ...{ class: "short-input center-input mobile-input" },
+            disabled: (!__VLS_ctx.store.unlocked),
+            type: "number",
+            min: "0",
+            value: (item.secondaryUnitPrice || 0),
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "mix-price-qty" },
+        });
+        (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).secondary);
+    }
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
+        ...{ class: "mobile-field" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "mobile-label" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+        ...{ onInput: (...[$event]) => {
+                __VLS_ctx.store.patchFlower(item.id, { packagingPrice: Number($event.target.value) || 0 });
+            } },
+        ...{ class: "short-input center-input mobile-input" },
+        disabled: (__VLS_ctx.hasAutoPackagingByQty(item) || !__VLS_ctx.store.unlocked),
+        type: "number",
+        min: "0",
+        value: (__VLS_ctx.getPackagingPrice(item, __VLS_ctx.getQty(item))),
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "mobile-field" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "mobile-label" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "pistachio-cell mobile-pistachio-cell" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
+        ...{ class: "mobile-checkbox" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+        ...{ onChange: (...[$event]) => {
+                __VLS_ctx.store.patchFlower(item.id, { hasPistachio: $event.target.checked });
+            } },
+        type: "checkbox",
+        checked: (__VLS_ctx.isPistachioLocked(item) ? false : item.hasPistachio),
+        disabled: (__VLS_ctx.isPistachioLocked(item)),
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+        ...{ onInput: (...[$event]) => {
+                __VLS_ctx.store.patchFlower(item.id, { pistachioQty: Number($event.target.value) || 0 });
+            } },
+        ...{ class: "short-input center-input mobile-input" },
+        disabled: (!__VLS_ctx.store.unlocked || __VLS_ctx.isPistachioLocked(item) || __VLS_ctx.usesAutoPistachioQty(item)),
+        type: "number",
+        min: "0",
+        value: (__VLS_ctx.isPistachioLocked(item) ? '' : __VLS_ctx.getPistachioQty(item, __VLS_ctx.getQty(item))),
+    });
+}
+if (!__VLS_ctx.visibleRows.length) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "empty mobile-empty" },
     });
 }
 /** @type {[typeof FlowerEditorModal, ]} */ ;
@@ -783,6 +1127,7 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['warn']} */ ;
 /** @type {__VLS_StyleScopedClasses['error']} */ ;
 /** @type {__VLS_StyleScopedClasses['table-wrap']} */ ;
+/** @type {__VLS_StyleScopedClasses['desktop-table-wrap']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-table']} */ ;
 /** @type {__VLS_StyleScopedClasses['popular-sizes-title']} */ ;
 /** @type {__VLS_StyleScopedClasses['offer-divider']} */ ;
@@ -803,6 +1148,15 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['price-divider']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mix-price-fields']} */ ;
+/** @type {__VLS_StyleScopedClasses['mix-price-item']} */ ;
+/** @type {__VLS_StyleScopedClasses['short-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mix-price-qty']} */ ;
+/** @type {__VLS_StyleScopedClasses['mix-price-item']} */ ;
+/** @type {__VLS_StyleScopedClasses['short-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mix-price-qty']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['pistachio-cell']} */ ;
@@ -811,6 +1165,64 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['row-actions']} */ ;
 /** @type {__VLS_StyleScopedClasses['danger']} */ ;
 /** @type {__VLS_StyleScopedClasses['empty']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-cards']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-card-header']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-flower-name']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-card-actions']} */ ;
+/** @type {__VLS_StyleScopedClasses['danger']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-card-grid']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field-qty']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-cell']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-select']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-reset']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-reset-icon']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field-sizes']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
+/** @type {__VLS_StyleScopedClasses['sizes']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-metrics']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-metric']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-metric']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-promo-value']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
+/** @type {__VLS_StyleScopedClasses['short-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mix-price-fields']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-mix-price-fields']} */ ;
+/** @type {__VLS_StyleScopedClasses['mix-price-item']} */ ;
+/** @type {__VLS_StyleScopedClasses['short-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mix-price-qty']} */ ;
+/** @type {__VLS_StyleScopedClasses['mix-price-item']} */ ;
+/** @type {__VLS_StyleScopedClasses['short-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mix-price-qty']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
+/** @type {__VLS_StyleScopedClasses['short-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
+/** @type {__VLS_StyleScopedClasses['pistachio-cell']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-pistachio-cell']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-checkbox']} */ ;
+/** @type {__VLS_StyleScopedClasses['short-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['empty']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-empty']} */ ;
 var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {
@@ -826,16 +1238,9 @@ const __VLS_self = (await import('vue')).defineComponent({
             activeRowId: activeRowId,
             visibleRows: visibleRows,
             isGroupStart: isGroupStart,
+            getMinQty: getMinQty,
             getQty: getQty,
-            isRose150: isRose150,
-            isRose250: isRose250,
-            isRose300: isRose300,
-            isAlstroemerii: isAlstroemerii,
-            isCarnationCommon: isCarnationCommon,
-            isCarnationMoon: isCarnationMoon,
-            isPeonies: isPeonies,
-            isHydrangea: isHydrangea,
-            isChryzaSingle: isChryzaSingle,
+            isCarnationMix: isCarnationMix,
             hasAutoPackagingByQty: hasAutoPackagingByQty,
             getPackagingPrice: getPackagingPrice,
             getPistachioQty: getPistachioQty,
@@ -845,7 +1250,9 @@ const __VLS_self = (await import('vue')).defineComponent({
             resetQty: resetQty,
             chooseSize: chooseSize,
             formatPrice: formatPrice,
+            getMixQtySplit: getMixQtySplit,
             isPistachioLocked: isPistachioLocked,
+            usesAutoPistachioQty: usesAutoPistachioQty,
             handlePageClick: handlePageClick,
             onSectionChange: onSectionChange,
             openCreate: openCreate,

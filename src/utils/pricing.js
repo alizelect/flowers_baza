@@ -3,7 +3,10 @@ export function toOdd(value) {
     return normalized % 2 === 0 ? normalized - 1 : normalized;
 }
 export function calcWithoutPromo(item, qty) {
-    const flowersCost = qty * item.unitPrice;
+    const secondaryUnitPrice = Number(item.secondaryUnitPrice) || 0;
+    const flowersCost = secondaryUnitPrice > 0
+        ? Math.ceil(qty / 2) * item.unitPrice + Math.floor(qty / 2) * secondaryUnitPrice
+        : qty * item.unitPrice;
     const pistachioCost = item.hasPistachio ? item.pistachioQty * item.pistachioUnitPrice : 0;
     return flowersCost + item.packagingPrice + pistachioCost;
 }

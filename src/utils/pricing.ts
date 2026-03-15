@@ -6,7 +6,10 @@ export function toOdd(value: number): number {
 }
 
 export function calcWithoutPromo(item: FlowerItem, qty: number): number {
-  const flowersCost = qty * item.unitPrice
+  const secondaryUnitPrice = Number(item.secondaryUnitPrice) || 0
+  const flowersCost = secondaryUnitPrice > 0
+    ? Math.ceil(qty / 2) * item.unitPrice + Math.floor(qty / 2) * secondaryUnitPrice
+    : qty * item.unitPrice
   const pistachioCost = item.hasPistachio ? item.pistachioQty * item.pistachioUnitPrice : 0
   return flowersCost + item.packagingPrice + pistachioCost
 }

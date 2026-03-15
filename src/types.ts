@@ -6,6 +6,7 @@ export interface FlowerItem {
   flowerName: string
   photoUrl: string
   unitPrice: number
+  secondaryUnitPrice?: number
   packagingPrice: number
   hasPistachio: boolean
   pistachioQty: number

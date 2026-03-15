@@ -17,6 +17,7 @@ const form = reactive<FlowerItem>({
   flowerName: '',
   photoUrl: '',
   unitPrice: 0,
+  secondaryUnitPrice: 0,
   packagingPrice: 0,
   hasPistachio: true,
   pistachioQty: 0,
@@ -38,6 +39,7 @@ watch(
       flowerName: props.initial?.flowerName || '',
       photoUrl: '',
       unitPrice: props.initial?.unitPrice ?? 0,
+      secondaryUnitPrice: props.initial?.secondaryUnitPrice ?? 0,
       packagingPrice: props.initial?.packagingPrice ?? 0,
       hasPistachio: props.initial?.hasPistachio ?? true,
       pistachioQty: props.initial?.pistachioQty ?? 0,
@@ -69,6 +71,10 @@ function submit(): void {
         <label>
           Стоимость цветка (за 1 шт)
           <input v-model.number="form.unitPrice" type="number" min="0" />
+        </label>
+        <label v-if="form.flowerName === 'ГВОЗДИКИ - микс'">
+          Цена второго вида (за 1 шт)
+          <input v-model.number="form.secondaryUnitPrice" type="number" min="0" />
         </label>
         <label>
           Стоимость упаковки

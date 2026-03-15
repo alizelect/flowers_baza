@@ -22,6 +22,7 @@ const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1)
 const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1'
 const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de'
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3'
+const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01'
 
 const MAIN_ORDER = [
   'Р РћР—Р« РїРѕ 150',
@@ -30,6 +31,7 @@ const MAIN_ORDER = [
   'РђР›Р¬РЎРўР РћРњР•Р РР',
   'Р“Р’РћР—Р”РРљР - РѕР±С‹С‡РЅС‹Рµ',
   'Р“Р’РћР—Р”РРљР - Р»СѓРЅРЅС‹Рµ',
+  'Р“Р’РћР—Р”РРљР - РјРёРєСЃ',
   'РҐР РР—Рђ - РєСѓСЃС‚РѕРІР°СЏ РїРѕ 250',
   'РҐР РР—Рђ - РєСѓСЃС‚РѕРІР°СЏ РїРѕ 300',
   'РҐР РР—Рђ - РѕРґРЅРѕРіРѕР»РѕРІР°СЏ',
@@ -38,6 +40,11 @@ const MAIN_ORDER = [
 ]
 
 const MAIN_ORDER_INDEX = new Map(MAIN_ORDER.map((name, index) => [name, index]))
+
+function getMainOrderIndex(item: FlowerItem): number {
+  if (isCarnationMix(item)) return 5.5
+  return MAIN_ORDER_INDEX.get(item.flowerName.trim()) ?? Number.MAX_SAFE_INTEGER
+}
 
 const ROSE_150_PISTACHIO_QTY_BY_ODD = [
   0, 0, 0, 2, 2, 2, 3, 3, 3, 3,
@@ -82,6 +89,14 @@ const CARNATION_MOON_PISTACHIO_QTY_BY_ODD = [
   8, 8, 9, 9, 9, 9, 10, 10, 10, 10,
   11, 11, 11, 11, 12, 12, 12, 12, 13, 13,
   13,
+]
+
+const CARNATION_MIX_PISTACHIO_QTY_BY_ODD = [
+  0, 0, 0, 2, 2, 2, 3, 3, 3, 3,
+  3, 4, 4, 4, 4, 5, 5, 5, 5, 6,
+  6, 6, 6, 7, 7, 7, 7, 8, 8, 8,
+  8, 9, 9, 9, 9, 10, 10, 10, 10, 11,
+  11, 11, 11, 12, 12, 12, 12, 13, 13, 13,
 ]
 
 const ALSTROMERII_PISTACHIO_QTY_BY_ODD = [
@@ -150,8 +165,8 @@ const ALSTROMERII_PACKAGING_BY_ODD = [
 ]
 
 const CARNATION_COMMON_PACKAGING_BY_ODD = [
-  190, 190, 190, 210, 210, 210, 270, 270, 270, 270,
-  370, 330, 330, 330, 330, 390, 490, 490, 490, 450,
+  90, 190, 190, 190, 210, 210, 210, 270, 270, 270,
+  270, 370, 330, 330, 330, 330, 390, 490, 490, 490,
   450, 450, 550, 610, 610, 610, 710, 570, 570, 570,
   570, 730, 730, 730, 730, 690, 690, 690, 690, 750,
   750, 750, 750, 810, 810, 810, 810, 770, 770, 770,
@@ -164,6 +179,14 @@ const CARNATION_MOON_PACKAGING_BY_ODD = [
   640, 680, 680, 720, 660, 700, 800, 740, 780, 820,
   720, 760, 800, 840, 840, 880, 920, 960, 960, 900,
   940,
+]
+
+const CARNATION_MIX_PACKAGING_BY_ODD = [
+  160, 130, 200, 190, 260, 230, 360, 230, 300, 370,
+  340, 370, 340, 410, 380, 410, 480, 450, 420, 450,
+  520, 590, 560, 690, 660, 630, 700, 630, 700, 670,
+  640, 670, 640, 710, 680, 810, 780, 750, 820, 750,
+  820, 790, 760, 890, 860, 930, 900, 930, 900, 970,
 ]
 
 const HYDRANGEA_PACKAGING_BY_ODD = [
@@ -223,8 +246,8 @@ const visibleRows = computed(() => {
   const bySection = store.filteredBySection
   return [...bySection].sort((a, b) => {
     if (store.activeSection === 'osnovnye') {
-      const ai = MAIN_ORDER_INDEX.get(a.flowerName.trim()) ?? Number.MAX_SAFE_INTEGER
-      const bi = MAIN_ORDER_INDEX.get(b.flowerName.trim()) ?? Number.MAX_SAFE_INTEGER
+      const ai = getMainOrderIndex(a)
+      const bi = getMainOrderIndex(b)
       if (ai !== bi) return ai - bi
       return a.flowerName.localeCompare(b.flowerName, 'ru')
     }
@@ -235,7 +258,7 @@ const visibleRows = computed(() => {
 function getFlowerGroup(item: FlowerItem): string {
   if (isRose150(item) || isRose250(item) || isRose300(item)) return 'rose'
   if (isAlstroemerii(item)) return 'alstroemerii'
-  if (isCarnationCommon(item) || isCarnationMoon(item)) return 'carnation'
+  if (isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item)) return 'carnation'
   if (isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item)) return 'chryza'
   if (isHydrangea(item)) return 'hydrangea'
   if (isPeonies(item)) return 'peony'
@@ -257,26 +280,31 @@ function isGroupStart(item: FlowerItem, index: number): boolean {
   return getFlowerGroup(previous) !== getFlowerGroup(item)
 }
 
-function getMaxQty(item: FlowerItem): number {
+function getMinQty(item: FlowerItem): number {
+  return isCarnationMix(item) ? 3 : 1
+}
 
+function getMaxQty(item: FlowerItem): number {
   return 101
 }
 
 function normalizeQty(item: FlowerItem, value: number): number {
   const odd = toOdd(value)
+  const min = getMinQty(item)
   const max = getMaxQty(item)
-  if (odd < 1) return 1
+  if (odd < min) return min
   if (odd > max) return max
   return odd
 }
 
 function getQtyOptions(item: FlowerItem): number[] {
+  if (isCarnationMix(item)) return oddOptions.slice(1)
   return isHydrangea(item) || isChryzaSingle(item) ? hydrangeaOddOptions : oddOptions
 }
 
 function getQty(item: FlowerItem): number {
   if (!qtyMap[item.id]) {
-    qtyMap[item.id] = 1
+    qtyMap[item.id] = getMinQty(item)
   }
   qtyMap[item.id] = normalizeQty(item, qtyMap[item.id])
   return qtyMap[item.id]
@@ -313,6 +341,10 @@ function isCarnationMoon(item: FlowerItem): boolean {
   return name.includes('РіРІРѕР·РґРёРєРё - Р»СѓРЅРЅС‹Рµ')
 }
 
+function isCarnationMix(item: FlowerItem): boolean {
+  return item.id === CARNATION_MIX_ID
+}
+
 function isPeonies(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
   return name.includes('РїРёРѕРЅС‹')
@@ -341,13 +373,13 @@ function isChryzaBush300(item: FlowerItem): boolean {
 
 
 function hasAutoPackagingByQty(item: FlowerItem): boolean {
-  return isRose150(item) || isRose250(item) || isRose300(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isHydrangea(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item)
+  return isRose150(item) || isRose250(item) || isRose300(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 function getPackagingPrice(item: FlowerItem, qty: number): number {
   if (!hasAutoPackagingByQty(item)) {
     return item.packagingPrice
   }
-  const idx = (toOdd(qty) - 1) / 2
+  const idx = isCarnationMix(item) ? (toOdd(qty) - 3) / 2 : (toOdd(qty) - 1) / 2
   if (isTulips(item)) {
     return TULIP_PACKAGING_BY_ODD[idx] ?? TULIP_PACKAGING_BY_ODD[TULIP_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
   }
@@ -369,6 +401,9 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
   if (isCarnationMoon(item)) {
     return CARNATION_MOON_PACKAGING_BY_ODD[idx] ?? CARNATION_MOON_PACKAGING_BY_ODD[CARNATION_MOON_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
   }
+  if (isCarnationMix(item)) {
+    return CARNATION_MIX_PACKAGING_BY_ODD[idx] ?? CARNATION_MIX_PACKAGING_BY_ODD[CARNATION_MIX_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+  }
   if (isPeonies(item)) {
     return PEONY_PACKAGING_BY_ODD[idx] ?? PEONY_PACKAGING_BY_ODD[PEONY_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
   }
@@ -385,7 +420,7 @@ function getPistachioQty(item: FlowerItem, qty: number): number {
   if (isPistachioLocked(item)) {
     return 0
   }
-  const idx = (toOdd(qty) - 1) / 2
+  const idx = isCarnationMix(item) ? (toOdd(qty) - 3) / 2 : (toOdd(qty) - 1) / 2
   if (isRose150(item)) {
     return ROSE_150_PISTACHIO_QTY_BY_ODD[idx] ?? 0
   }
@@ -400,6 +435,9 @@ function getPistachioQty(item: FlowerItem, qty: number): number {
   }
   if (isCarnationMoon(item)) {
     return CARNATION_MOON_PISTACHIO_QTY_BY_ODD[idx] ?? CARNATION_MOON_PISTACHIO_QTY_BY_ODD[CARNATION_MOON_PISTACHIO_QTY_BY_ODD.length - 1] ?? 0
+  }
+  if (isCarnationMix(item)) {
+    return CARNATION_MIX_PISTACHIO_QTY_BY_ODD[idx] ?? CARNATION_MIX_PISTACHIO_QTY_BY_ODD[CARNATION_MIX_PISTACHIO_QTY_BY_ODD.length - 1] ?? 0
   }
   if (isAlstroemerii(item)) {
     return ALSTROMERII_PISTACHIO_QTY_BY_ODD[idx] ?? 0
@@ -451,7 +489,7 @@ function chooseQty(item: FlowerItem, value: number): void {
 }
 
 function resetQty(item: FlowerItem): void {
-  qtyMap[item.id] = 1
+  qtyMap[item.id] = getMinQty(item)
   activeRowId.value = item.id
 }
 
@@ -464,8 +502,19 @@ function formatPrice(value: number): string {
   return String(Math.round(value))
 }
 
+function getMixQtySplit(qty: number): { primary: number; secondary: number } {
+  return {
+    primary: Math.ceil(qty / 2),
+    secondary: Math.floor(qty / 2),
+  }
+}
+
 function isPistachioLocked(item: FlowerItem): boolean {
   return isTulips(item) || isChryzaBush250(item) || isChryzaBush300(item)
+}
+
+function usesAutoPistachioQty(item: FlowerItem): boolean {
+  return isRose150(item) || isRose250(item) || isRose300(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item)
 }
 function clearActiveRow(): void {
   activeRowId.value = ''
@@ -528,7 +577,7 @@ onMounted(async () => {
         <span v-if="store.saveError" class="error">{{ store.saveError }}</span>
       </div>
 
-      <div class="table-wrap">
+      <div class="table-wrap desktop-table-wrap">
         <table class="price-table">
           <colgroup>
             <col style="width: 21%" />
@@ -562,7 +611,7 @@ onMounted(async () => {
                   <input
                     class="center-input qty-select"
                     type="number"
-                    min="1"
+                    :min="getMinQty(item)"
                     max="101"
                     step="2"
                     :value="getQty(item)"
@@ -601,6 +650,7 @@ onMounted(async () => {
               </td>
               <td class="price-divider">
                 <input
+                  v-if="!isCarnationMix(item)"
                   class="short-input center-input"
                   :disabled="!store.unlocked"
                   type="number"
@@ -608,6 +658,30 @@ onMounted(async () => {
                   :value="item.unitPrice"
                   @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
                 />
+                <div v-else class="mix-price-fields">
+                  <div class="mix-price-item">
+                    <input
+                      class="short-input center-input"
+                      :disabled="!store.unlocked"
+                      type="number"
+                      min="0"
+                      :value="item.unitPrice"
+                      @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                    />
+                    <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} С€С‚.</span>
+                  </div>
+                  <div class="mix-price-item">
+                    <input
+                      class="short-input center-input"
+                      :disabled="!store.unlocked"
+                      type="number"
+                      min="0"
+                      :value="item.secondaryUnitPrice || 0"
+                      @input="store.patchFlower(item.id, { secondaryUnitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                    />
+                    <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} С€С‚.</span>
+                  </div>
+                </div>
               </td>
               <td>
                 <input
@@ -629,7 +703,7 @@ onMounted(async () => {
                   />
                   <input
                     class="short-input center-input"
-                    :disabled="!store.unlocked || isPistachioLocked(item) || isRose150(item) || isRose250(item) || isRose300(item) || isCarnationCommon(item) || isCarnationMoon(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item)"
+                    :disabled="!store.unlocked || isPistachioLocked(item) || usesAutoPistachioQty(item)"
                     type="number"
                     min="0"
                     :value="isPistachioLocked(item) ? '' : getPistachioQty(item, getQty(item))"
@@ -650,6 +724,153 @@ onMounted(async () => {
           </tbody>
         </table>
       </div>
+      <div class="mobile-cards">
+        <article
+          v-for="(item, index) in visibleRows"
+          :key="item.id"
+          class="mobile-card"
+          :class="{ 'is-active': activeRowId === item.id, 'group-start': isGroupStart(item, index) }"
+        >
+          <div class="mobile-card-header">
+            <button class="mobile-flower-name" type="button" @click="activeRowId = item.id">
+              {{ item.flowerName }}
+            </button>
+            <div v-if="store.unlocked" class="mobile-card-actions">
+              <button type="button" @click="openEdit(item)">Ред.</button>
+              <button type="button" class="danger" @click="store.deleteFlower(item.id)">Удалить</button>
+            </div>
+          </div>
+
+          <div class="mobile-card-grid">
+            <div class="mobile-field mobile-field-qty">
+              <span class="mobile-label">Количество</span>
+              <div class="qty-cell">
+                <input
+                  class="center-input qty-select"
+                  type="number"
+                  :min="getMinQty(item)"
+                  max="101"
+                  step="2"
+                  :value="getQty(item)"
+                  @change="chooseQty(item, Number(($event.target as HTMLInputElement).value))"
+                />
+                <button class="qty-reset" type="button" aria-label="сброс на минимум" @click="resetQty(item)">
+                  <img class="qty-reset-icon" :src="resetIcon" alt="" />
+                </button>
+              </div>
+            </div>
+
+            <div class="mobile-field mobile-field-sizes">
+              <span class="mobile-label">Популярные размеры</span>
+              <div class="sizes">
+                <button
+                  v-for="size in item.popularSizes"
+                  :key="size"
+                  :class="{ active: getQty(item) === size }"
+                  @click="chooseSize(item, size)"
+                >
+                  {{ size }}
+                </button>
+              </div>
+            </div>
+
+            <div class="mobile-metrics">
+              <div class="mobile-metric">
+                <span class="mobile-label">Без акции</span>
+                <strong :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</strong>
+              </div>
+              <div class="mobile-metric">
+                <span class="mobile-label">Акция</span>
+                <div class="mobile-promo-value">
+                  <select
+                    class="center-input"
+                    :value="item.discountPercent"
+                    @change="store.patchFlower(item.id, { discountPercent: Number(($event.target as HTMLSelectElement).value), isPromoEnabled: true })"
+                  >
+                    <option :value="10">10</option>
+                    <option :value="15">15</option>
+                  </select>
+                  <strong :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <label class="mobile-field">
+              <span class="mobile-label">Цена цветка</span>
+              <input
+                v-if="!isCarnationMix(item)"
+                class="short-input center-input mobile-input"
+                :disabled="!store.unlocked"
+                type="number"
+                min="0"
+                :value="item.unitPrice"
+                @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+              />
+              <div v-else class="mix-price-fields mobile-mix-price-fields">
+                <div class="mix-price-item">
+                  <input
+                    class="short-input center-input mobile-input"
+                    :disabled="!store.unlocked"
+                    type="number"
+                    min="0"
+                    :value="item.unitPrice"
+                    @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                  />
+                  <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} шт.</span>
+                </div>
+                <div class="mix-price-item">
+                  <input
+                    class="short-input center-input mobile-input"
+                    :disabled="!store.unlocked"
+                    type="number"
+                    min="0"
+                    :value="item.secondaryUnitPrice || 0"
+                    @input="store.patchFlower(item.id, { secondaryUnitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                  />
+                  <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} шт.</span>
+                </div>
+              </div>
+            </label>
+
+            <label class="mobile-field">
+              <span class="mobile-label">Упаковка</span>
+              <input
+                class="short-input center-input mobile-input"
+                :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
+                type="number"
+                min="0"
+                :value="getPackagingPrice(item, getQty(item))"
+                @input="store.patchFlower(item.id, { packagingPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+              />
+            </label>
+
+            <div class="mobile-field">
+              <span class="mobile-label">Фисташка</span>
+              <div class="pistachio-cell mobile-pistachio-cell">
+                <label class="mobile-checkbox">
+                  <input
+                    type="checkbox"
+                    :checked="isPistachioLocked(item) ? false : item.hasPistachio"
+                    :disabled="isPistachioLocked(item)"
+                    @change="store.patchFlower(item.id, { hasPistachio: ($event.target as HTMLInputElement).checked })"
+                  />
+                  <span>Включить</span>
+                </label>
+                <input
+                  class="short-input center-input mobile-input"
+                  :disabled="!store.unlocked || isPistachioLocked(item) || usesAutoPistachioQty(item)"
+                  type="number"
+                  min="0"
+                  :value="isPistachioLocked(item) ? '' : getPistachioQty(item, getQty(item))"
+                  @input="store.patchFlower(item.id, { pistachioQty: Number(($event.target as HTMLInputElement).value) || 0 })"
+                />
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <div v-if="!visibleRows.length" class="empty mobile-empty">Записей нет в этой категории</div>
+      </div>
     </main>
 
     <FlowerEditorModal
@@ -661,4 +882,6 @@ onMounted(async () => {
     />
   </div>
 </template>
+
+
 
