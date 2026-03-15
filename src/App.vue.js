@@ -13,22 +13,31 @@ const activeRowId = ref('');
 const qtyMap = reactive({});
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1);
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1);
+const mobileOpenCategory = ref('rose');
 const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1';
 const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de';
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3';
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01';
+const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'];
+const MOBILE_PRIMARY_CATEGORY_LABELS = {
+    rose: 'Розы',
+    alstroemerii: 'Альстромерии',
+    carnation: 'Гвоздики',
+    chryza: 'Хризантемы',
+    hydrangea: 'Гортензии',
+};
 const MAIN_ORDER = [
-    'РОЗЫ по 150',
-    'РОЗЫ по 250',
-    'РОЗЫ по 300',
-    'АЛЬСТРОМЕРИИ',
-    'ГВОЗДИКИ - обычные',
-    'ГВОЗДИКИ - лунные',
-    'ГВОЗДИКИ - микс',
-    'ХРИЗА - кустовая по 250',
-    'ХРИЗА - кустовая по 300',
-    'ХРИЗА - одноголовая',
-    'ГОРТЕНЗИИ',
+    'Р РћР—Р« РїРѕ 150',
+    'Р РћР—Р« РїРѕ 250',
+    'Р РћР—Р« РїРѕ 300',
+    'РђР›Р¬РЎРўР РћРњР•Р РР',
+    'Р“Р’РћР—Р”РРљР - РѕР±С‹С‡РЅС‹Рµ',
+    'Р“Р’РћР—Р”РРљР - Р»СѓРЅРЅС‹Рµ',
+    'Р“Р’РћР—Р”РРљР - РјРёРєСЃ',
+    'РҐР РР—Рђ - РєСѓСЃС‚РѕРІР°СЏ РїРѕ 250',
+    'РҐР РР—Рђ - РєСѓСЃС‚РѕРІР°СЏ РїРѕ 300',
+    'РҐР РР—Рђ - РѕРґРЅРѕРіРѕР»РѕРІР°СЏ',
+    'Р“РћР РўР•РќР—РР',
 ];
 const MAIN_ORDER_INDEX = new Map(MAIN_ORDER.map((name, index) => [name, index]));
 function getMainOrderIndex(item) {
@@ -223,6 +232,34 @@ const visibleRows = computed(() => {
         return a.flowerName.localeCompare(b.flowerName, 'ru');
     });
 });
+const mobileCardSections = computed(() => {
+    if (store.activeSection !== 'osnovnye') {
+        return [{ key: 'all', label: '', items: visibleRows.value, collapsible: false }];
+    }
+    return MOBILE_PRIMARY_CATEGORY_ORDER
+        .map((key) => ({
+        key,
+        label: MOBILE_PRIMARY_CATEGORY_LABELS[key],
+        items: visibleRows.value.filter((item) => getFlowerGroup(item) === key),
+        collapsible: true,
+    }))
+        .filter((section) => section.items.length > 0);
+});
+function getMobileOpenCategoryKey() {
+    const firstSection = mobileCardSections.value.find((section) => section.collapsible);
+    if (!firstSection) {
+        return null;
+    }
+    return mobileCardSections.value.some((section) => section.key === mobileOpenCategory.value)
+        ? mobileOpenCategory.value
+        : firstSection.key;
+}
+function isMobileCategoryOpen(key) {
+    return getMobileOpenCategoryKey() === key;
+}
+function selectMobileCategory(key) {
+    mobileOpenCategory.value = key;
+}
 function getFlowerGroup(item) {
     if (isRose150(item) || isRose250(item) || isRose300(item))
         return 'rose';
@@ -295,29 +332,29 @@ function isRose300(item) {
 }
 function isAlstroemerii(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('альстромерии');
+    return name.includes('Р°Р»СЊСЃС‚СЂРѕРјРµСЂРёРё');
 }
 function isCarnationCommon(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('гвоздики - обычные');
+    return name.includes('РіРІРѕР·РґРёРєРё - РѕР±С‹С‡РЅС‹Рµ');
 }
 function isCarnationMoon(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('гвоздики - лунные');
+    return name.includes('РіРІРѕР·РґРёРєРё - Р»СѓРЅРЅС‹Рµ');
 }
 function isCarnationMix(item) {
     return item.id === CARNATION_MIX_ID;
 }
 function isPeonies(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('пионы');
+    return name.includes('РїРёРѕРЅС‹');
 }
 function isTulips(item) {
     return item.id === '327eb882-6a93-45c5-bb20-8a53b19bc27e';
 }
 function isHydrangea(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('гортензии');
+    return name.includes('РіРѕСЂС‚РµРЅР·РёРё');
 }
 function isChryzaSingle(item) {
     return item.id === CHRYZA_SINGLE_ID;
@@ -468,6 +505,9 @@ function handlePageClick(event) {
 }
 function onSectionChange(section) {
     store.activeSection = section;
+    if (section === 'osnovnye') {
+        mobileOpenCategory.value = MOBILE_PRIMARY_CATEGORY_ORDER[0];
+    }
 }
 function openCreate() {
     editorItem.value = undefined;
@@ -665,7 +705,7 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
             } },
         ...{ class: "qty-reset" },
         type: "button",
-        'aria-label': "сброс на 1",
+        'aria-label': "СЃР±СЂРѕСЃ РЅР° 1",
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
         ...{ class: "qty-reset-icon" },
@@ -841,252 +881,338 @@ if (!__VLS_ctx.visibleRows.length) {
 }
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "mobile-cards" },
+    ...{ class: ({ 'mobile-cards-grouped': __VLS_ctx.store.activeSection === 'osnovnye' }) },
 });
-for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.article, __VLS_intrinsicElements.article)({
-        key: (item.id),
-        ...{ class: "mobile-card" },
-        ...{ class: ({ 'is-active': __VLS_ctx.activeRowId === item.id, 'group-start': __VLS_ctx.isGroupStart(item, index) }) },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "mobile-card-header" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-        ...{ onClick: (...[$event]) => {
-                __VLS_ctx.activeRowId = item.id;
-            } },
-        ...{ class: "mobile-flower-name" },
-        type: "button",
-    });
-    (item.flowerName);
-    if (__VLS_ctx.store.unlocked) {
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "mobile-card-actions" },
+if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
+    for (const [section] of __VLS_getVForSourceType((__VLS_ctx.mobileCardSections))) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.section, __VLS_intrinsicElements.section)({
+            key: (section.key),
+            ...{ class: "mobile-section" },
         });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-            ...{ onClick: (...[$event]) => {
-                    if (!(__VLS_ctx.store.unlocked))
-                        return;
-                    __VLS_ctx.openEdit(item);
-                } },
-            type: "button",
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-            ...{ onClick: (...[$event]) => {
-                    if (!(__VLS_ctx.store.unlocked))
-                        return;
-                    __VLS_ctx.store.deleteFlower(item.id);
-                } },
-            type: "button",
-            ...{ class: "danger" },
-        });
+        if (section.collapsible) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+                ...{ onClick: (...[$event]) => {
+                        if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                            return;
+                        if (!(section.collapsible))
+                            return;
+                        __VLS_ctx.selectMobileCategory(section.key);
+                    } },
+                type: "button",
+                ...{ class: "mobile-category-toggle" },
+                ...{ class: ({ 'is-open': __VLS_ctx.isMobileCategoryOpen(section.key) }) },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+            (section.label);
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "mobile-category-toggle-icon" },
+            });
+            (__VLS_ctx.isMobileCategoryOpen(section.key) ? '−' : '+');
+        }
+        if (!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "mobile-section-list" },
+            });
+            for (const [item] of __VLS_getVForSourceType((section.items))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.article, __VLS_intrinsicElements.article)({
+                    key: (item.id),
+                    ...{ class: "mobile-card" },
+                    ...{ class: ({ 'is-active': __VLS_ctx.activeRowId === item.id }) },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-card-header" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+                    ...{ onClick: (...[$event]) => {
+                            if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                return;
+                            if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                return;
+                            __VLS_ctx.activeRowId = item.id;
+                        } },
+                    ...{ class: "mobile-flower-name" },
+                    type: "button",
+                });
+                (item.flowerName);
+                if (__VLS_ctx.store.unlocked) {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                        ...{ class: "mobile-card-actions" },
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+                        ...{ onClick: (...[$event]) => {
+                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                    return;
+                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                    return;
+                                if (!(__VLS_ctx.store.unlocked))
+                                    return;
+                                __VLS_ctx.openEdit(item);
+                            } },
+                        type: "button",
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+                        ...{ onClick: (...[$event]) => {
+                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                    return;
+                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                    return;
+                                if (!(__VLS_ctx.store.unlocked))
+                                    return;
+                                __VLS_ctx.store.deleteFlower(item.id);
+                            } },
+                        type: "button",
+                        ...{ class: "danger" },
+                    });
+                }
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-card-grid" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-field mobile-field-qty" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "mobile-label" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "qty-cell" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                    ...{ onChange: (...[$event]) => {
+                            if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                return;
+                            if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                return;
+                            __VLS_ctx.chooseQty(item, Number($event.target.value));
+                        } },
+                    ...{ class: "center-input qty-select" },
+                    type: "number",
+                    min: (__VLS_ctx.getMinQty(item)),
+                    max: "101",
+                    step: "2",
+                    value: (__VLS_ctx.getQty(item)),
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+                    ...{ onClick: (...[$event]) => {
+                            if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                return;
+                            if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                return;
+                            __VLS_ctx.resetQty(item);
+                        } },
+                    ...{ class: "qty-reset" },
+                    type: "button",
+                    'aria-label': "сброс на минимум",
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
+                    ...{ class: "qty-reset-icon" },
+                    src: (__VLS_ctx.resetIcon),
+                    alt: "",
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-field mobile-field-sizes" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "mobile-label" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sizes" },
+                });
+                for (const [size] of __VLS_getVForSourceType((item.popularSizes))) {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+                        ...{ onClick: (...[$event]) => {
+                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                    return;
+                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                    return;
+                                __VLS_ctx.chooseSize(item, size);
+                            } },
+                        key: (size),
+                        ...{ class: ({ active: __VLS_ctx.getQty(item) === size }) },
+                    });
+                    (size);
+                }
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-metrics" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-metric" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "mobile-label" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
+                    ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
+                });
+                (__VLS_ctx.formatPrice(__VLS_ctx.calcWithoutPromoForRow(item, __VLS_ctx.getQty(item))));
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-metric" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "mobile-label" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-promo-value" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.select, __VLS_intrinsicElements.select)({
+                    ...{ onChange: (...[$event]) => {
+                            if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                return;
+                            if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                return;
+                            __VLS_ctx.store.patchFlower(item.id, { discountPercent: Number($event.target.value), isPromoEnabled: true });
+                        } },
+                    ...{ class: "center-input" },
+                    value: (item.discountPercent),
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
+                    value: (10),
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
+                    value: (15),
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
+                    ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
+                });
+                (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
+                    ...{ class: "mobile-field" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "mobile-label" },
+                });
+                if (!__VLS_ctx.isCarnationMix(item)) {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                        ...{ onInput: (...[$event]) => {
+                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                    return;
+                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                    return;
+                                if (!(!__VLS_ctx.isCarnationMix(item)))
+                                    return;
+                                __VLS_ctx.store.patchFlower(item.id, { unitPrice: Number($event.target.value) || 0 });
+                            } },
+                        ...{ class: "short-input center-input mobile-input" },
+                        disabled: (!__VLS_ctx.store.unlocked),
+                        type: "number",
+                        min: "0",
+                        value: (item.unitPrice),
+                    });
+                }
+                else {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                        ...{ class: "mix-price-fields mobile-mix-price-fields" },
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                        ...{ class: "mix-price-item" },
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                        ...{ onInput: (...[$event]) => {
+                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                    return;
+                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                    return;
+                                if (!!(!__VLS_ctx.isCarnationMix(item)))
+                                    return;
+                                __VLS_ctx.store.patchFlower(item.id, { unitPrice: Number($event.target.value) || 0 });
+                            } },
+                        ...{ class: "short-input center-input mobile-input" },
+                        disabled: (!__VLS_ctx.store.unlocked),
+                        type: "number",
+                        min: "0",
+                        value: (item.unitPrice),
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                        ...{ class: "mix-price-qty" },
+                    });
+                    (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).primary);
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                        ...{ class: "mix-price-item" },
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                        ...{ onInput: (...[$event]) => {
+                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                    return;
+                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                    return;
+                                if (!!(!__VLS_ctx.isCarnationMix(item)))
+                                    return;
+                                __VLS_ctx.store.patchFlower(item.id, { secondaryUnitPrice: Number($event.target.value) || 0 });
+                            } },
+                        ...{ class: "short-input center-input mobile-input" },
+                        disabled: (!__VLS_ctx.store.unlocked),
+                        type: "number",
+                        min: "0",
+                        value: (item.secondaryUnitPrice || 0),
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                        ...{ class: "mix-price-qty" },
+                    });
+                    (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).secondary);
+                }
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
+                    ...{ class: "mobile-field" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "mobile-label" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                    ...{ onInput: (...[$event]) => {
+                            if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                return;
+                            if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                return;
+                            __VLS_ctx.store.patchFlower(item.id, { packagingPrice: Number($event.target.value) || 0 });
+                        } },
+                    ...{ class: "short-input center-input mobile-input" },
+                    disabled: (__VLS_ctx.hasAutoPackagingByQty(item) || !__VLS_ctx.store.unlocked),
+                    type: "number",
+                    min: "0",
+                    value: (__VLS_ctx.getPackagingPrice(item, __VLS_ctx.getQty(item))),
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-field" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "mobile-label" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "pistachio-cell mobile-pistachio-cell" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
+                    ...{ class: "mobile-checkbox" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                    ...{ onChange: (...[$event]) => {
+                            if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                return;
+                            if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                return;
+                            __VLS_ctx.store.patchFlower(item.id, { hasPistachio: $event.target.checked });
+                        } },
+                    type: "checkbox",
+                    checked: (__VLS_ctx.isPistachioLocked(item) ? false : item.hasPistachio),
+                    disabled: (__VLS_ctx.isPistachioLocked(item)),
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                    ...{ onInput: (...[$event]) => {
+                            if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                return;
+                            if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                return;
+                            __VLS_ctx.store.patchFlower(item.id, { pistachioQty: Number($event.target.value) || 0 });
+                        } },
+                    ...{ class: "short-input center-input mobile-input" },
+                    disabled: (!__VLS_ctx.store.unlocked || __VLS_ctx.isPistachioLocked(item) || __VLS_ctx.usesAutoPistachioQty(item)),
+                    type: "number",
+                    min: "0",
+                    value: (__VLS_ctx.isPistachioLocked(item) ? '' : __VLS_ctx.getPistachioQty(item, __VLS_ctx.getQty(item))),
+                });
+            }
+        }
     }
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "mobile-card-grid" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "mobile-field mobile-field-qty" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "mobile-label" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "qty-cell" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-        ...{ onChange: (...[$event]) => {
-                __VLS_ctx.chooseQty(item, Number($event.target.value));
-            } },
-        ...{ class: "center-input qty-select" },
-        type: "number",
-        min: (__VLS_ctx.getMinQty(item)),
-        max: "101",
-        step: "2",
-        value: (__VLS_ctx.getQty(item)),
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-        ...{ onClick: (...[$event]) => {
-                __VLS_ctx.resetQty(item);
-            } },
-        ...{ class: "qty-reset" },
-        type: "button",
-        'aria-label': "����� �� �������",
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
-        ...{ class: "qty-reset-icon" },
-        src: (__VLS_ctx.resetIcon),
-        alt: "",
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "mobile-field mobile-field-sizes" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "mobile-label" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "sizes" },
-    });
-    for (const [size] of __VLS_getVForSourceType((item.popularSizes))) {
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-            ...{ onClick: (...[$event]) => {
-                    __VLS_ctx.chooseSize(item, size);
-                } },
-            key: (size),
-            ...{ class: ({ active: __VLS_ctx.getQty(item) === size }) },
-        });
-        (size);
-    }
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "mobile-metrics" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "mobile-metric" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "mobile-label" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
-        ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
-    });
-    (__VLS_ctx.formatPrice(__VLS_ctx.calcWithoutPromoForRow(item, __VLS_ctx.getQty(item))));
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "mobile-metric" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "mobile-label" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "mobile-promo-value" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.select, __VLS_intrinsicElements.select)({
-        ...{ onChange: (...[$event]) => {
-                __VLS_ctx.store.patchFlower(item.id, { discountPercent: Number($event.target.value), isPromoEnabled: true });
-            } },
-        ...{ class: "center-input" },
-        value: (item.discountPercent),
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
-        value: (10),
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
-        value: (15),
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
-        ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
-    });
-    (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
-        ...{ class: "mobile-field" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "mobile-label" },
-    });
-    if (!__VLS_ctx.isCarnationMix(item)) {
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-            ...{ onInput: (...[$event]) => {
-                    if (!(!__VLS_ctx.isCarnationMix(item)))
-                        return;
-                    __VLS_ctx.store.patchFlower(item.id, { unitPrice: Number($event.target.value) || 0 });
-                } },
-            ...{ class: "short-input center-input mobile-input" },
-            disabled: (!__VLS_ctx.store.unlocked),
-            type: "number",
-            min: "0",
-            value: (item.unitPrice),
-        });
-    }
-    else {
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "mix-price-fields mobile-mix-price-fields" },
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "mix-price-item" },
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-            ...{ onInput: (...[$event]) => {
-                    if (!!(!__VLS_ctx.isCarnationMix(item)))
-                        return;
-                    __VLS_ctx.store.patchFlower(item.id, { unitPrice: Number($event.target.value) || 0 });
-                } },
-            ...{ class: "short-input center-input mobile-input" },
-            disabled: (!__VLS_ctx.store.unlocked),
-            type: "number",
-            min: "0",
-            value: (item.unitPrice),
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "mix-price-qty" },
-        });
-        (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).primary);
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "mix-price-item" },
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-            ...{ onInput: (...[$event]) => {
-                    if (!!(!__VLS_ctx.isCarnationMix(item)))
-                        return;
-                    __VLS_ctx.store.patchFlower(item.id, { secondaryUnitPrice: Number($event.target.value) || 0 });
-                } },
-            ...{ class: "short-input center-input mobile-input" },
-            disabled: (!__VLS_ctx.store.unlocked),
-            type: "number",
-            min: "0",
-            value: (item.secondaryUnitPrice || 0),
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "mix-price-qty" },
-        });
-        (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).secondary);
-    }
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
-        ...{ class: "mobile-field" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "mobile-label" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-        ...{ onInput: (...[$event]) => {
-                __VLS_ctx.store.patchFlower(item.id, { packagingPrice: Number($event.target.value) || 0 });
-            } },
-        ...{ class: "short-input center-input mobile-input" },
-        disabled: (__VLS_ctx.hasAutoPackagingByQty(item) || !__VLS_ctx.store.unlocked),
-        type: "number",
-        min: "0",
-        value: (__VLS_ctx.getPackagingPrice(item, __VLS_ctx.getQty(item))),
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "mobile-field" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "mobile-label" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "pistachio-cell mobile-pistachio-cell" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
-        ...{ class: "mobile-checkbox" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-        ...{ onChange: (...[$event]) => {
-                __VLS_ctx.store.patchFlower(item.id, { hasPistachio: $event.target.checked });
-            } },
-        type: "checkbox",
-        checked: (__VLS_ctx.isPistachioLocked(item) ? false : item.hasPistachio),
-        disabled: (__VLS_ctx.isPistachioLocked(item)),
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-        ...{ onInput: (...[$event]) => {
-                __VLS_ctx.store.patchFlower(item.id, { pistachioQty: Number($event.target.value) || 0 });
-            } },
-        ...{ class: "short-input center-input mobile-input" },
-        disabled: (!__VLS_ctx.store.unlocked || __VLS_ctx.isPistachioLocked(item) || __VLS_ctx.usesAutoPistachioQty(item)),
-        type: "number",
-        min: "0",
-        value: (__VLS_ctx.isPistachioLocked(item) ? '' : __VLS_ctx.getPistachioQty(item, __VLS_ctx.getQty(item))),
-    });
 }
-if (!__VLS_ctx.visibleRows.length) {
+else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "empty mobile-empty" },
     });
@@ -1166,6 +1292,10 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['danger']} */ ;
 /** @type {__VLS_StyleScopedClasses['empty']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-cards']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-section']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-category-toggle']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-category-toggle-icon']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-section-list']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-card-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-flower-name']} */ ;
@@ -1237,6 +1367,9 @@ const __VLS_self = (await import('vue')).defineComponent({
             editorItem: editorItem,
             activeRowId: activeRowId,
             visibleRows: visibleRows,
+            mobileCardSections: mobileCardSections,
+            isMobileCategoryOpen: isMobileCategoryOpen,
+            selectMobileCategory: selectMobileCategory,
             isGroupStart: isGroupStart,
             getMinQty: getMinQty,
             getQty: getQty,
