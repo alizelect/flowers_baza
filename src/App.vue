@@ -26,12 +26,27 @@ const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3'
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01'
 const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'] as const
 const MOBILE_PRIMARY_CATEGORY_LABELS: Record<(typeof MOBILE_PRIMARY_CATEGORY_ORDER)[number], string> = {
-  rose: 'Р РѕР·С‹',
-  alstroemerii: 'РђР»СЊСЃС‚СЂРѕРјРµСЂРёРё',
-  carnation: 'Р“РІРѕР·РґРёРєРё',
-  chryza: 'РҐСЂРёР·Р°РЅС‚РµРјС‹',
-  hydrangea: 'Р“РѕСЂС‚РµРЅР·РёРё',
+  rose: '\u0420\u043e\u0437\u044b',
+  alstroemerii: '\u0410\u043b\u044c\u0441\u0442\u0440\u043e\u043c\u0435\u0440\u0438\u0438',
+  carnation: '\u0413\u0432\u043e\u0437\u0434\u0438\u043a\u0438',
+  chryza: '\u0425\u0440\u0438\u0437\u0430\u043d\u0442\u0435\u043c\u044b',
+  hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
 }
+const mobileLabels = {
+  edit: '\u0420\u0435\u0434.',
+  delete: '\u0423\u0434\u0430\u043b\u0438\u0442\u044c',
+  qty: '\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e',
+  qtyReset: '\u0441\u0431\u0440\u043e\u0441 \u043d\u0430 \u043c\u0438\u043d\u0438\u043c\u0443\u043c',
+  popularSizes: '\u041f\u043e\u043f\u0443\u043b\u044f\u0440\u043d\u044b\u0435 \u0440\u0430\u0437\u043c\u0435\u0440\u044b',
+  withoutPromo: '\u0411\u0435\u0437 \u0430\u043a\u0446\u0438\u0438',
+  promo: '\u0410\u043a\u0446\u0438\u044f',
+  flowerPrice: '\u0426\u0435\u043d\u0430 \u0446\u0432\u0435\u0442\u043a\u0430',
+  pieces: '\u0448\u0442.',
+  packaging: '\u0423\u043f\u0430\u043a\u043e\u0432\u043a\u0430',
+  pistachio: '\u0424\u0438\u0441\u0442\u0430\u0448\u043a\u0430',
+  enable: '\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u044c',
+  empty: '\u0417\u0430\u043f\u0438\u0441\u0435\u0439 \u043d\u0435\u0442 \u0432 \u044d\u0442\u043e\u0439 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438',
+} as const
 const MAIN_ORDER = [
   'Р В Р С›Р вЂ”Р В« Р С—Р С• 150',
   'Р В Р С›Р вЂ”Р В« Р С—Р С• 250',
@@ -779,7 +794,7 @@ onMounted(async () => {
               @click="selectMobileCategory(section.key)"
             >
               <span>{{ section.label }}</span>
-              <span class="mobile-category-toggle-icon">{{ isMobileCategoryOpen(section.key) ? 'в€’' : '+' }}</span>
+              <span class="mobile-category-toggle-icon">{{ isMobileCategoryOpen(section.key) ? '-' : '+' }}</span>
             </button>
 
             <div v-if="!section.collapsible || isMobileCategoryOpen(section.key)" class="mobile-section-list">
@@ -794,14 +809,14 @@ onMounted(async () => {
                     {{ item.flowerName }}
                   </button>
                   <div v-if="store.unlocked" class="mobile-card-actions">
-                    <button type="button" @click="openEdit(item)">Р РµРґ.</button>
-                    <button type="button" class="danger" @click="store.deleteFlower(item.id)">РЈРґР°Р»РёС‚СЊ</button>
+                    <button type="button" @click="openEdit(item)">{{ mobileLabels.edit }}</button>
+                    <button type="button" class="danger" @click="store.deleteFlower(item.id)">{{ mobileLabels.delete }}</button>
                   </div>
                 </div>
 
                 <div class="mobile-card-grid">
                   <div class="mobile-field mobile-field-qty">
-                    <span class="mobile-label">РљРѕР»РёС‡РµСЃС‚РІРѕ</span>
+                    <span class="mobile-label">{{ mobileLabels.qty }}</span>
                     <div class="qty-cell">
                       <input
                         class="center-input qty-select"
@@ -812,14 +827,14 @@ onMounted(async () => {
                         :value="getQty(item)"
                         @change="chooseQty(item, Number(($event.target as HTMLInputElement).value))"
                       />
-                      <button class="qty-reset" type="button" aria-label="СЃР±СЂРѕСЃ РЅР° РјРёРЅРёРјСѓРј" @click="resetQty(item)">
+                      <button class="qty-reset" type="button" :aria-label="mobileLabels.qtyReset" @click="resetQty(item)">
                         <img class="qty-reset-icon" :src="resetIcon" alt="" />
                       </button>
                     </div>
                   </div>
 
                   <div class="mobile-field mobile-field-sizes">
-                    <span class="mobile-label">РџРѕРїСѓР»СЏСЂРЅС‹Рµ СЂР°Р·РјРµСЂС‹</span>
+                    <span class="mobile-label">{{ mobileLabels.popularSizes }}</span>
                     <div class="sizes">
                       <button
                         v-for="size in item.popularSizes"
@@ -834,11 +849,11 @@ onMounted(async () => {
 
                   <div class="mobile-metrics">
                     <div class="mobile-metric">
-                      <span class="mobile-label">Р‘РµР· Р°РєС†РёРё</span>
+                      <span class="mobile-label">{{ mobileLabels.withoutPromo }}</span>
                       <strong :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</strong>
                     </div>
                     <div class="mobile-metric">
-                      <span class="mobile-label">РђРєС†РёСЏ</span>
+                      <span class="mobile-label">{{ mobileLabels.promo }}</span>
                       <div class="mobile-promo-value">
                         <select
                           class="center-input"
@@ -854,7 +869,7 @@ onMounted(async () => {
                   </div>
 
                   <label class="mobile-field">
-                    <span class="mobile-label">Р¦РµРЅР° С†РІРµС‚РєР°</span>
+                    <span class="mobile-label">{{ mobileLabels.flowerPrice }}</span>
                     <input
                       v-if="!isCarnationMix(item)"
                       class="short-input center-input mobile-input"
@@ -874,7 +889,7 @@ onMounted(async () => {
                           :value="item.unitPrice"
                           @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
                         />
-                        <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} С€С‚.</span>
+                        <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} {{ mobileLabels.pieces }}</span>
                       </div>
                       <div class="mix-price-item">
                         <input
@@ -885,13 +900,13 @@ onMounted(async () => {
                           :value="item.secondaryUnitPrice || 0"
                           @input="store.patchFlower(item.id, { secondaryUnitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
                         />
-                        <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} С€С‚.</span>
+                        <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} {{ mobileLabels.pieces }}</span>
                       </div>
                     </div>
                   </label>
 
                   <label class="mobile-field">
-                    <span class="mobile-label">РЈРїР°РєРѕРІРєР°</span>
+                    <span class="mobile-label">{{ mobileLabels.packaging }}</span>
                     <input
                       class="short-input center-input mobile-input"
                       :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
@@ -903,7 +918,7 @@ onMounted(async () => {
                   </label>
 
                   <div class="mobile-field">
-                    <span class="mobile-label">Р¤РёСЃС‚Р°С€РєР°</span>
+                    <span class="mobile-label">{{ mobileLabels.pistachio }}</span>
                     <div class="pistachio-cell mobile-pistachio-cell">
                       <label class="mobile-checkbox">
                         <input
@@ -912,7 +927,7 @@ onMounted(async () => {
                           :disabled="isPistachioLocked(item)"
                           @change="store.patchFlower(item.id, { hasPistachio: ($event.target as HTMLInputElement).checked })"
                         />
-                        <span>Р’РєР»СЋС‡РёС‚СЊ</span>
+                        <span>{{ mobileLabels.enable }}</span>
                       </label>
                       <input
                         class="short-input center-input mobile-input"
@@ -930,7 +945,7 @@ onMounted(async () => {
           </section>
         </template>
 
-        <div v-else class="empty mobile-empty">Р—Р°РїРёСЃРµР№ РЅРµС‚ РІ СЌС‚РѕР№ РєР°С‚РµРіРѕСЂРёРё</div>
+        <div v-else class="empty mobile-empty">{{ mobileLabels.empty }}</div>
       </div>
     </main>
 

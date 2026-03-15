@@ -20,11 +20,26 @@ const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3';
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01';
 const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'];
 const MOBILE_PRIMARY_CATEGORY_LABELS = {
-    rose: 'Р РѕР·С‹',
-    alstroemerii: 'РђР»СЊСЃС‚СЂРѕРјРµСЂРёРё',
-    carnation: 'Р“РІРѕР·РґРёРєРё',
-    chryza: 'РҐСЂРёР·Р°РЅС‚РµРјС‹',
-    hydrangea: 'Р“РѕСЂС‚РµРЅР·РёРё',
+    rose: '\u0420\u043e\u0437\u044b',
+    alstroemerii: '\u0410\u043b\u044c\u0441\u0442\u0440\u043e\u043c\u0435\u0440\u0438\u0438',
+    carnation: '\u0413\u0432\u043e\u0437\u0434\u0438\u043a\u0438',
+    chryza: '\u0425\u0440\u0438\u0437\u0430\u043d\u0442\u0435\u043c\u044b',
+    hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
+};
+const mobileLabels = {
+    edit: '\u0420\u0435\u0434.',
+    delete: '\u0423\u0434\u0430\u043b\u0438\u0442\u044c',
+    qty: '\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e',
+    qtyReset: '\u0441\u0431\u0440\u043e\u0441 \u043d\u0430 \u043c\u0438\u043d\u0438\u043c\u0443\u043c',
+    popularSizes: '\u041f\u043e\u043f\u0443\u043b\u044f\u0440\u043d\u044b\u0435 \u0440\u0430\u0437\u043c\u0435\u0440\u044b',
+    withoutPromo: '\u0411\u0435\u0437 \u0430\u043a\u0446\u0438\u0438',
+    promo: '\u0410\u043a\u0446\u0438\u044f',
+    flowerPrice: '\u0426\u0435\u043d\u0430 \u0446\u0432\u0435\u0442\u043a\u0430',
+    pieces: '\u0448\u0442.',
+    packaging: '\u0423\u043f\u0430\u043a\u043e\u0432\u043a\u0430',
+    pistachio: '\u0424\u0438\u0441\u0442\u0430\u0448\u043a\u0430',
+    enable: '\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u044c',
+    empty: '\u0417\u0430\u043f\u0438\u0441\u0435\u0439 \u043d\u0435\u0442 \u0432 \u044d\u0442\u043e\u0439 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438',
 };
 const MAIN_ORDER = [
     'Р В Р С›Р вЂ”Р В« Р С—Р С• 150',
@@ -890,7 +905,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                 ...{ class: "mobile-category-toggle-icon" },
             });
-            (__VLS_ctx.isMobileCategoryOpen(section.key) ? 'в€’' : '+');
+            (__VLS_ctx.isMobileCategoryOpen(section.key) ? '-' : '+');
         }
         if (!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -933,6 +948,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                             } },
                         type: "button",
                     });
+                    (__VLS_ctx.mobileLabels.edit);
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
                         ...{ onClick: (...[$event]) => {
                                 if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
@@ -946,6 +962,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                         type: "button",
                         ...{ class: "danger" },
                     });
+                    (__VLS_ctx.mobileLabels.delete);
                 }
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "mobile-card-grid" },
@@ -956,6 +973,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
+                (__VLS_ctx.mobileLabels.qty);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "qty-cell" },
                 });
@@ -984,7 +1002,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                         } },
                     ...{ class: "qty-reset" },
                     type: "button",
-                    'aria-label': "СЃР±СЂРѕСЃ РЅР° РјРёРЅРёРјСѓРј",
+                    'aria-label': (__VLS_ctx.mobileLabels.qtyReset),
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
                     ...{ class: "qty-reset-icon" },
@@ -997,6 +1015,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
+                (__VLS_ctx.mobileLabels.popularSizes);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "sizes" },
                 });
@@ -1023,6 +1042,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
+                (__VLS_ctx.mobileLabels.withoutPromo);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
                     ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
                 });
@@ -1033,6 +1053,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
+                (__VLS_ctx.mobileLabels.promo);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "mobile-promo-value" },
                 });
@@ -1063,6 +1084,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
+                (__VLS_ctx.mobileLabels.flowerPrice);
                 if (!__VLS_ctx.isCarnationMix(item)) {
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
                         ...{ onInput: (...[$event]) => {
@@ -1108,6 +1130,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                         ...{ class: "mix-price-qty" },
                     });
                     (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).primary);
+                    (__VLS_ctx.mobileLabels.pieces);
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                         ...{ class: "mix-price-item" },
                     });
@@ -1131,6 +1154,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                         ...{ class: "mix-price-qty" },
                     });
                     (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).secondary);
+                    (__VLS_ctx.mobileLabels.pieces);
                 }
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
                     ...{ class: "mobile-field" },
@@ -1138,6 +1162,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
+                (__VLS_ctx.mobileLabels.packaging);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
                     ...{ onInput: (...[$event]) => {
                             if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
@@ -1158,6 +1183,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
+                (__VLS_ctx.mobileLabels.pistachio);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "pistachio-cell mobile-pistachio-cell" },
                 });
@@ -1177,6 +1203,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                     disabled: (__VLS_ctx.isPistachioLocked(item)),
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+                (__VLS_ctx.mobileLabels.enable);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
                     ...{ onInput: (...[$event]) => {
                             if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
@@ -1199,6 +1226,7 @@ else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "empty mobile-empty" },
     });
+    (__VLS_ctx.mobileLabels.empty);
 }
 if (!__VLS_ctx.store.unlocked) {
     /** @type {[typeof AuthGate, ]} */ ;
@@ -1366,6 +1394,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             editorOpen: editorOpen,
             editorItem: editorItem,
             activeRowId: activeRowId,
+            mobileLabels: mobileLabels,
             visibleRows: visibleRows,
             mobileCardSections: mobileCardSections,
             isMobileCategoryOpen: isMobileCategoryOpen,
