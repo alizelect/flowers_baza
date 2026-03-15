@@ -1055,6 +1055,9 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                     ...{ class: "mobile-card-grid" },
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-card-row mobile-card-row-top" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "mobile-field mobile-field-qty" },
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
@@ -1121,7 +1124,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                     (size);
                 }
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-                    ...{ class: "mobile-metrics" },
+                    ...{ class: "mobile-card-row mobile-card-row-metrics mobile-metrics" },
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "mobile-metric" },
@@ -1165,8 +1168,11 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                     ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
                 });
                 (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "mobile-card-row mobile-card-row-bottom" },
+                });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
-                    ...{ class: "mobile-field" },
+                    ...{ class: "mobile-field mobile-field-compact" },
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
@@ -1244,7 +1250,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                     (__VLS_ctx.uiLabels.pieces);
                 }
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
-                    ...{ class: "mobile-field" },
+                    ...{ class: "mobile-field mobile-field-compact" },
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
@@ -1265,7 +1271,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                     value: (__VLS_ctx.getPackagingPrice(item, __VLS_ctx.getQty(item))),
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-                    ...{ class: "mobile-field" },
+                    ...{ class: "mobile-field mobile-field-compact mobile-field-pistachio" },
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "mobile-field-head mobile-field-head-inline" },
@@ -1404,6 +1410,8 @@ var __VLS_23;
 /** @type {__VLS_StyleScopedClasses['mobile-card-actions']} */ ;
 /** @type {__VLS_StyleScopedClasses['danger']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-card-grid']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-card-row']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-card-row-top']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field-qty']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
@@ -1416,6 +1424,8 @@ var __VLS_23;
 /** @type {__VLS_StyleScopedClasses['mobile-field-sizes']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
 /** @type {__VLS_StyleScopedClasses['sizes']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-card-row']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-card-row-metrics']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-metrics']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-metric']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
@@ -1423,7 +1433,10 @@ var __VLS_23;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-promo-value']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-card-row']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-card-row-bottom']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field-compact']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
@@ -1441,11 +1454,14 @@ var __VLS_23;
 /** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['mix-price-qty']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field-compact']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field-compact']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field-pistachio']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field-head']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field-head-inline']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;

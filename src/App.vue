@@ -845,39 +845,41 @@ onMounted(async () => {
                 </div>
 
                 <div class="mobile-card-grid">
-                  <div class="mobile-field mobile-field-qty">
-                    <span class="mobile-label">{{ uiLabels.qty }}</span>
-                    <div class="qty-cell">
-                      <input
-                        class="center-input qty-select"
-                        type="number"
-                        :min="getMinQty(item)"
-                        max="101"
-                        step="2"
-                        :value="getQty(item)"
-                        @change="chooseQty(item, Number(($event.target as HTMLInputElement).value))"
-                      />
-                      <button class="qty-reset" type="button" :aria-label="uiLabels.mobileQtyReset" @click="resetQty(item)">
-                        <img class="qty-reset-icon" :src="resetIcon" alt="" />
-                      </button>
+                  <div class="mobile-card-row mobile-card-row-top">
+                    <div class="mobile-field mobile-field-qty">
+                      <span class="mobile-label">{{ uiLabels.qty }}</span>
+                      <div class="qty-cell">
+                        <input
+                          class="center-input qty-select"
+                          type="number"
+                          :min="getMinQty(item)"
+                          max="101"
+                          step="2"
+                          :value="getQty(item)"
+                          @change="chooseQty(item, Number(($event.target as HTMLInputElement).value))"
+                        />
+                        <button class="qty-reset" type="button" :aria-label="uiLabels.mobileQtyReset" @click="resetQty(item)">
+                          <img class="qty-reset-icon" :src="resetIcon" alt="" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="mobile-field mobile-field-sizes">
+                      <span class="mobile-label">{{ uiLabels.popularSizes }}</span>
+                      <div class="sizes">
+                        <button
+                          v-for="size in item.popularSizes"
+                          :key="size"
+                          :class="{ active: getQty(item) === size }"
+                          @click="chooseSize(item, size)"
+                        >
+                          {{ size }}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  <div class="mobile-field mobile-field-sizes">
-                    <span class="mobile-label">{{ uiLabels.popularSizes }}</span>
-                    <div class="sizes">
-                      <button
-                        v-for="size in item.popularSizes"
-                        :key="size"
-                        :class="{ active: getQty(item) === size }"
-                        @click="chooseSize(item, size)"
-                      >
-                        {{ size }}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="mobile-metrics">
+                  <div class="mobile-card-row mobile-card-row-metrics mobile-metrics">
                     <div class="mobile-metric">
                       <span class="mobile-label">{{ uiLabels.withoutPromo }}</span>
                       <strong :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</strong>
@@ -898,76 +900,78 @@ onMounted(async () => {
                     </div>
                   </div>
 
-                  <label class="mobile-field">
-                    <span class="mobile-label">{{ uiLabels.flowerPrice }}</span>
-                    <input
-                      v-if="!isCarnationMix(item)"
-                      class="short-input center-input mobile-input"
-                      :disabled="!store.unlocked"
-                      type="number"
-                      min="0"
-                      :value="item.unitPrice"
-                      @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                    />
-                    <div v-else class="mix-price-fields mobile-mix-price-fields">
-                      <div class="mix-price-item">
-                        <input
-                          class="short-input center-input mobile-input"
-                          :disabled="!store.unlocked"
-                          type="number"
-                          min="0"
-                          :value="item.unitPrice"
-                          @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                        />
-                        <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} {{ uiLabels.pieces }}</span>
-                      </div>
-                      <div class="mix-price-item">
-                        <input
-                          class="short-input center-input mobile-input"
-                          :disabled="!store.unlocked"
-                          type="number"
-                          min="0"
-                          :value="item.secondaryUnitPrice || 0"
-                          @input="store.patchFlower(item.id, { secondaryUnitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                        />
-                        <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} {{ uiLabels.pieces }}</span>
-                      </div>
-                    </div>
-                  </label>
-
-                  <label class="mobile-field">
-                    <span class="mobile-label">{{ uiLabels.packaging }}</span>
-                    <input
-                      class="short-input center-input mobile-input"
-                      :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
-                      type="number"
-                      min="0"
-                      :value="getPackagingPrice(item, getQty(item))"
-                      @input="store.patchFlower(item.id, { packagingPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                    />
-                  </label>
-
-                  <div class="mobile-field">
-                    <div class="mobile-field-head mobile-field-head-inline">
-                      <span class="mobile-label">{{ uiLabels.pistachio }}</span>
-                      <label class="mobile-checkbox mobile-checkbox-inline">
-                        <input
-                          type="checkbox"
-                          :checked="isPistachioLocked(item) ? false : item.hasPistachio"
-                          :disabled="isPistachioLocked(item)"
-                          @change="store.patchFlower(item.id, { hasPistachio: ($event.target as HTMLInputElement).checked })"
-                        />
-                      </label>
-                    </div>
-                    <div class="pistachio-cell mobile-pistachio-cell">
+                  <div class="mobile-card-row mobile-card-row-bottom">
+                    <label class="mobile-field mobile-field-compact">
+                      <span class="mobile-label">{{ uiLabels.flowerPrice }}</span>
                       <input
+                        v-if="!isCarnationMix(item)"
                         class="short-input center-input mobile-input"
-                        :disabled="!store.unlocked || isPistachioLocked(item) || usesAutoPistachioQty(item)"
+                        :disabled="!store.unlocked"
                         type="number"
                         min="0"
-                        :value="isPistachioLocked(item) ? '' : getPistachioQty(item, getQty(item))"
-                        @input="store.patchFlower(item.id, { pistachioQty: Number(($event.target as HTMLInputElement).value) || 0 })"
+                        :value="item.unitPrice"
+                        @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
                       />
+                      <div v-else class="mix-price-fields mobile-mix-price-fields">
+                        <div class="mix-price-item">
+                          <input
+                            class="short-input center-input mobile-input"
+                            :disabled="!store.unlocked"
+                            type="number"
+                            min="0"
+                            :value="item.unitPrice"
+                            @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                          />
+                          <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} {{ uiLabels.pieces }}</span>
+                        </div>
+                        <div class="mix-price-item">
+                          <input
+                            class="short-input center-input mobile-input"
+                            :disabled="!store.unlocked"
+                            type="number"
+                            min="0"
+                            :value="item.secondaryUnitPrice || 0"
+                            @input="store.patchFlower(item.id, { secondaryUnitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                          />
+                          <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} {{ uiLabels.pieces }}</span>
+                        </div>
+                      </div>
+                    </label>
+
+                    <label class="mobile-field mobile-field-compact">
+                      <span class="mobile-label">{{ uiLabels.packaging }}</span>
+                      <input
+                        class="short-input center-input mobile-input"
+                        :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
+                        type="number"
+                        min="0"
+                        :value="getPackagingPrice(item, getQty(item))"
+                        @input="store.patchFlower(item.id, { packagingPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                      />
+                    </label>
+
+                    <div class="mobile-field mobile-field-compact mobile-field-pistachio">
+                      <div class="mobile-field-head mobile-field-head-inline">
+                        <span class="mobile-label">{{ uiLabels.pistachio }}</span>
+                        <label class="mobile-checkbox mobile-checkbox-inline">
+                          <input
+                            type="checkbox"
+                            :checked="isPistachioLocked(item) ? false : item.hasPistachio"
+                            :disabled="isPistachioLocked(item)"
+                            @change="store.patchFlower(item.id, { hasPistachio: ($event.target as HTMLInputElement).checked })"
+                          />
+                        </label>
+                      </div>
+                      <div class="pistachio-cell mobile-pistachio-cell">
+                        <input
+                          class="short-input center-input mobile-input"
+                          :disabled="!store.unlocked || isPistachioLocked(item) || usesAutoPistachioQty(item)"
+                          type="number"
+                          min="0"
+                          :value="isPistachioLocked(item) ? '' : getPistachioQty(item, getQty(item))"
+                          @input="store.patchFlower(item.id, { pistachioQty: Number(($event.target as HTMLInputElement).value) || 0 })"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

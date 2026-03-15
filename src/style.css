@@ -538,8 +538,31 @@ select {
 
 .mobile-card-grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   margin-top: 12px;
+}
+
+.mobile-card-row {
+  display: grid;
+  gap: 10px;
+}
+
+.mobile-card-row-top {
+  grid-template-columns: minmax(0, 110px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.mobile-card-row-bottom {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+.mobile-field-compact {
+  gap: 4px;
+}
+
+.mobile-field-pistachio {
+  align-content: start;
 }
 
 .mobile-field {
