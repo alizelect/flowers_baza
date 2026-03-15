@@ -19,6 +19,30 @@ const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de';
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3';
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01';
 const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'];
+const uiLabels = {
+    title: '\u041f\u0440\u0430\u0439\u0441 \u0431\u0443\u043a\u0435\u0442\u043e\u0432',
+    chooseJson: '\u0412\u044b\u0431\u0440\u0430\u0442\u044c JSON',
+    addFlower: '\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0446\u0432\u0435\u0442\u043e\u043a',
+    file: '\u0424\u0430\u0439\u043b',
+    fileNotChosen: '\u0424\u0430\u0439\u043b \u043d\u0435 \u0432\u044b\u0431\u0440\u0430\u043d',
+    fallbackStorage: 'File API \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d, \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0435\u043c localStorage',
+    flowerKind: '\u0412\u0438\u0434 \u0446\u0432\u0435\u0442\u043a\u0430',
+    qty: '\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e',
+    popularSizes: '\u041f\u043e\u043f\u0443\u043b\u044f\u0440\u043d\u044b\u0435 \u0440\u0430\u0437\u043c\u0435\u0440\u044b',
+    withoutPromo: '\u0411\u0435\u0437 \u0430\u043a\u0446\u0438\u0438',
+    promo: '\u0410\u043a\u0446\u0438\u044f',
+    flowerPrice: '\u0426\u0435\u043d\u0430 \u0446\u0432\u0435\u0442\u043a\u0430',
+    packaging: '\u0423\u043f\u0430\u043a\u043e\u0432\u043a\u0430',
+    pistachio: '\u0424\u0438\u0441\u0442\u0430\u0448\u043a\u0430',
+    actions: '\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f',
+    qtyResetOne: '\u0441\u0431\u0440\u043e\u0441 \u043d\u0430 1',
+    pieces: '\u0448\u0442.',
+    edit: '\u0420\u0435\u0434.',
+    delete: '\u0423\u0434\u0430\u043b\u0438\u0442\u044c',
+    enable: '\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u044c',
+    empty: '\u0417\u0430\u043f\u0438\u0441\u0435\u0439 \u043d\u0435\u0442 \u0432 \u044d\u0442\u043e\u0439 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438',
+    mobileQtyReset: '\u0441\u0431\u0440\u043e\u0441 \u043d\u0430 \u043c\u0438\u043d\u0438\u043c\u0443\u043c',
+};
 const MOBILE_PRIMARY_CATEGORY_LABELS = {
     rose: '\u0420\u043e\u0437\u044b',
     alstroemerii: '\u0410\u043b\u044c\u0441\u0442\u0440\u043e\u043c\u0435\u0440\u0438\u0438',
@@ -26,33 +50,18 @@ const MOBILE_PRIMARY_CATEGORY_LABELS = {
     chryza: '\u0425\u0440\u0438\u0437\u0430\u043d\u0442\u0435\u043c\u044b',
     hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
 };
-const mobileLabels = {
-    edit: '\u0420\u0435\u0434.',
-    delete: '\u0423\u0434\u0430\u043b\u0438\u0442\u044c',
-    qty: '\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e',
-    qtyReset: '\u0441\u0431\u0440\u043e\u0441 \u043d\u0430 \u043c\u0438\u043d\u0438\u043c\u0443\u043c',
-    popularSizes: '\u041f\u043e\u043f\u0443\u043b\u044f\u0440\u043d\u044b\u0435 \u0440\u0430\u0437\u043c\u0435\u0440\u044b',
-    withoutPromo: '\u0411\u0435\u0437 \u0430\u043a\u0446\u0438\u0438',
-    promo: '\u0410\u043a\u0446\u0438\u044f',
-    flowerPrice: '\u0426\u0435\u043d\u0430 \u0446\u0432\u0435\u0442\u043a\u0430',
-    pieces: '\u0448\u0442.',
-    packaging: '\u0423\u043f\u0430\u043a\u043e\u0432\u043a\u0430',
-    pistachio: '\u0424\u0438\u0441\u0442\u0430\u0448\u043a\u0430',
-    enable: '\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u044c',
-    empty: '\u0417\u0430\u043f\u0438\u0441\u0435\u0439 \u043d\u0435\u0442 \u0432 \u044d\u0442\u043e\u0439 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438',
-};
 const MAIN_ORDER = [
-    'Р В Р С›Р вЂ”Р В« Р С—Р С• 150',
-    'Р В Р С›Р вЂ”Р В« Р С—Р С• 250',
-    'Р В Р С›Р вЂ”Р В« Р С—Р С• 300',
-    'Р С’Р вЂєР В¬Р РЋР СћР В Р С›Р СљР вЂўР В Р ВР В',
-    'Р вЂњР вЂ™Р С›Р вЂ”Р вЂќР ВР С™Р В - Р С•Р В±РЎвЂ№РЎвЂЎР Р…РЎвЂ№Р Вµ',
-    'Р вЂњР вЂ™Р С›Р вЂ”Р вЂќР ВР С™Р В - Р В»РЎС“Р Р…Р Р…РЎвЂ№Р Вµ',
-    'Р вЂњР вЂ™Р С›Р вЂ”Р вЂќР ВР С™Р В - Р СР С‘Р С”РЎРѓ',
-    'Р ТђР В Р ВР вЂ”Р С’ - Р С”РЎС“РЎРѓРЎвЂљР С•Р Р†Р В°РЎРЏ Р С—Р С• 250',
-    'Р ТђР В Р ВР вЂ”Р С’ - Р С”РЎС“РЎРѓРЎвЂљР С•Р Р†Р В°РЎРЏ Р С—Р С• 300',
-    'Р ТђР В Р ВР вЂ”Р С’ - Р С•Р Т‘Р Р…Р С•Р С–Р С•Р В»Р С•Р Р†Р В°РЎРЏ',
-    'Р вЂњР С›Р В Р СћР вЂўР СњР вЂ”Р ВР В',
+    '\u0420\u041e\u0417\u042b \u043f\u043e 150',
+    '\u0420\u041e\u0417\u042b \u043f\u043e 250',
+    '\u0420\u041e\u0417\u042b \u043f\u043e 300',
+    '\u0410\u041b\u042c\u0421\u0422\u0420\u041e\u041c\u0415\u0420\u0418\u0418',
+    '\u0413\u0412\u041e\u0417\u0414\u0418\u041a\u0418 - \u043e\u0431\u044b\u0447\u043d\u044b\u0435',
+    '\u0413\u0412\u041e\u0417\u0414\u0418\u041a\u0418 - \u043b\u0443\u043d\u043d\u044b\u0435',
+    '\u0413\u0412\u041e\u0417\u0414\u0418\u041a\u0418 - \u043c\u0438\u043a\u0441',
+    '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 250',
+    '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 300',
+    '\u0425\u0420\u0418\u0417\u0410 - \u043e\u0434\u043d\u043e\u0433\u043e\u043b\u043e\u0432\u0430\u044f',
+    '\u0413\u041e\u0420\u0422\u0415\u041d\u0417\u0418\u0418',
 ];
 const MAIN_ORDER_INDEX = new Map(MAIN_ORDER.map((name, index) => [name, index]));
 function getMainOrderIndex(item) {
@@ -347,29 +356,29 @@ function isRose300(item) {
 }
 function isAlstroemerii(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('Р В°Р В»РЎРЉРЎРѓРЎвЂљРЎР‚Р С•Р СР ВµРЎР‚Р С‘Р С‘');
+    return name.includes('\u0430\u043b\u044c\u0441\u0442\u0440\u043e\u043c\u0435\u0440\u0438\u0438');
 }
 function isCarnationCommon(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('Р С–Р Р†Р С•Р В·Р Т‘Р С‘Р С”Р С‘ - Р С•Р В±РЎвЂ№РЎвЂЎР Р…РЎвЂ№Р Вµ');
+    return name.includes('\u0433\u0432\u043e\u0437\u0434\u0438\u043a\u0438 - \u043e\u0431\u044b\u0447\u043d\u044b\u0435');
 }
 function isCarnationMoon(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('Р С–Р Р†Р С•Р В·Р Т‘Р С‘Р С”Р С‘ - Р В»РЎС“Р Р…Р Р…РЎвЂ№Р Вµ');
+    return name.includes('\u0433\u0432\u043e\u0437\u0434\u0438\u043a\u0438 - \u043b\u0443\u043d\u043d\u044b\u0435');
 }
 function isCarnationMix(item) {
     return item.id === CARNATION_MIX_ID;
 }
 function isPeonies(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('Р С—Р С‘Р С•Р Р…РЎвЂ№');
+    return name.includes('\u043f\u0438\u043e\u043d\u044b');
 }
 function isTulips(item) {
     return item.id === '327eb882-6a93-45c5-bb20-8a53b19bc27e';
 }
 function isHydrangea(item) {
     const name = item.flowerName.trim().toLowerCase();
-    return name.includes('Р С–Р С•РЎР‚РЎвЂљР ВµР Р…Р В·Р С‘Р С‘');
+    return name.includes('\u0433\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438');
 }
 function isChryzaSingle(item) {
     return item.id === CHRYZA_SINGLE_ID;
@@ -574,6 +583,7 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.header, __VLS_intrinsicElement
     ...{ class: "toolbar" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.h1, __VLS_intrinsicElements.h1)({});
+(__VLS_ctx.uiLabels.title);
 (__VLS_ctx.SECTION_LABELS[__VLS_ctx.store.activeSection]);
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "toolbar-actions" },
@@ -582,11 +592,13 @@ if (__VLS_ctx.store.unlocked) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
         ...{ onClick: (__VLS_ctx.onChooseFile) },
     });
+    (__VLS_ctx.uiLabels.chooseJson);
 }
 if (__VLS_ctx.store.unlocked) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
         ...{ onClick: (__VLS_ctx.openCreate) },
     });
+    (__VLS_ctx.uiLabels.addFlower);
 }
 if (__VLS_ctx.store.unlocked) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -594,15 +606,18 @@ if (__VLS_ctx.store.unlocked) {
     });
     if (__VLS_ctx.store.fileName) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+        (__VLS_ctx.uiLabels.file);
         (__VLS_ctx.store.fileName);
     }
     else {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+        (__VLS_ctx.uiLabels.fileNotChosen);
     }
     if (__VLS_ctx.store.usingFallbackStorage) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
             ...{ class: "warn" },
         });
+        (__VLS_ctx.uiLabels.fallbackStorage);
     }
     if (__VLS_ctx.store.saveError) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
@@ -650,24 +665,33 @@ if (__VLS_ctx.store.unlocked) {
 __VLS_asFunctionalElement(__VLS_intrinsicElements.thead, __VLS_intrinsicElements.thead)({});
 __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({});
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
+(__VLS_ctx.uiLabels.flowerKind);
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
+(__VLS_ctx.uiLabels.qty);
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
     ...{ class: "popular-sizes-title" },
 });
+(__VLS_ctx.uiLabels.popularSizes);
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
     ...{ class: "offer-divider" },
 });
+(__VLS_ctx.uiLabels.withoutPromo);
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
     ...{ class: "promo-divider" },
 });
+(__VLS_ctx.uiLabels.promo);
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
     ...{ class: "price-divider" },
 });
+(__VLS_ctx.uiLabels.flowerPrice);
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
+(__VLS_ctx.uiLabels.packaging);
 __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
+(__VLS_ctx.uiLabels.pistachio);
 if (__VLS_ctx.store.unlocked) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({});
+    (__VLS_ctx.uiLabels.actions);
 }
 __VLS_asFunctionalElement(__VLS_intrinsicElements.tbody, __VLS_intrinsicElements.tbody)({});
 for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
@@ -703,7 +727,7 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
             } },
         ...{ class: "qty-reset" },
         type: "button",
-        'aria-label': "РЎРѓР В±РЎР‚Р С•РЎРѓ Р Р…Р В° 1",
+        'aria-label': (__VLS_ctx.uiLabels.qtyResetOne),
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
         ...{ class: "qty-reset-icon" },
@@ -793,6 +817,7 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
             ...{ class: "mix-price-qty" },
         });
         (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).primary);
+        (__VLS_ctx.uiLabels.pieces);
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "mix-price-item" },
         });
@@ -812,6 +837,7 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
             ...{ class: "mix-price-qty" },
         });
         (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).secondary);
+        (__VLS_ctx.uiLabels.pieces);
     }
     __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
     __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
@@ -859,6 +885,7 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
                 } },
             disabled: (!__VLS_ctx.store.unlocked),
         });
+        (__VLS_ctx.uiLabels.edit);
         __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
             ...{ onClick: (...[$event]) => {
                     if (!(__VLS_ctx.store.unlocked))
@@ -868,6 +895,7 @@ for (const [item, index] of __VLS_getVForSourceType((__VLS_ctx.visibleRows))) {
             disabled: (!__VLS_ctx.store.unlocked),
             ...{ class: "danger" },
         });
+        (__VLS_ctx.uiLabels.delete);
     }
 }
 if (!__VLS_ctx.visibleRows.length) {
@@ -876,6 +904,7 @@ if (!__VLS_ctx.visibleRows.length) {
         colspan: (__VLS_ctx.store.unlocked ? 9 : 8),
         ...{ class: "empty" },
     });
+    (__VLS_ctx.uiLabels.empty);
 }
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "mobile-cards" },
@@ -948,7 +977,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                             } },
                         type: "button",
                     });
-                    (__VLS_ctx.mobileLabels.edit);
+                    (__VLS_ctx.uiLabels.edit);
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
                         ...{ onClick: (...[$event]) => {
                                 if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
@@ -962,7 +991,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                         type: "button",
                         ...{ class: "danger" },
                     });
-                    (__VLS_ctx.mobileLabels.delete);
+                    (__VLS_ctx.uiLabels.delete);
                 }
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "mobile-card-grid" },
@@ -973,7 +1002,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
-                (__VLS_ctx.mobileLabels.qty);
+                (__VLS_ctx.uiLabels.qty);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "qty-cell" },
                 });
@@ -1002,7 +1031,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                         } },
                     ...{ class: "qty-reset" },
                     type: "button",
-                    'aria-label': (__VLS_ctx.mobileLabels.qtyReset),
+                    'aria-label': (__VLS_ctx.uiLabels.mobileQtyReset),
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
                     ...{ class: "qty-reset-icon" },
@@ -1015,7 +1044,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
-                (__VLS_ctx.mobileLabels.popularSizes);
+                (__VLS_ctx.uiLabels.popularSizes);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "sizes" },
                 });
@@ -1042,7 +1071,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
-                (__VLS_ctx.mobileLabels.withoutPromo);
+                (__VLS_ctx.uiLabels.withoutPromo);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
                     ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
                 });
@@ -1053,7 +1082,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
-                (__VLS_ctx.mobileLabels.promo);
+                (__VLS_ctx.uiLabels.promo);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "mobile-promo-value" },
                 });
@@ -1084,7 +1113,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
-                (__VLS_ctx.mobileLabels.flowerPrice);
+                (__VLS_ctx.uiLabels.flowerPrice);
                 if (!__VLS_ctx.isCarnationMix(item)) {
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
                         ...{ onInput: (...[$event]) => {
@@ -1130,7 +1159,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                         ...{ class: "mix-price-qty" },
                     });
                     (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).primary);
-                    (__VLS_ctx.mobileLabels.pieces);
+                    (__VLS_ctx.uiLabels.pieces);
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                         ...{ class: "mix-price-item" },
                     });
@@ -1154,7 +1183,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                         ...{ class: "mix-price-qty" },
                     });
                     (__VLS_ctx.getMixQtySplit(__VLS_ctx.getQty(item)).secondary);
-                    (__VLS_ctx.mobileLabels.pieces);
+                    (__VLS_ctx.uiLabels.pieces);
                 }
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
                     ...{ class: "mobile-field" },
@@ -1162,7 +1191,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
-                (__VLS_ctx.mobileLabels.packaging);
+                (__VLS_ctx.uiLabels.packaging);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
                     ...{ onInput: (...[$event]) => {
                             if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
@@ -1183,7 +1212,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                     ...{ class: "mobile-label" },
                 });
-                (__VLS_ctx.mobileLabels.pistachio);
+                (__VLS_ctx.uiLabels.pistachio);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "pistachio-cell mobile-pistachio-cell" },
                 });
@@ -1203,7 +1232,7 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                     disabled: (__VLS_ctx.isPistachioLocked(item)),
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-                (__VLS_ctx.mobileLabels.enable);
+                (__VLS_ctx.uiLabels.enable);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
                     ...{ onInput: (...[$event]) => {
                             if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
@@ -1226,7 +1255,7 @@ else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "empty mobile-empty" },
     });
-    (__VLS_ctx.mobileLabels.empty);
+    (__VLS_ctx.uiLabels.empty);
 }
 if (!__VLS_ctx.store.unlocked) {
     /** @type {[typeof AuthGate, ]} */ ;
@@ -1394,7 +1423,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             editorOpen: editorOpen,
             editorItem: editorItem,
             activeRowId: activeRowId,
-            mobileLabels: mobileLabels,
+            uiLabels: uiLabels,
             visibleRows: visibleRows,
             mobileCardSections: mobileCardSections,
             isMobileCategoryOpen: isMobileCategoryOpen,
