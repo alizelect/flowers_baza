@@ -604,6 +604,10 @@ function isPistachioLocked(item: FlowerItem): boolean {
   return isTulips(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 
+function hidesMobilePistachio(item: FlowerItem): boolean {
+  return isChryzaBush250(item) || isChryzaBush300(item)
+}
+
 function usesAutoPistachioQty(item: FlowerItem): boolean {
   return isRose150(item) || isRose250(item) || isRose300(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item)
 }
@@ -959,7 +963,9 @@ onMounted(async () => {
                       />
                     </label>
 
-                    <div class="mobile-field mobile-field-compact mobile-field-pistachio">
+                    <div v-if="hidesMobilePistachio(item)" class="mobile-field mobile-field-compact mobile-field-pistachio mobile-field-pistachio-empty"></div>
+
+                    <div v-else class="mobile-field mobile-field-compact mobile-field-pistachio">
                       <div class="mobile-field-head mobile-field-head-inline">
                         <span class="mobile-label">{{ uiLabels.pistachio }}</span>
                         <label class="mobile-checkbox mobile-checkbox-inline">

@@ -539,6 +539,9 @@ function getMixQtySplit(qty) {
 function isPistachioLocked(item) {
     return isTulips(item) || isChryzaBush250(item) || isChryzaBush300(item);
 }
+function hidesMobilePistachio(item) {
+    return isChryzaBush250(item) || isChryzaBush300(item);
+}
 function usesAutoPistachioQty(item) {
     return isRose150(item) || isRose250(item) || isRose300(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item);
 }
@@ -1280,48 +1283,59 @@ if (__VLS_ctx.mobileCardSections.some((section) => section.items.length)) {
                     min: "0",
                     value: (__VLS_ctx.getPackagingPrice(item, __VLS_ctx.getQty(item))),
                 });
-                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-                    ...{ class: "mobile-field mobile-field-compact mobile-field-pistachio" },
-                });
-                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-                    ...{ class: "mobile-field-head mobile-field-head-inline" },
-                });
-                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                    ...{ class: "mobile-label" },
-                });
-                (__VLS_ctx.uiLabels.pistachio);
-                __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
-                    ...{ class: "mobile-checkbox mobile-checkbox-inline" },
-                });
-                __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-                    ...{ onChange: (...[$event]) => {
-                            if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
-                                return;
-                            if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
-                                return;
-                            __VLS_ctx.store.patchFlower(item.id, { hasPistachio: $event.target.checked });
-                        } },
-                    type: "checkbox",
-                    checked: (__VLS_ctx.isPistachioLocked(item) ? false : item.hasPistachio),
-                    disabled: (__VLS_ctx.isPistachioLocked(item)),
-                });
-                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-                    ...{ class: "pistachio-cell mobile-pistachio-cell" },
-                });
-                __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-                    ...{ onInput: (...[$event]) => {
-                            if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
-                                return;
-                            if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
-                                return;
-                            __VLS_ctx.store.patchFlower(item.id, { pistachioQty: Number($event.target.value) || 0 });
-                        } },
-                    ...{ class: "short-input center-input mobile-input" },
-                    disabled: (!__VLS_ctx.store.unlocked || __VLS_ctx.isPistachioLocked(item) || __VLS_ctx.usesAutoPistachioQty(item)),
-                    type: "number",
-                    min: "0",
-                    value: (__VLS_ctx.isPistachioLocked(item) ? '' : __VLS_ctx.getPistachioQty(item, __VLS_ctx.getQty(item))),
-                });
+                if (__VLS_ctx.hidesMobilePistachio(item)) {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                        ...{ class: "mobile-field mobile-field-compact mobile-field-pistachio mobile-field-pistachio-empty" },
+                    });
+                }
+                else {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                        ...{ class: "mobile-field mobile-field-compact mobile-field-pistachio" },
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                        ...{ class: "mobile-field-head mobile-field-head-inline" },
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                        ...{ class: "mobile-label" },
+                    });
+                    (__VLS_ctx.uiLabels.pistachio);
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
+                        ...{ class: "mobile-checkbox mobile-checkbox-inline" },
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                        ...{ onChange: (...[$event]) => {
+                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                    return;
+                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                    return;
+                                if (!!(__VLS_ctx.hidesMobilePistachio(item)))
+                                    return;
+                                __VLS_ctx.store.patchFlower(item.id, { hasPistachio: $event.target.checked });
+                            } },
+                        type: "checkbox",
+                        checked: (__VLS_ctx.isPistachioLocked(item) ? false : item.hasPistachio),
+                        disabled: (__VLS_ctx.isPistachioLocked(item)),
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                        ...{ class: "pistachio-cell mobile-pistachio-cell" },
+                    });
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                        ...{ onInput: (...[$event]) => {
+                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                    return;
+                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                    return;
+                                if (!!(__VLS_ctx.hidesMobilePistachio(item)))
+                                    return;
+                                __VLS_ctx.store.patchFlower(item.id, { pistachioQty: Number($event.target.value) || 0 });
+                            } },
+                        ...{ class: "short-input center-input mobile-input" },
+                        disabled: (!__VLS_ctx.store.unlocked || __VLS_ctx.isPistachioLocked(item) || __VLS_ctx.usesAutoPistachioQty(item)),
+                        type: "number",
+                        min: "0",
+                        value: (__VLS_ctx.isPistachioLocked(item) ? '' : __VLS_ctx.getPistachioQty(item, __VLS_ctx.getQty(item))),
+                    });
+                }
             }
         }
     }
@@ -1472,6 +1486,10 @@ var __VLS_23;
 /** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field-compact']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field-pistachio']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field-pistachio-empty']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field-compact']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-field-pistachio']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field-head']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field-head-inline']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
@@ -1517,6 +1535,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             formatPrice: formatPrice,
             getMixQtySplit: getMixQtySplit,
             isPistachioLocked: isPistachioLocked,
+            hidesMobilePistachio: hidesMobilePistachio,
             usesAutoPistachioQty: usesAutoPistachioQty,
             handlePageClick: handlePageClick,
             onSectionChange: onSectionChange,
