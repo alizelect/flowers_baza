@@ -568,6 +568,10 @@ select {
   align-items: start;
 }
 
+.mobile-card-row-bottom > label.mobile-field {
+  padding-top: 8px;
+}
+
 .mobile-field-compact {
   gap: 4px;
   align-content: start;
@@ -684,6 +688,7 @@ select {
   align-items: center;
   min-height: 22px;
   height: 22px;
+  margin-top: 0;
 }
 
 .mobile-card-row-bottom .mobile-field-head-inline .mobile-label {
@@ -820,7 +825,7 @@ select {
     left: 0;
     right: 0;
     z-index: 20;
-    min-height: 198px;
+    min-height: 140px;
   }
 
   .sidebar h2 {
@@ -838,8 +843,8 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     align-items: start;
-    min-height: 92px;
-    grid-auto-rows: 42px;
+    min-height: 84px;
+    grid-auto-rows: 36px;
   }
 
   button,
@@ -849,7 +854,7 @@ select {
   }
 
   .content {
-    padding: 218px 10px 10px;
+    padding: 158px 10px 10px;
   }
 
   .toolbar {
@@ -902,7 +907,7 @@ select {
   .sidebar .auth-wrap input,
   .sidebar .auth-wrap button,
   .menu-btn {
-    min-height: 42px;
+    min-height: 36px;
   }
 
   .menu-btn {
