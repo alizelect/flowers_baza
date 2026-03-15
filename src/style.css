@@ -563,6 +563,11 @@ select {
   align-items: start;
 }
 
+.mobile-card-row-bottom > .mobile-field {
+  grid-template-rows: 22px minmax(0, auto);
+  align-items: start;
+}
+
 .mobile-field-compact {
   gap: 4px;
   align-content: start;
@@ -677,12 +682,16 @@ select {
 .mobile-card-row-bottom .mobile-field-head-inline {
   justify-content: center;
   align-items: center;
-  min-height: 14px;
+  min-height: 22px;
+  height: 22px;
 }
 
 .mobile-card-row-bottom .mobile-field-head-inline .mobile-label {
   text-align: center;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
 }
 
 .mobile-card-row-bottom .mix-price-item {
@@ -806,9 +815,12 @@ select {
     justify-items: stretch;
     flex-wrap: nowrap;
     gap: 10px;
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 6;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    min-height: 198px;
   }
 
   .sidebar h2 {
@@ -827,6 +839,7 @@ select {
     gap: 8px;
     align-items: start;
     min-height: 92px;
+    grid-auto-rows: 42px;
   }
 
   button,
@@ -836,7 +849,7 @@ select {
   }
 
   .content {
-    padding: 10px;
+    padding: 218px 10px 10px;
   }
 
   .toolbar {
@@ -874,6 +887,7 @@ select {
   .sidebar {
     padding: 12px;
     gap: 10px;
+    overflow: hidden;
   }
 
   .sidebar-footer {
