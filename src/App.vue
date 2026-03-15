@@ -19,7 +19,7 @@ const activeRowId = ref<string>('')
 const qtyMap = reactive<Record<string, number>>({})
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1)
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1)
-const mobileOpenCategory = ref<string | null>('rose')
+const mobileOpenCategory = ref<string | null>(null)
 const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1'
 const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de'
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3'
@@ -620,9 +620,7 @@ function handlePageClick(event: MouseEvent): void {
 
 function onSectionChange(section: SectionKey): void {
   store.activeSection = section
-  mobileOpenCategory.value = section === 'osnovnye'
-    ? MOBILE_PRIMARY_CATEGORY_ORDER[0]
-    : MOBILE_SEASONAL_CATEGORY_ORDER[0]
+  mobileOpenCategory.value = null
 }
 
 function openCreate(): void {
