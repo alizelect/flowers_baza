@@ -339,11 +339,10 @@ function selectMobileCategory(key: string): void {
   }
   void nextTick(() => {
     const section = document.querySelector<HTMLElement>('[data-mobile-section="' + key + '"]')
-    const content = section?.querySelector<HTMLElement>('.mobile-section-list')
-    if (!content) {
+    if (!section) {
       return
     }
-    content.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' })
   })
 }
 

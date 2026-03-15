@@ -304,11 +304,10 @@ function selectMobileCategory(key) {
     }
     void nextTick(() => {
         const section = document.querySelector('[data-mobile-section="' + key + '"]');
-        const content = section?.querySelector('.mobile-section-list');
-        if (!content) {
+        if (!section) {
             return;
         }
-        content.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 }
 function getFlowerGroup(item) {
