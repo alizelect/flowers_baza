@@ -261,8 +261,8 @@ select {
 
 .price-table th:nth-child(6),
 .price-table td:nth-child(6) {
-  padding-left: 22px;
-  padding-right: 24px;
+  padding-left: 30px;
+  padding-right: 18px;
   min-width: 124px;
 }
 
@@ -270,7 +270,7 @@ select {
   white-space: nowrap;
   line-height: 1.1;
   min-width: 124px;
-  padding-right: 16px;
+  padding-right: 12px;
 }
 
 
