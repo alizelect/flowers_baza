@@ -11,9 +11,6 @@ const sidebarTitle = '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438'
 <template>
   <aside class="sidebar">
     <h2>{{ sidebarTitle }}</h2>
-    <div class="sidebar-footer">
-      <slot />
-    </div>
     <div class="sidebar-menu-list">
       <button
         v-for="key in sections"
@@ -24,6 +21,9 @@ const sidebarTitle = '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438'
       >
         {{ SECTION_LABELS[key] }}
       </button>
+    </div>
+    <div class="sidebar-footer">
+      <slot />
     </div>
   </aside>
 </template>
