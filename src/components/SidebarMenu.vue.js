@@ -13,10 +13,6 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.aside, __VLS_intrinsicElements
 __VLS_asFunctionalElement(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({});
 (__VLS_ctx.sidebarTitle);
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-    ...{ class: "sidebar-footer" },
-});
-var __VLS_0 = {};
-__VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "sidebar-menu-list" },
 });
 for (const [key] of __VLS_getVForSourceType((__VLS_ctx.sections))) {
@@ -30,10 +26,14 @@ for (const [key] of __VLS_getVForSourceType((__VLS_ctx.sections))) {
     });
     (__VLS_ctx.SECTION_LABELS[key]);
 }
+__VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+    ...{ class: "sidebar-footer" },
+});
+var __VLS_0 = {};
 /** @type {__VLS_StyleScopedClasses['sidebar']} */ ;
-/** @type {__VLS_StyleScopedClasses['sidebar-footer']} */ ;
 /** @type {__VLS_StyleScopedClasses['sidebar-menu-list']} */ ;
 /** @type {__VLS_StyleScopedClasses['menu-btn']} */ ;
+/** @type {__VLS_StyleScopedClasses['sidebar-footer']} */ ;
 // @ts-ignore
 var __VLS_1 = __VLS_0;
 var __VLS_dollars;
