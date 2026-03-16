@@ -682,14 +682,14 @@ onMounted(async () => {
       <div class="table-wrap desktop-table-wrap">
         <table class="price-table">
           <colgroup>
-            <col style="width: 20%" />
-            <col style="width: 9%" />
-            <col style="width: 13%" />
-            <col style="width: 9%" />
+            <col style="width: 19%" />
             <col style="width: 11%" />
-            <col style="width: 9%" />
-            <col style="width: 9%" />
-            <col style="width: 9%" />
+            <col style="width: 15%" />
+            <col style="width: 11%" />
+            <col style="width: 12%" />
+            <col style="width: 11%" />
+            <col style="width: 11%" />
+            <col style="width: 11%" />
             <col v-if="store.unlocked" style="width: 14%" />
           </colgroup>
           <thead>

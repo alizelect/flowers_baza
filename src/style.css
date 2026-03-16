@@ -74,7 +74,7 @@ select {
 }
 
 .content {
-  padding: 14px;
+  padding: 28px 14px 14px;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -130,8 +130,8 @@ select {
 }
 
 .price-table {
-  width: 1120px;
-  min-width: 980px;
+  width: 1240px;
+  min-width: 1120px;
   table-layout: fixed;
   border-collapse: collapse;
   background: #fff;
@@ -207,8 +207,8 @@ select {
 .price-table th:nth-child(3),
 .price-table td:nth-child(3) {
   position: relative;
-  padding-left: 18px;
-  padding-right: 30px;
+  padding-left: 28px;
+  padding-right: 46px;
 }
 
 .price-table th:nth-child(3) {
@@ -221,8 +221,8 @@ select {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -20px;
-  width: 20px;
+  left: -28px;
+  width: 30px;
   background: #fff;
 }
 
@@ -235,20 +235,22 @@ select {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -20px;
-  width: 24px;
+  left: -28px;
+  width: 32px;
   background: #f0f7f2;
 }
 
 .popular-sizes-title {
   position: relative;
-  left: -6px;
+  left: 2px;
+  padding-right: 12px;
   display: inline-block;
 }
 
 .price-table th:nth-child(7),
 .price-table td:nth-child(7) {
-  padding-right: 12px;
+  padding-left: 22px;
+  padding-right: 16px;
 }
 
 .price-table th:nth-child(8),
@@ -260,15 +262,15 @@ select {
 .price-table th:nth-child(6),
 .price-table td:nth-child(6) {
   padding-left: 22px;
-  padding-right: 0;
-  min-width: 90px;
+  padding-right: 24px;
+  min-width: 124px;
 }
 
 .price-table th:nth-child(6) {
   white-space: nowrap;
   line-height: 1.1;
-  min-width: 108px;
-  padding-right: 8px;
+  min-width: 124px;
+  padding-right: 16px;
 }
 
 
@@ -1085,6 +1087,7 @@ select {
 }
 .content > .toolbar {
   margin-bottom: 18px;
+  min-height: 40px;
 }
 
 .content > .status-row {
