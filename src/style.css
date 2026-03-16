@@ -12,6 +12,12 @@ body {
   margin: 0;
 }
 
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
 button,
 input,
 select {
@@ -23,6 +29,7 @@ select {
   grid-template-columns: minmax(140px, 160px) minmax(0, 1fr);
   min-height: 100vh;
   align-content: start;
+  align-items: stretch;
 }
 
 .sidebar {
@@ -32,6 +39,8 @@ select {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  min-height: 100%;
+  align-self: stretch;
 }
 
 .sidebar-footer {
@@ -250,6 +259,13 @@ select {
   padding-right: 0;
   min-width: 90px;
 }
+
+.price-table th:nth-child(6) {
+  white-space: normal;
+  line-height: 1.05;
+  padding-right: 8px;
+}
+
 
 .price-table td:nth-child(6) input {
   margin: 0;
@@ -838,7 +854,7 @@ select {
   }
 
   .sidebar-footer {
-    order: 0;
+    order: 2;
     margin: 0;
     padding-top: 0;
   }
@@ -851,6 +867,7 @@ select {
     min-height: 42px;
     grid-auto-rows: 28px;
     align-content: start;
+    order: 1;
   }
 
   button,
