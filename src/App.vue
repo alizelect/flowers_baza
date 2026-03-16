@@ -796,19 +796,18 @@ onMounted(async () => {
                 />
               </td>
               <td>
-                <div class="pistachio-cell">
+                <div v-if="!isPistachioLocked(item)" class="pistachio-cell">
                   <input
                     type="checkbox"
-                    :checked="isPistachioLocked(item) ? false : item.hasPistachio"
-                    :disabled="isPistachioLocked(item)"
+                    :checked="item.hasPistachio"
                     @change="store.patchFlower(item.id, { hasPistachio: ($event.target as HTMLInputElement).checked })"
                   />
                   <input
                     class="short-input center-input"
-                    :disabled="!store.unlocked || isPistachioLocked(item) || usesAutoPistachioQty(item)"
+                    :disabled="!store.unlocked || usesAutoPistachioQty(item)"
                     type="number"
                     min="0"
-                    :value="isPistachioLocked(item) ? '' : getPistachioQty(item, getQty(item))"
+                    :value="getPistachioQty(item, getQty(item))"
                     @input="store.patchFlower(item.id, { pistachioQty: Number(($event.target as HTMLInputElement).value) || 0 })"
                   />
                 </div>
