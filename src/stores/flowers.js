@@ -74,7 +74,7 @@ function normalizeItem(item) {
             : item.id === CARNATION_COMMON_ID || item.id === CARNATION_MOON_ID || item.id === CARNATION_MIX_ID
                 ? [9, 11, 15, 25, 35]
                 : item.id === CHRYZA_BUSH_250_ID || item.id === CHRYZA_BUSH_300_ID
-                    ? [3, 5, 7, 11, 15]
+                    ? [3, 5, 7, 9, 11, 15]
                     : item.id === ALSTROMERII_ID
                         ? [5, 7, 9, 11, 15]
                         : item.popularSizes?.length ? item.popularSizes.map((s) => Number(s)) : [...DEFAULT_SIZES];
@@ -101,7 +101,7 @@ function errorMessage(error) {
     if (error instanceof Error && error.message) {
         return error.message;
     }
-    return 'Не удалось загрузить данные из файла';
+    return 'РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РґР°РЅРЅС‹Рµ РёР· С„Р°Р№Р»Р°';
 }
 export const useFlowersStore = defineStore('flowers', () => {
     const flowers = ref([]);
@@ -116,7 +116,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     watch(activeSection, (value) => {
         localStorage.setItem(ACTIVE_SECTION_KEY, value);
     }, { immediate: true });
-    const filteredBySection = computed(() => flowers.value.filter((item) => item.section === activeSection.value));
+    const filteredBySection = computed(() => activeSection.value === 'priceTables' ? flowers.value : flowers.value.filter((item) => item.section === activeSection.value));
     function setUnlocked(value) {
         unlocked.value = value;
     }
@@ -172,7 +172,7 @@ export const useFlowersStore = defineStore('flowers', () => {
             const canRead = await ensureReadPermission(picked);
             const canWrite = await ensureReadWritePermission(picked);
             if (!canRead || !canWrite) {
-                throw new Error('Нет доступа на чтение/запись JSON-файла');
+                throw new Error('РќРµС‚ РґРѕСЃС‚СѓРїР° РЅР° С‡С‚РµРЅРёРµ/Р·Р°РїРёСЃСЊ JSON-С„Р°Р№Р»Р°');
             }
             handle.value = picked;
             fileName.value = picked.name;
@@ -182,7 +182,7 @@ export const useFlowersStore = defineStore('flowers', () => {
             usingFallbackStorage.value = false;
         }
         catch (error) {
-            saveError.value = `Ошибка загрузки: ${errorMessage(error)}`;
+            saveError.value = `РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё: ${errorMessage(error)}`;
             const loaded = await loadFromProjectJson();
             if (!loaded) {
                 await loadFromFallback();
@@ -228,7 +228,7 @@ export const useFlowersStore = defineStore('flowers', () => {
             usingFallbackStorage.value = false;
         }
         catch (error) {
-            saveError.value = `Ошибка загрузки: ${errorMessage(error)}`;
+            saveError.value = `РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё: ${errorMessage(error)}`;
             await clearStoredHandle();
             const loaded = await loadFromProjectJson();
             if (!loaded) {
@@ -249,7 +249,7 @@ export const useFlowersStore = defineStore('flowers', () => {
             await writeJsonFile(handle.value, buildDb(flowers.value));
         }
         catch {
-            saveError.value = 'Ошибка автосохранения. Выберите JSON-файл заново.';
+            saveError.value = 'РћС€РёР±РєР° Р°РІС‚РѕСЃРѕС…СЂР°РЅРµРЅРёСЏ. Р’С‹Р±РµСЂРёС‚Рµ JSON-С„Р°Р№Р» Р·Р°РЅРѕРІРѕ.';
         }
     }
     async function upsertFlower(input) {

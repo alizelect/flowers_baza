@@ -17,6 +17,9 @@ const editorItem = ref<FlowerItem>()
 const activeRowId = ref<string>('')
 
 const qtyMap = reactive<Record<string, number>>({})
+const qtyInputMap = reactive<Record<string, string>>({})
+const targetPriceMap = reactive<Record<string, string>>({})
+const suggestedSelectionMap = reactive<Record<string, 'lower' | 'higher' | ''>>({})
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1)
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1)
 const mobileOpenCategory = ref<string | null>(null)
@@ -35,7 +38,9 @@ const uiLabels = {
   fallbackStorage: 'File API \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d, \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0435\u043c localStorage',
   flowerKind: '\u0412\u0438\u0434 \u0446\u0432\u0435\u0442\u043a\u0430',
   qty: '\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e',
+  qtyPlaceholder: '\u043a\u043e\u043b-\u0432\u043e',
   popularSizes: '\u041f\u043e\u043f\u0443\u043b\u044f\u0440\u043d\u044b\u0435 \u0440\u0430\u0437\u043c\u0435\u0440\u044b',
+  targetPrice: '\u0446\u0435\u043d\u0430',
   withoutPromo: '\u0411\u0435\u0437 \u0430\u043a\u0446\u0438\u0438',
   promo: '\u0410\u043a\u0446\u0438\u044f',
   flowerPrice: '\u0426\u0435\u043d\u0430 \u0446\u0432\u0435\u0442\u043a\u0430',
@@ -51,6 +56,14 @@ const uiLabels = {
   peonies: '\u041f\u0438\u043e\u043d\u044b',
   tulips: '\u0422\u044e\u043b\u044c\u043f\u0430\u043d\u044b',
   mobileQtyReset: '\u0441\u0431\u0440\u043e\u0441 \u043d\u0430 \u043c\u0438\u043d\u0438\u043c\u0443\u043c',
+  priceReset: '\u0441\u0431\u0440\u043e\u0441 \u0446\u0435\u043d\u044b',
+  allSections: '\u0412\u0441\u0435 \u0440\u0430\u0437\u0434\u0435\u043b\u044b',
+  composition: '\u0421\u043e\u0441\u0442\u0430\u0432',
+  flowerCost: '\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u0446\u0432\u0435\u0442\u043e\u0432',
+  promo10: '\u0410\u043a\u0446\u0438\u044f 10%',
+  promo15: '\u0410\u043a\u0446\u0438\u044f 15%',
+  currentPromo: '\u0422\u0435\u043a\u0443\u0449\u0430\u044f \u0430\u043a\u0446\u0438\u044f',
+  priceTablesHint: '\u041f\u043e\u043b\u043d\u0430\u044f \u0442\u0430\u0431\u043b\u0438\u0446\u0430 \u043f\u043e \u0432\u0441\u0435\u043c \u0446\u0432\u0435\u0442\u0430\u043c, \u0441\u043e\u0441\u0442\u0430\u0432\u0430\u043c \u0438 \u0446\u0435\u043d\u0430\u043c',
 } as const
 const MOBILE_PRIMARY_CATEGORY_LABELS: Record<(typeof MOBILE_PRIMARY_CATEGORY_ORDER)[number], string> = {
   rose: '\u0420\u043e\u0437\u044b',
@@ -276,17 +289,55 @@ const CHRYZA_BUSH_300_PACKAGING_BY_ODD = [
   1690,
 ]
 
-const visibleRows = computed(() => {
-  const bySection = store.filteredBySection
-  return [...bySection].sort((a, b) => {
-    if (store.activeSection === 'osnovnye') {
-      const ai = getMainOrderIndex(a)
-      const bi = getMainOrderIndex(b)
-      if (ai !== bi) return ai - bi
-      return a.flowerName.localeCompare(b.flowerName, 'ru')
-    }
-    return a.flowerName.localeCompare(b.flowerName, 'ru')
-  })
+const SECTION_ORDER = ['osnovnye', 'sezonnye'] as const
+
+type BaseSectionKey = (typeof SECTION_ORDER)[number]
+
+type PriceTableRow = {
+  qty: number
+  withoutPromo: string
+  pistachio: string
+  packaging: string
+  promo10: string
+  promo15: string
+}
+
+type PriceTableGroup = {
+  item: FlowerItem
+  rows: PriceTableRow[]
+}
+
+function compareFlowers(a: FlowerItem, b: FlowerItem): number {
+  if (a.section !== b.section) {
+    return SECTION_ORDER.indexOf(a.section as BaseSectionKey) - SECTION_ORDER.indexOf(b.section as BaseSectionKey)
+  }
+
+  if (a.section === 'osnovnye' && b.section === 'osnovnye') {
+    const ai = getMainOrderIndex(a)
+    const bi = getMainOrderIndex(b)
+    if (ai !== bi) return ai - bi
+  }
+
+  return a.flowerName.localeCompare(b.flowerName, 'ru')
+}
+
+const visibleRows = computed(() => [...store.filteredBySection].sort(compareFlowers))
+
+const selectedPriceTableId = ref<string>('')
+
+const priceTableGroups = computed<PriceTableGroup[]>(() => [...store.flowers]
+  .sort(compareFlowers)
+  .map((item) => ({
+    item,
+    rows: getPriceTableRows(item),
+  })))
+
+const activePriceTableGroup = computed<PriceTableGroup | null>(() => {
+  const groups = priceTableGroups.value
+  if (!groups.length) {
+    return null
+  }
+  return groups.find((group) => group.item.id === selectedPriceTableId.value) ?? groups[0]
 })
 
 const mobileSectionDefinitions = computed(() => {
@@ -575,18 +626,129 @@ function calcWithPromoForRow(item: FlowerItem, qty: number): number {
 
 function chooseQty(item: FlowerItem, value: number): void {
 
-  qtyMap[item.id] = normalizeQty(item, value)
+  const normalized = normalizeQty(item, value)
+  qtyMap[item.id] = normalized
+  qtyInputMap[item.id] = String(normalized)
+  suggestedSelectionMap[item.id] = ''
   activeRowId.value = item.id
 }
 
 function resetQty(item: FlowerItem): void {
   qtyMap[item.id] = getMinQty(item)
+  qtyInputMap[item.id] = ''
+  suggestedSelectionMap[item.id] = ''
+  activeRowId.value = item.id
+}
+
+function resetTargetPrice(item: FlowerItem): void {
+  targetPriceMap[item.id] = ''
+  suggestedSelectionMap[item.id] = ''
   activeRowId.value = item.id
 }
 
 function chooseSize(item: FlowerItem, size: number): void {
-  qtyMap[item.id] = normalizeQty(item, size)
+  const normalized = normalizeQty(item, size)
+  qtyMap[item.id] = normalized
+  qtyInputMap[item.id] = String(normalized)
+  suggestedSelectionMap[item.id] = ''
   activeRowId.value = item.id
+}
+
+function getTargetPriceValue(item: FlowerItem): string {
+  return targetPriceMap[item.id] ?? ''
+}
+
+function updateTargetPrice(item: FlowerItem, value: string): void {
+  targetPriceMap[item.id] = value
+  suggestedSelectionMap[item.id] = ''
+  activeRowId.value = item.id
+}
+
+function getQtyInputValue(item: FlowerItem): string {
+  return qtyInputMap[item.id] ?? ''
+}
+
+function updateQtyInput(item: FlowerItem, value: string): void {
+  qtyInputMap[item.id] = value
+  if (!value.trim()) {
+    qtyMap[item.id] = getMinQty(item)
+    suggestedSelectionMap[item.id] = ''
+    activeRowId.value = item.id
+    return
+  }
+
+  const parsed = Number(value)
+  if (Number.isFinite(parsed)) {
+    qtyMap[item.id] = normalizeQty(item, parsed)
+    suggestedSelectionMap[item.id] = ''
+  }
+  activeRowId.value = item.id
+}
+
+function commitQtyInput(item: FlowerItem): void {
+  const rawValue = getQtyInputValue(item).trim()
+  if (!rawValue) {
+    qtyMap[item.id] = getMinQty(item)
+    qtyInputMap[item.id] = ''
+    suggestedSelectionMap[item.id] = ''
+    activeRowId.value = item.id
+    return
+  }
+  chooseQty(item, Number(rawValue))
+}
+
+function chooseSuggestedQty(item: FlowerItem, option: PriceSelectionOption | null, side: 'lower' | 'higher'): void {
+  if (!option) return
+  const normalized = normalizeQty(item, option.qty)
+  qtyMap[item.id] = normalized
+  qtyInputMap[item.id] = String(normalized)
+  suggestedSelectionMap[item.id] = side
+  activeRowId.value = item.id
+}
+
+type PriceSelectionOption = {
+  qty: number
+  price: number
+}
+
+function getPriceSelectionOptions(item: FlowerItem): PriceSelectionOption[] {
+  const options = getQtyOptions(item)
+    .map((qty) => ({ qty, price: Math.round(calcWithoutPromoForRow(item, qty)) }))
+    .filter((option) => Number.isFinite(option.price))
+
+  const unique = new Map<number, PriceSelectionOption>()
+  for (const option of options) {
+    if (!unique.has(option.price)) {
+      unique.set(option.price, option)
+    }
+  }
+
+  return [...unique.values()].sort((a, b) => a.price - b.price)
+}
+
+function getAdjacentPrices(item: FlowerItem): { lower: PriceSelectionOption | null; higher: PriceSelectionOption | null } {
+  const rawValue = getTargetPriceValue(item)
+  const target = Number(rawValue)
+  if (!rawValue || !Number.isFinite(target)) {
+    return { lower: null, higher: null }
+  }
+
+  const options = getPriceSelectionOptions(item)
+  let lower: PriceSelectionOption | null = null
+  let higher: PriceSelectionOption | null = null
+
+  for (const option of options) {
+    if (option.price < target) {
+      lower = option
+      continue
+    }
+    if (option.price > target) {
+      higher = option
+      break
+    }
+  }
+
+  return { lower, higher }
 }
 
 function formatPrice(value: number): string {
@@ -598,6 +760,91 @@ function getMixQtySplit(qty: number): { primary: number; secondary: number } {
     primary: Math.ceil(qty / 2),
     secondary: Math.floor(qty / 2),
   }
+}
+
+function formatPriceWithRuble(value: number): string {
+  return formatPrice(value)
+}
+
+function getFlowerCostValue(item: FlowerItem, qty: number): number {
+  const secondaryUnitPrice = Number(item.secondaryUnitPrice) || 0
+  if (secondaryUnitPrice > 0) {
+    const split = getMixQtySplit(qty)
+    return split.primary * item.unitPrice + split.secondary * secondaryUnitPrice
+  }
+  return qty * item.unitPrice
+}
+
+function getCompositionLabel(item: FlowerItem, qty: number): string {
+  if (isCarnationMix(item)) {
+    const split = getMixQtySplit(qty)
+    return `${split.primary} + ${split.secondary} \u0448\u0442.`
+  }
+  return `${qty} \u0448\u0442.`
+}
+
+function getFlowerCostLabel(item: FlowerItem, qty: number): string {
+  const secondaryUnitPrice = Number(item.secondaryUnitPrice) || 0
+  if (secondaryUnitPrice > 0) {
+    const split = getMixQtySplit(qty)
+    return `${split.primary} x ${formatPrice(item.unitPrice)} + ${split.secondary} x ${formatPrice(secondaryUnitPrice)} = ${formatPriceWithRuble(getFlowerCostValue(item, qty))}`
+  }
+  return `${qty} x ${formatPrice(item.unitPrice)} = ${formatPriceWithRuble(getFlowerCostValue(item, qty))}`
+}
+
+function getPistachioCostValue(item: FlowerItem, qty: number): number {
+  if (isPistachioLocked(item) || !item.hasPistachio) {
+    return 0
+  }
+  return getPistachioQty(item, qty) * PISTACHIO_UNIT_PRICE
+}
+
+function getPistachioLabel(item: FlowerItem, qty: number): string {
+  if (isPistachioLocked(item)) {
+    return '\u2014'
+  }
+  if (!item.hasPistachio) {
+    return '\u0432\u044b\u043a\u043b.'
+  }
+  const pistachioQty = getPistachioQty(item, qty)
+  if (!pistachioQty) {
+    return '0'
+  }
+  return `${pistachioQty} x ${PISTACHIO_UNIT_PRICE} = ${formatPriceWithRuble(getPistachioCostValue(item, qty))}`
+}
+
+function getPromoPriceForPercent(item: FlowerItem, qty: number, discountPercent: number): number {
+  const pistachioLocked = isPistachioLocked(item)
+  return calcWithPromo(
+    {
+      ...item,
+      discountPercent,
+      isPromoEnabled: true,
+      packagingPrice: getPackagingPrice(item, qty),
+      hasPistachio: pistachioLocked ? false : item.hasPistachio,
+      pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
+      pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
+    },
+    qty,
+  )
+}
+
+function getCurrentPromoLabel(item: FlowerItem, qty: number): string {
+  if (!item.isPromoEnabled) {
+    return '\u0432\u044b\u043a\u043b.'
+  }
+  return `${item.discountPercent}% = ${formatPriceWithRuble(getPromoPriceForPercent(item, qty, item.discountPercent))}`
+}
+
+function getPriceTableRows(item: FlowerItem): PriceTableRow[] {
+  return getQtyOptions(item).map((qty) => ({
+    qty,
+    withoutPromo: formatPriceWithRuble(calcWithoutPromoForRow(item, qty)),
+    pistachio: getPistachioLabel(item, qty),
+    packaging: formatPriceWithRuble(getPackagingPrice(item, qty)),
+    promo10: formatPriceWithRuble(getPromoPriceForPercent(item, qty, 10)),
+    promo15: formatPriceWithRuble(getPromoPriceForPercent(item, qty, 15)),
+  }))
 }
 
 function isPistachioLocked(item: FlowerItem): boolean {
@@ -625,6 +872,10 @@ function handlePageClick(event: MouseEvent): void {
 function onSectionChange(section: SectionKey): void {
   store.activeSection = section
   mobileOpenCategory.value = null
+  if (section !== 'priceTables') {
+    return
+  }
+  selectedPriceTableId.value = activePriceTableGroup.value?.item.id ?? priceTableGroups.value[0]?.item.id ?? ''
 }
 
 function openCreate(): void {
@@ -653,24 +904,19 @@ onMounted(async () => {
 
 <template>
   <div class="layout" @click="handlePageClick">
-    <SidebarMenu :active="store.activeSection" @change="onSectionChange">
-      <div class="sidebar-mobile-auth">
-        <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
-      </div>
-    </SidebarMenu>
+    <SidebarMenu :active="store.activeSection" @change="onSectionChange" />
 
     <main class="content">
       <header class="toolbar">
         <h1 class="toolbar-title">{{ uiLabels.title }}: {{ SECTION_LABELS[store.activeSection] }}</h1>
-        <div class="toolbar-actions">
-          <button v-if="store.unlocked" @click="onChooseFile">{{ uiLabels.chooseJson }}</button>
-          <button v-if="store.unlocked" @click="openCreate">{{ uiLabels.addFlower }}</button>
+        <div class="toolbar-side">
+          <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
+          <div class="toolbar-actions">
+            <button v-if="store.unlocked" @click="onChooseFile">{{ uiLabels.chooseJson }}</button>
+            <button v-if="store.unlocked && store.activeSection !== 'priceTables'" @click="openCreate">{{ uiLabels.addFlower }}</button>
+          </div>
         </div>
       </header>
-
-      <div class="desktop-inline-auth">
-        <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
-      </div>
 
       <div v-if="store.unlocked" class="status-row">
         <span v-if="store.fileName">{{ uiLabels.file }}: {{ store.fileName }}</span>
@@ -679,14 +925,68 @@ onMounted(async () => {
         <span v-if="store.saveError" class="error">{{ store.saveError }}</span>
       </div>
 
-      <div class="table-wrap desktop-table-wrap">
+      <section v-if="store.activeSection === 'priceTables'" class="price-matrix-page">
+
+        <div class="price-matrix-tabs">
+          <template v-for="group in priceTableGroups" :key="group.item.id">
+            <div v-if="group.item.id === CHRYZA_BUSH_250_ID" class="price-matrix-tabs-break"></div>
+            <button
+              type="button"
+              class="price-matrix-tab"
+              :class="{ active: activePriceTableGroup?.item.id === group.item.id }"
+              @click="selectedPriceTableId = group.item.id"
+            >
+              {{ group.item.flowerName }}
+            </button>
+          </template>
+        </div>
+
+        <article v-if="activePriceTableGroup" class="price-matrix-card">
+          <div class="price-matrix-card-head">
+            <div>
+              <h3>{{ activePriceTableGroup.item.flowerName }}</h3>
+            </div>
+            <div class="price-matrix-card-meta">
+              <span>{{ uiLabels.flowerPrice }}: <span class="price-with-ruble"><span>{{ formatPriceWithRuble(activePriceTableGroup.item.unitPrice) }}</span><span class="price-ruble">&#8381;</span></span></span>
+              <span v-if="isCarnationMix(activePriceTableGroup.item)">{{ uiLabels.flowerPrice }} 2: <span class="price-with-ruble"><span>{{ formatPriceWithRuble(activePriceTableGroup.item.secondaryUnitPrice || 0) }}</span><span class="price-ruble">&#8381;</span></span></span>
+            </div>
+          </div>
+
+          <div class="table-wrap price-matrix-table-wrap">
+            <table class="price-matrix-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>{{ uiLabels.withoutPromo }}</th>
+                  <th>{{ uiLabels.pistachio }}</th>
+                  <th>{{ uiLabels.packaging }}</th>
+                  <th>{{ uiLabels.promo10 }}</th>
+                  <th>{{ uiLabels.promo15 }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in activePriceTableGroup.rows" :key="`${activePriceTableGroup.item.id}-${row.qty}`">
+                  <td>{{ row.qty }}</td>
+                  <td><span class="price-with-ruble"><span>{{ row.withoutPromo }}</span><span class="price-ruble">&#8381;</span></span></td>
+                  <td>{{ row.pistachio }}</td>
+                  <td><span class="price-with-ruble"><span>{{ row.packaging }}</span><span class="price-ruble">&#8381;</span></span></td>
+                  <td><span class="price-with-ruble"><span>{{ row.promo10 }}</span><span class="price-ruble">&#8381;</span></span></td>
+                  <td><span class="price-with-ruble"><span>{{ row.promo15 }}</span><span class="price-ruble">&#8381;</span></span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <div v-else class="table-wrap desktop-table-wrap">
         <table class="price-table">
           <colgroup>
             <col style="width: 19%" />
             <col style="width: 11%" />
-            <col style="width: 15%" />
-            <col style="width: 11%" />
-            <col style="width: 12%" />
+            <col style="width: 18%" />
+            <col style="width: 9%" />
+            <col style="width: 14%" />
             <col style="width: 11%" />
             <col style="width: 11%" />
             <col style="width: 11%" />
@@ -706,37 +1006,79 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(item, index) in visibleRows" :key="item.id" :class="{ 'is-active': activeRowId === item.id, 'group-start': isGroupStart(item, index) }">
+            <tr v-for="(item, index) in visibleRows" :key="item.id" :class="{ 'is-active': activeRowId === item.id, 'group-start': isGroupStart(item, index) }" @click="activeRowId = item.id">
               <td class="flower-name-cell" @click="activeRowId = item.id">{{ item.flowerName }}</td>
-              <td>
-                <div class="qty-cell">
-                  <input
-                    class="center-input qty-select"
-                    type="number"
-                    :min="getMinQty(item)"
-                    max="101"
-                    step="2"
-                    :value="getQty(item)"
-                    @change="chooseQty(item, Number(($event.target as HTMLInputElement).value))"
-                  />
-                  <button class="qty-reset" type="button" :aria-label="uiLabels.qtyResetOne" @click="resetQty(item)">
-                    <img class="qty-reset-icon" :src="resetIcon" alt="" />
-                  </button>
+<td>
+                <div class="qty-stack">
+                  <div class="qty-cell">
+                    <input
+                      class="center-input qty-select"
+                      type="number"
+                      :min="getMinQty(item)"
+                      max="101"
+                      step="2"
+                      :value="getQtyInputValue(item)"
+                      :placeholder="uiLabels.qtyPlaceholder"
+                      @input="updateQtyInput(item, ($event.target as HTMLInputElement).value)"
+                      @change="commitQtyInput(item)"
+                    />
+                    <button class="qty-reset" type="button" :aria-label="uiLabels.qtyResetOne" @click="resetQty(item)">
+                      <img class="qty-reset-icon" :src="resetIcon" alt="" />
+                    </button>
+                  </div>
+                  <div class="target-price-cell">
+                    <div class="currency-input-wrap currency-input-wrap-target">
+                      <input
+                        class="short-input center-input price-pick-input qty-price-input"
+                        type="number"
+                        min="0"
+                        :placeholder="uiLabels.targetPrice"
+                        :value="getTargetPriceValue(item)"
+                        @input="updateTargetPrice(item, ($event.target as HTMLInputElement).value)"
+                      />
+                      <span v-if="getTargetPriceValue(item)" class="currency-input-sign">&#8381;</span>
+                    </div>
+                    <button class="qty-reset" type="button" :aria-label="uiLabels.priceReset" @click="resetTargetPrice(item)">
+                      <img class="qty-reset-icon" :src="resetIcon" alt="" />
+                    </button>
+                  </div>
                 </div>
               </td>
               <td>
-                <div class="sizes">
-                  <button
-                    v-for="size in item.popularSizes"
-                    :key="size"
-                    :class="{ active: getQty(item) === size }"
-                    @click="chooseSize(item, size)"
-                  >
-                    {{ size }}
-                  </button>
+                <div class="sizes-stack">
+                  <div class="sizes">
+                    <button
+                      v-for="size in item.popularSizes"
+                      :key="size"
+                      :class="{ active: getQty(item) === size }"
+                      @click="chooseSize(item, size)"
+                    >
+                      {{ size }}
+                    </button>
+                  </div>
+                  <div class="price-pick-layout inline-price-pick-layout">
+                    <button
+                      type="button"
+                      class="price-pick-option price-pick-option-left"
+                      :class="{ 'is-empty': !getAdjacentPrices(item).lower, active: suggestedSelectionMap[item.id] === 'lower' }"
+                      :disabled="!getAdjacentPrices(item).lower"
+                      @click="chooseSuggestedQty(item, getAdjacentPrices(item).lower, 'lower')"
+                    >
+                      <span v-if="getAdjacentPrices(item).lower" class="price-with-ruble"><span>{{ formatPrice(getAdjacentPrices(item).lower!.price) }}</span><span class="price-ruble">&#8381;</span></span>
+                    </button>
+                    <button
+                      type="button"
+                      class="price-pick-option price-pick-option-right"
+                      :class="{ 'is-empty': !getAdjacentPrices(item).higher, active: suggestedSelectionMap[item.id] === 'higher' }"
+                      :disabled="!getAdjacentPrices(item).higher"
+                      @click="chooseSuggestedQty(item, getAdjacentPrices(item).higher, 'higher')"
+                    >
+                      <span v-if="getAdjacentPrices(item).higher" class="price-with-ruble"><span>{{ formatPrice(getAdjacentPrices(item).higher!.price) }}</span><span class="price-ruble">&#8381;</span></span>
+                    </button>
+                  </div>
                 </div>
               </td>
-              <td class="offer-divider" :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</td>
+              <td class="offer-divider" :class="{ 'price-strong': activeRowId === item.id }"><span class="price-with-ruble"><span>{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></span></td>
               <td class="promo-divider">
                 <div class="promo-col">
                   <select
@@ -747,53 +1089,64 @@ onMounted(async () => {
                     <option :value="10">10</option>
                     <option :value="15">15</option>
                   </select>
-                  <span class="center-cell" :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span>
+                  <span class="center-cell price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></span>
                 </div>
               </td>
               <td class="price-divider">
-                <input
-                  v-if="!isCarnationMix(item)"
-                  class="short-input center-input"
-                  :disabled="!store.unlocked"
-                  type="number"
-                  min="0"
-                  :value="item.unitPrice"
-                  @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                />
+                <div v-if="!isCarnationMix(item)" class="currency-input-wrap">
+                  <input
+                    class="short-input center-input"
+                    :disabled="!store.unlocked"
+                    type="number"
+                    min="0"
+                    :value="item.unitPrice"
+                    @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                  />
+                  <span class="currency-input-sign">&#8381;</span>
+                </div>
                 <div v-else class="mix-price-fields">
                   <div class="mix-price-item">
-                    <input
-                      class="short-input center-input"
-                      :disabled="!store.unlocked"
-                      type="number"
-                      min="0"
-                      :value="item.unitPrice"
-                      @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                    />
+                    <div class="currency-input-wrap">
+                      <input
+                        class="short-input center-input"
+                        :disabled="!store.unlocked"
+                        type="number"
+                        min="0"
+                        :value="item.unitPrice"
+                        @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                      />
+                      <span class="currency-input-sign">&#8381;</span>
+                    </div>
                     <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} {{ uiLabels.pieces }}</span>
                   </div>
                   <div class="mix-price-item">
-                    <input
-                      class="short-input center-input"
-                      :disabled="!store.unlocked"
-                      type="number"
-                      min="0"
-                      :value="item.secondaryUnitPrice || 0"
-                      @input="store.patchFlower(item.id, { secondaryUnitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                    />
+                    <div class="currency-input-wrap">
+                      <input
+                        class="short-input center-input"
+                        :disabled="!store.unlocked"
+                        type="number"
+                        min="0"
+                        :value="item.secondaryUnitPrice || 0"
+                        @input="store.patchFlower(item.id, { secondaryUnitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                      />
+                      <span class="currency-input-sign">&#8381;</span>
+                    </div>
                     <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} {{ uiLabels.pieces }}</span>
                   </div>
                 </div>
               </td>
               <td>
-                <input
-                  class="short-input center-input"
-                  :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
-                  type="number"
-                  min="0"
-                  :value="getPackagingPrice(item, getQty(item))"
-                  @input="store.patchFlower(item.id, { packagingPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                />
+                <div class="currency-input-wrap">
+                  <input
+                    class="short-input center-input"
+                    :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
+                    type="number"
+                    min="0"
+                    :value="getPackagingPrice(item, getQty(item))"
+                    @input="store.patchFlower(item.id, { packagingPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                  />
+                  <span class="currency-input-sign">&#8381;</span>
+                </div>
               </td>
               <td>
                 <div v-if="!isPistachioLocked(item)" class="pistachio-cell">
@@ -825,7 +1178,7 @@ onMounted(async () => {
           </tbody>
         </table>
       </div>
-      <div class="mobile-cards" :class="{ 'mobile-cards-grouped': mobileCardSections.length > 0 }">
+      <div v-if="store.activeSection !== 'priceTables'" class="mobile-cards" :class="{ 'mobile-cards-grouped': mobileCardSections.length > 0 }">
         <template v-if="mobileCardSections.some((section) => section.items.length)">
           <section v-for="section in mobileCardSections" :key="section.key" class="mobile-section" :data-mobile-section="section.key">
             <button
@@ -857,36 +1210,78 @@ onMounted(async () => {
                 </div>
 
                 <div class="mobile-card-grid">
-                  <div class="mobile-card-row mobile-card-row-top">
+                  <div class="mobile-card-row mobile-card-row-top mobile-card-row-top-integrated">
                     <div class="mobile-field mobile-field-qty">
                       <span class="mobile-label">{{ uiLabels.qty }}</span>
-                      <div class="qty-cell">
-                        <input
-                          class="center-input qty-select"
-                          type="number"
-                          :min="getMinQty(item)"
-                          max="101"
-                          step="2"
-                          :value="getQty(item)"
-                          @change="chooseQty(item, Number(($event.target as HTMLInputElement).value))"
-                        />
-                        <button class="qty-reset" type="button" :aria-label="uiLabels.mobileQtyReset" @click="resetQty(item)">
-                          <img class="qty-reset-icon" :src="resetIcon" alt="" />
-                        </button>
+                      <div class="qty-stack">
+                        <div class="qty-cell">
+                          <input
+                            class="center-input qty-select"
+                            type="number"
+                            :min="getMinQty(item)"
+                            max="101"
+                            step="2"
+                            :value="getQtyInputValue(item)"
+                            :placeholder="uiLabels.qtyPlaceholder"
+                            @input="updateQtyInput(item, ($event.target as HTMLInputElement).value)"
+                            @change="commitQtyInput(item)"
+                          />
+                          <button class="qty-reset" type="button" :aria-label="uiLabels.mobileQtyReset" @click="resetQty(item)">
+                            <img class="qty-reset-icon" :src="resetIcon" alt="" />
+                          </button>
+                        </div>
+                        <div class="target-price-cell">
+                          <div class="currency-input-wrap currency-input-wrap-target currency-input-wrap-mobile">
+                            <input
+                              class="short-input center-input mobile-input price-pick-input qty-price-input"
+                              type="number"
+                              min="0"
+                              :placeholder="uiLabels.targetPrice"
+                              :value="getTargetPriceValue(item)"
+                              @input="updateTargetPrice(item, ($event.target as HTMLInputElement).value)"
+                            />
+                            <span v-if="getTargetPriceValue(item)" class="currency-input-sign">&#8381;</span>
+                          </div>
+                          <button class="qty-reset" type="button" :aria-label="uiLabels.priceReset" @click="resetTargetPrice(item)">
+                            <img class="qty-reset-icon" :src="resetIcon" alt="" />
+                          </button>
+                        </div>
                       </div>
                     </div>
 
                     <div class="mobile-field mobile-field-sizes">
                       <span class="mobile-label">{{ uiLabels.popularSizes }}</span>
-                      <div class="sizes">
-                        <button
-                          v-for="size in item.popularSizes"
-                          :key="size"
-                          :class="{ active: getQty(item) === size }"
-                          @click="chooseSize(item, size)"
-                        >
-                          {{ size }}
-                        </button>
+                      <div class="sizes-stack">
+                        <div class="sizes">
+                          <button
+                            v-for="size in item.popularSizes"
+                            :key="size"
+                            :class="{ active: getQty(item) === size }"
+                            @click="chooseSize(item, size)"
+                          >
+                            {{ size }}
+                          </button>
+                        </div>
+                        <div class="price-pick-layout inline-price-pick-layout">
+                          <button
+                            type="button"
+                            class="price-pick-option price-pick-option-left"
+                            :class="{ 'is-empty': !getAdjacentPrices(item).lower, active: suggestedSelectionMap[item.id] === 'lower' }"
+                            :disabled="!getAdjacentPrices(item).lower"
+                            @click="chooseSuggestedQty(item, getAdjacentPrices(item).lower, 'lower')"
+                          >
+                      <span v-if="getAdjacentPrices(item).lower" class="price-with-ruble"><span>{{ formatPrice(getAdjacentPrices(item).lower!.price) }}</span><span class="price-ruble">&#8381;</span></span>
+                          </button>
+                          <button
+                            type="button"
+                            class="price-pick-option price-pick-option-right"
+                            :class="{ 'is-empty': !getAdjacentPrices(item).higher, active: suggestedSelectionMap[item.id] === 'higher' }"
+                            :disabled="!getAdjacentPrices(item).higher"
+                            @click="chooseSuggestedQty(item, getAdjacentPrices(item).higher, 'higher')"
+                          >
+                            <span v-if="getAdjacentPrices(item).higher" class="price-with-ruble"><span>{{ formatPrice(getAdjacentPrices(item).higher!.price) }}</span><span class="price-ruble">&#8381;</span></span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -894,7 +1289,7 @@ onMounted(async () => {
                   <div class="mobile-card-row mobile-card-row-metrics mobile-metrics">
                     <div class="mobile-metric">
                       <span class="mobile-label">{{ uiLabels.withoutPromo }}</span>
-                      <strong :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</strong>
+                      <strong class="price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></strong>
                     </div>
                     <div class="mobile-metric">
                       <span class="mobile-label">{{ uiLabels.promo }}</span>
@@ -907,7 +1302,7 @@ onMounted(async () => {
                           <option :value="10">10</option>
                           <option :value="15">15</option>
                         </select>
-                        <strong :class="{ 'price-strong': activeRowId === item.id }">{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</strong>
+                        <strong class="price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></strong>
                       </div>
                     </div>
                   </div>
@@ -915,36 +1310,44 @@ onMounted(async () => {
                   <div class="mobile-card-row mobile-card-row-bottom">
                     <label class="mobile-field mobile-field-compact">
                       <span class="mobile-label">{{ uiLabels.flowerPrice }}</span>
-                      <input
-                        v-if="!isCarnationMix(item)"
-                        class="short-input center-input mobile-input"
-                        :disabled="!store.unlocked"
-                        type="number"
-                        min="0"
-                        :value="item.unitPrice"
-                        @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                      />
+                      <div v-if="!isCarnationMix(item)" class="currency-input-wrap currency-input-wrap-mobile">
+                        <input
+                          class="short-input center-input mobile-input"
+                          :disabled="!store.unlocked"
+                          type="number"
+                          min="0"
+                          :value="item.unitPrice"
+                          @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                        />
+                        <span class="currency-input-sign">&#8381;</span>
+                      </div>
                       <div v-else class="mix-price-fields mobile-mix-price-fields">
                         <div class="mix-price-item">
-                          <input
-                            class="short-input center-input mobile-input"
-                            :disabled="!store.unlocked"
-                            type="number"
-                            min="0"
-                            :value="item.unitPrice"
-                            @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                          />
+                          <div class="currency-input-wrap currency-input-wrap-mobile">
+                            <input
+                              class="short-input center-input mobile-input"
+                              :disabled="!store.unlocked"
+                              type="number"
+                              min="0"
+                              :value="item.unitPrice"
+                              @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                            />
+                            <span class="currency-input-sign">&#8381;</span>
+                          </div>
                           <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).primary }} {{ uiLabels.pieces }}</span>
                         </div>
                         <div class="mix-price-item">
-                          <input
-                            class="short-input center-input mobile-input"
-                            :disabled="!store.unlocked"
-                            type="number"
-                            min="0"
-                            :value="item.secondaryUnitPrice || 0"
-                            @input="store.patchFlower(item.id, { secondaryUnitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                          />
+                          <div class="currency-input-wrap currency-input-wrap-mobile">
+                            <input
+                              class="short-input center-input mobile-input"
+                              :disabled="!store.unlocked"
+                              type="number"
+                              min="0"
+                              :value="item.secondaryUnitPrice || 0"
+                              @input="store.patchFlower(item.id, { secondaryUnitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                            />
+                            <span class="currency-input-sign">&#8381;</span>
+                          </div>
                           <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} {{ uiLabels.pieces }}</span>
                         </div>
                       </div>
@@ -952,14 +1355,17 @@ onMounted(async () => {
 
                     <label class="mobile-field mobile-field-compact">
                       <span class="mobile-label">{{ uiLabels.packaging }}</span>
-                      <input
-                        class="short-input center-input mobile-input"
-                        :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
-                        type="number"
-                        min="0"
-                        :value="getPackagingPrice(item, getQty(item))"
-                        @input="store.patchFlower(item.id, { packagingPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                      />
+                      <div class="currency-input-wrap currency-input-wrap-mobile">
+                        <input
+                          class="short-input center-input mobile-input"
+                          :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
+                          type="number"
+                          min="0"
+                          :value="getPackagingPrice(item, getQty(item))"
+                          @input="store.patchFlower(item.id, { packagingPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                        />
+                        <span class="currency-input-sign">&#8381;</span>
+                      </div>
                     </label>
 
                     <div v-if="hidesMobilePistachio(item)" class="mobile-field mobile-field-compact mobile-field-pistachio mobile-field-pistachio-empty"></div>
@@ -1002,7 +1408,7 @@ onMounted(async () => {
     <FlowerEditorModal
       :model-value="editorOpen"
       :initial="editorItem"
-      :section="store.activeSection"
+      :section="store.activeSection === 'priceTables' ? 'osnovnye' : store.activeSection"
       @close="editorOpen = false"
       @save="saveEditor"
     />
