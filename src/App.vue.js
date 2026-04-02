@@ -1,4 +1,4 @@
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import AuthGate from './components/AuthGate.vue';
 import FlowerEditorModal from './components/FlowerEditorModal.vue';
 import SidebarMenu from './components/SidebarMenu.vue';
@@ -17,12 +17,16 @@ const suggestedSelectionMap = reactive({});
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1);
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1);
 const mobileOpenCategory = ref(null);
+const CHRYZA_BUSH_220_ID = 'b3d0d1d2-4fd5-4a12-9ea8-220220220220';
 const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1';
 const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de';
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3';
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01';
 const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'];
 const MOBILE_SEASONAL_CATEGORY_ORDER = ['peony', 'tulip'];
+const PRIMARY_FLOWER_FILTER_ORDER = ['all', 'rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'];
+const SEASONAL_FLOWER_FILTER_ORDER = ['all', 'peony', 'tulip'];
+const FLOWER_FILTER_STORAGE_KEY = 'flowers-baza-active-flower-filters';
 const uiLabels = {
     title: '\u041f\u0440\u0430\u0439\u0441 \u0431\u0443\u043a\u0435\u0442\u043e\u0432',
     chooseJson: '\u0412\u044b\u0431\u0440\u0430\u0442\u044c JSON',
@@ -66,6 +70,38 @@ const MOBILE_PRIMARY_CATEGORY_LABELS = {
     chryza: '\u0425\u0440\u0438\u0437\u0430\u043d\u0442\u0435\u043c\u044b',
     hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
 };
+const FLOWER_FILTER_LABELS = {
+    all: '\u0412\u0441\u0435 \u0446\u0432\u0435\u0442\u044b',
+    rose: '\u0420\u043e\u0437\u044b',
+    alstroemerii: '\u0410\u043b\u044c\u0441\u0442\u0440\u043e\u043c\u0435\u0440\u0438\u0438',
+    carnation: '\u0413\u0432\u043e\u0437\u0434\u0438\u043a\u0438',
+    chryza: '\u0425\u0440\u0438\u0437\u0430\u043d\u0442\u0435\u043c\u044b',
+    hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
+    peony: '\u041f\u0438\u043e\u043d\u044b',
+    tulip: '\u0422\u044e\u043b\u044c\u043f\u0430\u043d\u044b',
+};
+function getAllowedFlowerFilters(section) {
+    return section === 'sezonnye' ? SEASONAL_FLOWER_FILTER_ORDER : PRIMARY_FLOWER_FILTER_ORDER;
+}
+function loadStoredFlowerFilters() {
+    if (typeof window === 'undefined') {
+        return {};
+    }
+    try {
+        const raw = window.localStorage.getItem(FLOWER_FILTER_STORAGE_KEY);
+        if (!raw)
+            return {};
+        return JSON.parse(raw);
+    }
+    catch {
+        return {};
+    }
+}
+function getInitialFlowerFilter(section) {
+    const stored = loadStoredFlowerFilters()[section];
+    return stored && getAllowedFlowerFilters(section).includes(stored) ? stored : 'all';
+}
+const activeFlowerFilter = ref(getInitialFlowerFilter(store.activeSection));
 const MAIN_ORDER = [
     '\u0420\u041e\u0417\u042b \u043f\u043e 150',
     '\u0420\u041e\u0417\u042b \u043f\u043e 250',
@@ -74,6 +110,7 @@ const MAIN_ORDER = [
     '\u0413\u0412\u041e\u0417\u0414\u0418\u041a\u0418 - \u043e\u0431\u044b\u0447\u043d\u044b\u0435',
     '\u0413\u0412\u041e\u0417\u0414\u0418\u041a\u0418 - \u043b\u0443\u043d\u043d\u044b\u0435',
     '\u0413\u0412\u041e\u0417\u0414\u0418\u041a\u0418 - \u043c\u0438\u043a\u0441',
+    '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 220',
     '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 250',
     '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 300',
     '\u0425\u0420\u0418\u0417\u0410 - \u043e\u0434\u043d\u043e\u0433\u043e\u043b\u043e\u0432\u0430\u044f',
@@ -251,6 +288,14 @@ const CHRYZA_BUSH_250_PACKAGING_BY_ODD = [
     1440, 1440, 1440, 1440, 1440, 1540, 1540, 1540, 1540, 1540,
     1640,
 ];
+const CHRYZA_BUSH_220_PACKAGING_BY_ODD = [
+    130, 130, 190, 250, 210, 270, 330, 390, 350, 410,
+    470, 530, 590, 550, 610, 670, 630, 690, 650, 710,
+    670, 730, 790, 850, 910, 870, 930, 990, 950, 1010,
+    980, 1030, 1090, 1050, 1110, 1070, 1130, 1190, 1150, 1210,
+    1170, 1230, 1290, 1250, 1310, 1270, 1330, 1390, 1350, 1410,
+    1370,
+];
 const CHRYZA_BUSH_300_PACKAGING_BY_ODD = [
     190, 190, 290, 290, 290, 390, 390, 490, 490, 590,
     590, 690, 690, 790, 790, 890, 890, 890, 990, 990,
@@ -272,7 +317,19 @@ function compareFlowers(a, b) {
     }
     return a.flowerName.localeCompare(b.flowerName, 'ru');
 }
-const visibleRows = computed(() => [...store.filteredBySection].sort(compareFlowers));
+function matchesFlowerFilter(item, filter) {
+    return filter === 'all' || getFlowerGroup(item) === filter;
+}
+const visibleRows = computed(() => [...store.filteredBySection]
+    .filter((item) => matchesFlowerFilter(item, activeFlowerFilter.value))
+    .sort(compareFlowers));
+const flowerFilterTabs = computed(() => {
+    const order = getAllowedFlowerFilters(store.activeSection);
+    return order.map((key) => ({
+        key,
+        label: FLOWER_FILTER_LABELS[key],
+    }));
+});
 const selectedPriceTableId = ref('');
 const priceTableGroups = computed(() => [...store.flowers]
     .sort(compareFlowers)
@@ -339,7 +396,7 @@ function selectMobileCategory(key) {
     });
 }
 function getFlowerGroup(item) {
-    if (isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item))
+    if (isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item))
         return 'chryza';
     if (isRose150(item) || isRose250(item) || isRose300(item))
         return 'rose';
@@ -437,6 +494,9 @@ function isHydrangea(item) {
 function isChryzaSingle(item) {
     return item.id === CHRYZA_SINGLE_ID;
 }
+function isChryzaBush220(item) {
+    return item.id === CHRYZA_BUSH_220_ID;
+}
 function isChryzaBush250(item) {
     return item.id === CHRYZA_BUSH_250_ID;
 }
@@ -444,7 +504,7 @@ function isChryzaBush300(item) {
     return item.id === CHRYZA_BUSH_300_ID;
 }
 function hasAutoPackagingByQty(item) {
-    return isRose150(item) || isRose250(item) || isRose300(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush250(item) || isChryzaBush300(item);
+    return isRose150(item) || isRose250(item) || isRose300(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item);
 }
 function getPackagingPrice(item, qty) {
     if (!hasAutoPackagingByQty(item)) {
@@ -453,6 +513,9 @@ function getPackagingPrice(item, qty) {
     const idx = isCarnationMix(item) ? (toOdd(qty) - 3) / 2 : (toOdd(qty) - 1) / 2;
     if (isTulips(item)) {
         return TULIP_PACKAGING_BY_ODD[idx] ?? TULIP_PACKAGING_BY_ODD[TULIP_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice;
+    }
+    if (isChryzaBush220(item)) {
+        return CHRYZA_BUSH_220_PACKAGING_BY_ODD[idx] ?? CHRYZA_BUSH_220_PACKAGING_BY_ODD[CHRYZA_BUSH_220_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice;
     }
     if (isChryzaBush250(item)) {
         return CHRYZA_BUSH_250_PACKAGING_BY_ODD[idx] ?? CHRYZA_BUSH_250_PACKAGING_BY_ODD[CHRYZA_BUSH_250_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice;
@@ -730,10 +793,10 @@ function getPriceTableRows(item) {
     }));
 }
 function isPistachioLocked(item) {
-    return isTulips(item) || isChryzaBush250(item) || isChryzaBush300(item);
+    return isTulips(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item);
 }
 function hidesMobilePistachio(item) {
-    return isTulips(item) || isChryzaBush250(item) || isChryzaBush300(item);
+    return isTulips(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item);
 }
 function usesAutoPistachioQty(item) {
     return isRose150(item) || isRose250(item) || isRose300(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item);
@@ -751,6 +814,7 @@ function handlePageClick(event) {
 }
 function onSectionChange(section) {
     store.activeSection = section;
+    activeFlowerFilter.value = getInitialFlowerFilter(section);
     mobileOpenCategory.value = null;
     if (section !== 'priceTables') {
         return;
@@ -772,6 +836,20 @@ async function saveEditor(item) {
 async function onChooseFile() {
     await store.chooseFile();
 }
+watch(activeFlowerFilter, (value) => {
+    if (store.activeSection === 'priceTables' || typeof window === 'undefined') {
+        return;
+    }
+    const stored = loadStoredFlowerFilters();
+    stored[store.activeSection] = value;
+    window.localStorage.setItem(FLOWER_FILTER_STORAGE_KEY, JSON.stringify(stored));
+});
+watch(() => store.activeSection, (section) => {
+    if (section === 'priceTables') {
+        return;
+    }
+    activeFlowerFilter.value = getInitialFlowerFilter(section);
+}, { immediate: true });
 onMounted(async () => {
     await store.bootstrap();
 });
@@ -1001,6 +1079,23 @@ if (__VLS_ctx.store.activeSection === 'priceTables') {
     }
 }
 else {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "price-matrix-tabs flower-filter-tabs" },
+    });
+    for (const [filterTab] of __VLS_getVForSourceType((__VLS_ctx.flowerFilterTabs))) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+            ...{ onClick: (...[$event]) => {
+                    if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
+                        return;
+                    __VLS_ctx.activeFlowerFilter = filterTab.key;
+                } },
+            key: (filterTab.key),
+            type: "button",
+            ...{ class: "price-matrix-tab" },
+            ...{ class: ({ active: __VLS_ctx.activeFlowerFilter === filterTab.key }) },
+        });
+        (filterTab.label);
+    }
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "table-wrap desktop-table-wrap" },
     });
@@ -2056,6 +2151,9 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['price-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-with-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-ruble']} */ ;
+/** @type {__VLS_StyleScopedClasses['price-matrix-tabs']} */ ;
+/** @type {__VLS_StyleScopedClasses['flower-filter-tabs']} */ ;
+/** @type {__VLS_StyleScopedClasses['price-matrix-tab']} */ ;
 /** @type {__VLS_StyleScopedClasses['table-wrap']} */ ;
 /** @type {__VLS_StyleScopedClasses['desktop-table-wrap']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-table']} */ ;
@@ -2265,7 +2363,9 @@ const __VLS_self = (await import('vue')).defineComponent({
             suggestedSelectionMap: suggestedSelectionMap,
             CHRYZA_BUSH_250_ID: CHRYZA_BUSH_250_ID,
             uiLabels: uiLabels,
+            activeFlowerFilter: activeFlowerFilter,
             visibleRows: visibleRows,
+            flowerFilterTabs: flowerFilterTabs,
             selectedPriceTableId: selectedPriceTableId,
             priceTableGroups: priceTableGroups,
             activePriceTableGroup: activePriceTableGroup,

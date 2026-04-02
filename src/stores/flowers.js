@@ -6,11 +6,13 @@ import { fetchWikimediaImage, getPlaceholderImage } from '../utils/wikimedia';
 const LOCAL_STORAGE_KEY = 'flowers-baza-fallback';
 const ACTIVE_SECTION_KEY = 'flowers-baza-active-section';
 const PROJECT_JSON_PATH = `${import.meta.env.BASE_URL}data/flowers.json`;
+const PROJECT_JSON_REFRESH_MS = 1500;
 const HYDRANGEA_ID = '49771275-f9ae-4bd3-9fe6-d42bda7b5dfd';
 const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de';
 const CARNATION_COMMON_ID = 'e44cee36-55f1-4532-8ab3-9d60ea7175dc';
 const CARNATION_MOON_ID = 'ff7772fb-f770-4702-8963-f717440d617c';
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01';
+const CHRYZA_BUSH_220_ID = 'b3d0d1d2-4fd5-4a12-9ea8-220220220220';
 const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1';
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3';
 const ALSTROMERII_ID = 'd9821a47-a022-4147-a88e-4857ed43deb9';
@@ -39,6 +41,7 @@ function normalizeLoadedDiscountPercent(item) {
 function ensureRequiredItems(items) {
     const next = [...items];
     const hasMix = next.some((item) => item.id === CARNATION_MIX_ID);
+    const hasChryzaBush220 = next.some((item) => item.id === CHRYZA_BUSH_220_ID);
     if (!hasMix) {
         const moonIndex = next.findIndex((item) => item.id === CARNATION_MOON_ID);
         const mixItem = {
@@ -63,6 +66,29 @@ function ensureRequiredItems(items) {
             next.push(mixItem);
         }
     }
+    if (!hasChryzaBush220) {
+        const bush250Index = next.findIndex((item) => item.id === CHRYZA_BUSH_250_ID);
+        const bush220Item = {
+            id: CHRYZA_BUSH_220_ID,
+            section: 'osnovnye',
+            flowerName: '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 220',
+            photoUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
+            unitPrice: 220,
+            packagingPrice: 0,
+            hasPistachio: false,
+            pistachioQty: 0,
+            pistachioUnitPrice: 40,
+            discountPercent: 10,
+            isPromoEnabled: false,
+            popularSizes: [3, 5, 7, 9, 11, 15],
+        };
+        if (bush250Index >= 0) {
+            next.splice(bush250Index, 0, bush220Item);
+        }
+        else {
+            next.push(bush220Item);
+        }
+    }
     return next;
 }
 function normalizeItem(item) {
@@ -73,7 +99,7 @@ function normalizeItem(item) {
             ? [3, 5, 7, 9, 11]
             : item.id === CARNATION_COMMON_ID || item.id === CARNATION_MOON_ID || item.id === CARNATION_MIX_ID
                 ? [9, 11, 15, 25, 35]
-                : item.id === CHRYZA_BUSH_250_ID || item.id === CHRYZA_BUSH_300_ID
+                : item.id === CHRYZA_BUSH_220_ID || item.id === CHRYZA_BUSH_250_ID || item.id === CHRYZA_BUSH_300_ID
                     ? [3, 5, 7, 9, 11, 15]
                     : item.id === ALSTROMERII_ID
                         ? [5, 7, 9, 11, 15]
@@ -113,6 +139,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     const saveError = ref('');
     const handle = ref();
     const saveTimer = ref();
+    const projectJsonPoller = ref();
     watch(activeSection, (value) => {
         localStorage.setItem(ACTIVE_SECTION_KEY, value);
     }, { immediate: true });
@@ -154,6 +181,27 @@ export const useFlowersStore = defineStore('flowers', () => {
             return false;
         }
     }
+    async function refreshFromProjectJsonIfAvailable() {
+        if (!usingFallbackStorage.value || handle.value) {
+            return;
+        }
+        await loadFromProjectJson();
+    }
+    function stopProjectJsonPolling() {
+        if (projectJsonPoller.value) {
+            clearInterval(projectJsonPoller.value);
+            projectJsonPoller.value = undefined;
+        }
+    }
+    function startProjectJsonPolling() {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        stopProjectJsonPolling();
+        projectJsonPoller.value = window.setInterval(() => {
+            void refreshFromProjectJsonIfAvailable();
+        }, PROJECT_JSON_REFRESH_MS);
+    }
     async function saveToFallback() {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(buildDb(flowers.value)));
     }
@@ -180,6 +228,7 @@ export const useFlowersStore = defineStore('flowers', () => {
             const db = await readJsonFile(picked);
             flowers.value = (db.items || []).map(normalizeItem);
             usingFallbackStorage.value = false;
+            stopProjectJsonPolling();
         }
         catch (error) {
             saveError.value = `РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё: ${errorMessage(error)}`;
@@ -187,6 +236,7 @@ export const useFlowersStore = defineStore('flowers', () => {
             if (!loaded) {
                 await loadFromFallback();
             }
+            startProjectJsonPolling();
         }
     }
     async function bootstrap() {
@@ -199,6 +249,7 @@ export const useFlowersStore = defineStore('flowers', () => {
                 if (!loaded && hasFallbackData()) {
                     await loadFromFallback();
                 }
+                startProjectJsonPolling();
                 return;
             }
             const stored = await loadStoredHandle();
@@ -234,6 +285,7 @@ export const useFlowersStore = defineStore('flowers', () => {
             if (!loaded) {
                 await loadFromFallback();
             }
+            startProjectJsonPolling();
         }
         finally {
             loading.value = false;
