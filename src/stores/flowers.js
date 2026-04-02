@@ -19,7 +19,7 @@ const GYPSOPHILA_ID = '5d8d5e68-cbd2-4e9a-a2ea-9fd6b7f9c201';
 const GYPSOPHILA_COMPOSITION_ID = '0f3b0a0d-6b0c-4cf0-8d32-7e5f49d0b902';
 const ALSTROMERII_ID = 'd9821a47-a022-4147-a88e-4857ed43deb9';
 function isSectionKey(value) {
-    return value === 'osnovnye' || value === 'sezonnye';
+    return value === 'osnovnye' || value === 'sezonnye' || value === 'priceTables';
 }
 function loadActiveSection() {
     const stored = localStorage.getItem(ACTIVE_SECTION_KEY);
@@ -144,7 +144,7 @@ function ensureRequiredItems(items) {
 function normalizeItem(item) {
     const normalizedFlowerName = item.id === CARNATION_MIX_ID ? '\u0413\u0412\u041E\u0417\u0414\u0418\u041A\u0418 - \u043C\u0438\u043A\u0441' : item.flowerName;
     const popularSizes = item.id === HYDRANGEA_ID
-        ? [3, 5, 7, 9, 11]
+        ? [1, 3, 5, 7, 9, 11]
         : item.id === CHRYZA_SINGLE_ID
             ? [3, 5, 7, 9, 11]
             : item.id === CARNATION_COMMON_ID || item.id === CARNATION_MOON_ID || item.id === CARNATION_MIX_ID

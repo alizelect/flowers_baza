@@ -181,8 +181,7 @@
         15,
         25
       ]
-    },
-    {
+    },    {
       "id": "49771275-f9ae-4bd3-9fe6-d42bda7b5dfd",
       "section": "osnovnye",
       "flowerName": "ГОРТЕНЗИИ",
@@ -195,6 +194,7 @@
       "discountPercent": 10,
       "isPromoEnabled": false,
       "popularSizes": [
+        1,
         7,
         9,
         11,
@@ -324,6 +324,10 @@
     }
   ]
 }
+
+
+
+
 
 
 

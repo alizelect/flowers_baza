@@ -903,7 +903,7 @@ function getPopularSizeLabel(item, size) {
     return String(size);
 }
 function isPopularSizeActive(item, size) {
-    if (isGypsophilaComposition(item)) {
+    if (isGypsophilaComposition(item) || isHydrangea(item)) {
         return Boolean(sizeButtonSelectionMap[item.id]) && getQty(item) === size;
     }
     return getQty(item) === size;

@@ -1031,7 +1031,7 @@ function getPopularSizeLabel(item: FlowerItem, size: number): string {
 }
 
 function isPopularSizeActive(item: FlowerItem, size: number): boolean {
-  if (isGypsophilaComposition(item)) {
+  if (isGypsophilaComposition(item) || isHydrangea(item)) {
     return Boolean(sizeButtonSelectionMap[item.id]) && getQty(item) === size
   }
   return getQty(item) === size
@@ -1666,6 +1666,7 @@ onMounted(async () => {
     />
   </div>
 </template>
+
 
 
 

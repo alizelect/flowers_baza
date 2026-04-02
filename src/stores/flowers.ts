@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import type { FlowerDatabase, FlowerItem, SectionKey } from '../types'
 import {
@@ -32,7 +32,7 @@ const GYPSOPHILA_COMPOSITION_ID = '0f3b0a0d-6b0c-4cf0-8d32-7e5f49d0b902'
 const ALSTROMERII_ID = 'd9821a47-a022-4147-a88e-4857ed43deb9'
 
 function isSectionKey(value: string | null): value is SectionKey {
-  return value === 'osnovnye' || value === 'sezonnye'
+  return value === 'osnovnye' || value === 'sezonnye' || value === 'priceTables'
 }
 
 function loadActiveSection(): SectionKey {
@@ -170,7 +170,7 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
 function normalizeItem(item: FlowerItem): FlowerItem {
   const normalizedFlowerName = item.id === CARNATION_MIX_ID ? '\u0413\u0412\u041E\u0417\u0414\u0418\u041A\u0418 - \u043C\u0438\u043A\u0441' : item.flowerName
   const popularSizes = item.id === HYDRANGEA_ID
-    ? [3, 5, 7, 9, 11]
+    ? [1, 3, 5, 7, 9, 11]
     : item.id === CHRYZA_SINGLE_ID
       ? [3, 5, 7, 9, 11]
       : item.id === CARNATION_COMMON_ID || item.id === CARNATION_MOON_ID || item.id === CARNATION_MIX_ID
@@ -454,6 +454,11 @@ export const useFlowersStore = defineStore('flowers', () => {
     attachAutoImage,
   }
 })
+
+
+
+
+
 
 
 
