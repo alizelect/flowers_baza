@@ -27,6 +27,8 @@ const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01'
 const CHRYZA_BUSH_220_ID = 'b3d0d1d2-4fd5-4a12-9ea8-220220220220'
 const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1'
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3'
+const GYPSOPHILA_ID = '5d8d5e68-cbd2-4e9a-a2ea-9fd6b7f9c201'
+const GYPSOPHILA_COMPOSITION_ID = '0f3b0a0d-6b0c-4cf0-8d32-7e5f49d0b902'
 const ALSTROMERII_ID = 'd9821a47-a022-4147-a88e-4857ed43deb9'
 
 function isSectionKey(value: string | null): value is SectionKey {
@@ -61,6 +63,8 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
   const next = [...items]
   const hasMix = next.some((item) => item.id === CARNATION_MIX_ID)
   const hasChryzaBush220 = next.some((item) => item.id === CHRYZA_BUSH_220_ID)
+  const hasGypsophila = next.some((item) => item.id === GYPSOPHILA_ID)
+  const hasGypsophilaComposition = next.some((item) => item.id === GYPSOPHILA_COMPOSITION_ID)
 
   if (!hasMix) {
     const moonIndex = next.findIndex((item) => item.id === CARNATION_MOON_ID)
@@ -109,6 +113,54 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
       next.splice(bush250Index, 0, bush220Item)
     } else {
       next.push(bush220Item)
+    }
+  }
+
+  if (!hasGypsophila) {
+    const hydrangeaIndex = next.findIndex((item) => item.id === HYDRANGEA_ID)
+    const gypsophilaItem: FlowerItem = {
+      id: GYPSOPHILA_ID,
+      section: 'osnovnye',
+      flowerName: '\u0413\u0418\u041f\u0421\u041e\u0424\u0418\u041b\u0410 - \u0431\u0443\u043a\u0435\u0442\u044b',
+      photoUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
+      unitPrice: 200,
+      packagingPrice: 0,
+      hasPistachio: false,
+      pistachioQty: 0,
+      pistachioUnitPrice: 40,
+      discountPercent: 10,
+      isPromoEnabled: false,
+      popularSizes: [7, 9, 11, 15, 25],
+    }
+
+    if (hydrangeaIndex >= 0) {
+      next.splice(hydrangeaIndex + 1, 0, gypsophilaItem)
+    } else {
+      next.push(gypsophilaItem)
+    }
+  }
+
+  if (!hasGypsophilaComposition) {
+    const bouquetIndex = next.findIndex((item) => item.id === GYPSOPHILA_ID)
+    const gypsophilaCompositionItem: FlowerItem = {
+      id: GYPSOPHILA_COMPOSITION_ID,
+      section: 'osnovnye',
+      flowerName: '\u0413\u0418\u041f\u0421\u041e\u0424\u0418\u041b\u0410 - \u043a\u043e\u043c\u043f\u043e\u0437\u0438\u0446\u0438\u0438',
+      photoUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
+      unitPrice: 200,
+      packagingPrice: 0,
+      hasPistachio: false,
+      pistachioQty: 0,
+      pistachioUnitPrice: 40,
+      discountPercent: 10,
+      isPromoEnabled: false,
+      popularSizes: [1, 3, 5, 7, 25],
+    }
+
+    if (bouquetIndex >= 0) {
+      next.splice(bouquetIndex + 1, 0, gypsophilaCompositionItem)
+    } else {
+      next.push(gypsophilaCompositionItem)
     }
   }
 

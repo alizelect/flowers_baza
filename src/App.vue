@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import AuthGate from './components/AuthGate.vue'
 import FlowerEditorModal from './components/FlowerEditorModal.vue'
@@ -22,16 +22,19 @@ const targetPriceMap = reactive<Record<string, string>>({})
 const suggestedSelectionMap = reactive<Record<string, 'lower' | 'higher' | ''>>({})
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1)
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1)
+const POPULAR_SIZES_NOTE = '*в столбце "Популярные размеры" указан диаметр коробок'
 const mobileOpenCategory = ref<string | null>(null)
 const CHRYZA_BUSH_220_ID = 'b3d0d1d2-4fd5-4a12-9ea8-220220220220'
 const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1'
 const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de'
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3'
+const GYPSOPHILA_ID = '5d8d5e68-cbd2-4e9a-a2ea-9fd6b7f9c201'
+const GYPSOPHILA_COMPOSITION_ID = '0f3b0a0d-6b0c-4cf0-8d32-7e5f49d0b902'
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01'
-const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'] as const
+const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila'] as const
 const MOBILE_SEASONAL_CATEGORY_ORDER = ['peony', 'tulip'] as const
-type FlowerFilterKey = 'all' | 'rose' | 'alstroemerii' | 'carnation' | 'chryza' | 'hydrangea' | 'peony' | 'tulip'
-const PRIMARY_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea']
+type FlowerFilterKey = 'all' | 'rose' | 'alstroemerii' | 'carnation' | 'chryza' | 'hydrangea' | 'gypsophila' | 'peony' | 'tulip'
+const PRIMARY_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila']
 const SEASONAL_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'peony', 'tulip']
 const FLOWER_FILTER_STORAGE_KEY = 'flowers-baza-active-flower-filters'
 const uiLabels = {
@@ -76,6 +79,7 @@ const MOBILE_PRIMARY_CATEGORY_LABELS: Record<(typeof MOBILE_PRIMARY_CATEGORY_ORD
   carnation: '\u0413\u0432\u043e\u0437\u0434\u0438\u043a\u0438',
   chryza: '\u0425\u0440\u0438\u0437\u0430\u043d\u0442\u0435\u043c\u044b',
   hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
+  gypsophila: '\u0413\u0438\u043f\u0441\u043e\u0444\u0438\u043b\u0430',
 }
 const FLOWER_FILTER_LABELS: Record<FlowerFilterKey, string> = {
   all: '\u0412\u0441\u0435 \u0446\u0432\u0435\u0442\u044b',
@@ -84,6 +88,7 @@ const FLOWER_FILTER_LABELS: Record<FlowerFilterKey, string> = {
   carnation: '\u0413\u0432\u043e\u0437\u0434\u0438\u043a\u0438',
   chryza: '\u0425\u0440\u0438\u0437\u0430\u043d\u0442\u0435\u043c\u044b',
   hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
+  gypsophila: '\u0413\u0438\u043f\u0441\u043e\u0444\u0438\u043b\u0430',
   peony: '\u041f\u0438\u043e\u043d\u044b',
   tulip: '\u0422\u044e\u043b\u044c\u043f\u0430\u043d\u044b',
 }
@@ -123,6 +128,8 @@ const MAIN_ORDER = [
   '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 300',
   '\u0425\u0420\u0418\u0417\u0410 - \u043e\u0434\u043d\u043e\u0433\u043e\u043b\u043e\u0432\u0430\u044f',
   '\u0413\u041e\u0420\u0422\u0415\u041d\u0417\u0418\u0418',
+  '\u0413\u0418\u041f\u0421\u041e\u0424\u0418\u041b\u0410 - \u0431\u0443\u043a\u0435\u0442\u044b',
+  '\u0413\u0418\u041f\u0421\u041e\u0424\u0418\u041b\u0410 - \u043a\u043e\u043c\u043f\u043e\u0437\u0438\u0446\u0438\u0438',
 ]
 
 const MAIN_ORDER_INDEX = new Map(MAIN_ORDER.map((name, index) => [name, index]))
@@ -327,6 +334,28 @@ const CHRYZA_BUSH_220_PACKAGING_BY_ODD = [
   1170, 1230, 1290, 1250, 1310, 1270, 1330, 1390, 1350, 1410,
   1370,
 ]
+const GYPSOPHILA_COMPOSITION_PACKAGING_BY_QTY: Record<number, number> = {
+  1: 800,
+  3: 1090,
+  5: 990,
+  7: 1090,
+  25: 1690,
+}
+const GYPSOPHILA_COMPOSITION_LABELS: Record<number, string> = {
+  1: 'стак.',
+  3: '10',
+  5: '13',
+  7: '15',
+  25: '20',
+}
+const GYPSOPHILA_PACKAGING_BY_ODD = [
+  90, 190, 190, 190, 290, 390, 390, 390, 490, 490,
+  590, 590, 690, 690, 790, 790, 890, 890, 890, 890,
+  890, 890, 890, 990, 990, 990, 990, 1090, 1090, 1090,
+  1090, 1190, 1190, 1190, 1190, 1190, 1290, 1290, 1290, 1290,
+  1290, 1390, 1390, 1390, 1390, 1390, 1490, 1490, 1490, 1490,
+  1590,
+]
 const CHRYZA_BUSH_300_PACKAGING_BY_ODD = [
   190, 190, 290, 290, 290, 390, 390, 490, 490, 590,
   590, 690, 690, 790, 790, 890, 890, 890, 990, 990,
@@ -464,6 +493,7 @@ function getFlowerGroup(item: FlowerItem): string {
   if (isAlstroemerii(item)) return 'alstroemerii'
   if (isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item)) return 'carnation'
   if (isHydrangea(item)) return 'hydrangea'
+  if (isGypsophila(item) || isGypsophilaComposition(item)) return 'gypsophila'
   if (isPeonies(item)) return 'peony'
   if (isTulips(item)) return 'tulip'
   return item.flowerName.trim().toLowerCase()
@@ -492,6 +522,23 @@ function getMaxQty(item: FlowerItem): number {
 }
 
 function normalizeQty(item: FlowerItem, value: number): number {
+  if (isGypsophilaComposition(item)) {
+    const options = item.popularSizes
+    const numeric = Number(value)
+    if (!Number.isFinite(numeric)) {
+      return options[0] ?? 1
+    }
+    let nearest = options[0] ?? 1
+    let nearestDistance = Math.abs(nearest - numeric)
+    for (const option of options) {
+      const distance = Math.abs(option - numeric)
+      if (distance < nearestDistance) {
+        nearest = option
+        nearestDistance = distance
+      }
+    }
+    return nearest
+  }
   const odd = toOdd(value)
   const min = getMinQty(item)
   const max = getMaxQty(item)
@@ -501,6 +548,7 @@ function normalizeQty(item: FlowerItem, value: number): number {
 }
 
 function getQtyOptions(item: FlowerItem): number[] {
+  if (isGypsophilaComposition(item)) return item.popularSizes
   if (isCarnationMix(item)) return oddOptions.slice(1)
   return isHydrangea(item) || isChryzaSingle(item) ? hydrangeaOddOptions : oddOptions
 }
@@ -562,6 +610,20 @@ function isHydrangea(item: FlowerItem): boolean {
   return name.includes('\u0433\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438')
 }
 
+function isGypsophila(item: FlowerItem): boolean {
+  return item.id === GYPSOPHILA_ID
+}
+
+function isGypsophilaComposition(item: FlowerItem): boolean {
+  return item.id === GYPSOPHILA_COMPOSITION_ID
+}
+function isPromoDisabledForQty(item: FlowerItem, qty: number): boolean {
+  return isGypsophilaComposition(item) && [1, 3, 5].includes(qty)
+}
+function isPackagingHidden(item: FlowerItem): boolean {
+  return isGypsophilaComposition(item)
+}
+
 function isChryzaSingle(item: FlowerItem): boolean {
   return item.id === CHRYZA_SINGLE_ID
 }
@@ -580,7 +642,7 @@ function isChryzaBush300(item: FlowerItem): boolean {
 
 
 function hasAutoPackagingByQty(item: FlowerItem): boolean {
-  return isRose150(item) || isRose250(item) || isRose300(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
+  return isRose150(item) || isRose250(item) || isRose300(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isGypsophila(item) || isGypsophilaComposition(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 function getPackagingPrice(item: FlowerItem, qty: number): number {
   if (!hasAutoPackagingByQty(item)) {
@@ -619,6 +681,12 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
   }
   if (isHydrangea(item)) {
     return HYDRANGEA_PACKAGING_BY_ODD[idx] ?? HYDRANGEA_PACKAGING_BY_ODD[HYDRANGEA_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+  }
+  if (isGypsophilaComposition(item)) {
+    return GYPSOPHILA_COMPOSITION_PACKAGING_BY_QTY[qty] ?? item.packagingPrice
+  }
+  if (isGypsophila(item)) {
+    return GYPSOPHILA_PACKAGING_BY_ODD[idx] ?? GYPSOPHILA_PACKAGING_BY_ODD[GYPSOPHILA_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
   }
   if (isChryzaSingle(item)) {
     return CHRYZA_SINGLE_PACKAGING_BY_ODD[idx] ?? CHRYZA_SINGLE_PACKAGING_BY_ODD[CHRYZA_SINGLE_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
@@ -679,6 +747,9 @@ function calcWithoutPromoForRow(item: FlowerItem, qty: number): number {
 }
 
 function calcWithPromoForRow(item: FlowerItem, qty: number): number {
+  if (isPromoDisabledForQty(item, qty)) {
+    return calcWithoutPromoForRow(item, qty)
+  }
   const pistachioLocked = isPistachioLocked(item)
   return calcWithPromo(
     {
@@ -844,6 +915,9 @@ function getFlowerCostValue(item: FlowerItem, qty: number): number {
 }
 
 function getCompositionLabel(item: FlowerItem, qty: number): string {
+  if (isGypsophilaComposition(item)) {
+    return GYPSOPHILA_COMPOSITION_LABELS[qty] ?? ''
+  }
   if (isCarnationMix(item)) {
     const split = getMixQtySplit(qty)
     return `${split.primary} + ${split.secondary} \u0448\u0442.`
@@ -852,6 +926,10 @@ function getCompositionLabel(item: FlowerItem, qty: number): string {
 }
 
 function getFlowerCostLabel(item: FlowerItem, qty: number): string {
+  if (isGypsophilaComposition(item)) {
+    const label = GYPSOPHILA_COMPOSITION_LABELS[qty] ?? qty
+    return `${label} = ${formatPriceWithRuble(calcWithoutPromoForRow(item, qty))}`
+  }
   const secondaryUnitPrice = Number(item.secondaryUnitPrice) || 0
   if (secondaryUnitPrice > 0) {
     const split = getMixQtySplit(qty)
@@ -882,6 +960,9 @@ function getPistachioLabel(item: FlowerItem, qty: number): string {
 }
 
 function getPromoPriceForPercent(item: FlowerItem, qty: number, discountPercent: number): number {
+  if (isPromoDisabledForQty(item, qty)) {
+    return calcWithoutPromoForRow(item, qty)
+  }
   const pistachioLocked = isPistachioLocked(item)
   return calcWithPromo(
     {
@@ -898,6 +979,9 @@ function getPromoPriceForPercent(item: FlowerItem, qty: number, discountPercent:
 }
 
 function getCurrentPromoLabel(item: FlowerItem, qty: number): string {
+  if (isPromoDisabledForQty(item, qty)) {
+    return '-'
+  }
   if (!item.isPromoEnabled) {
     return '\u0432\u044b\u043a\u043b.'
   }
@@ -909,23 +993,35 @@ function getPriceTableRows(item: FlowerItem): PriceTableRow[] {
     qty,
     withoutPromo: formatPriceWithRuble(calcWithoutPromoForRow(item, qty)),
     pistachio: getPistachioLabel(item, qty),
-    packaging: formatPriceWithRuble(getPackagingPrice(item, qty)),
-    promo10: formatPriceWithRuble(getPromoPriceForPercent(item, qty, 10)),
-    promo15: formatPriceWithRuble(getPromoPriceForPercent(item, qty, 15)),
+    packaging: isPackagingHidden(item) ? '-' : formatPriceWithRuble(getPackagingPrice(item, qty)),
+    promo10: isPromoDisabledForQty(item, qty) ? '-' : formatPriceWithRuble(getPromoPriceForPercent(item, qty, 10)),
+    promo15: isPromoDisabledForQty(item, qty) ? '-' : formatPriceWithRuble(getPromoPriceForPercent(item, qty, 15)),
   }))
 }
 
 function isPistachioLocked(item: FlowerItem): boolean {
-  return isTulips(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
+  return isTulips(item) || isGypsophila(item) || isGypsophilaComposition(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 
 function hidesMobilePistachio(item: FlowerItem): boolean {
-  return isTulips(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
+  return isTulips(item) || isGypsophila(item) || isGypsophilaComposition(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 
 function usesAutoPistachioQty(item: FlowerItem): boolean {
   return isRose150(item) || isRose250(item) || isRose300(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item)
 }
+
+function isQtyInputLocked(item: FlowerItem): boolean {
+  return isGypsophilaComposition(item)
+}
+
+function getPopularSizeLabel(item: FlowerItem, size: number): string {
+  if (isGypsophilaComposition(item)) {
+    return GYPSOPHILA_COMPOSITION_LABELS[size] ?? String(size)
+  }
+  return String(size)
+}
+
 function clearActiveRow(): void {
   activeRowId.value = ''
 }
@@ -1054,7 +1150,10 @@ onMounted(async () => {
                   <td>{{ row.qty }}</td>
                   <td><span class="price-with-ruble"><span>{{ row.withoutPromo }}</span><span class="price-ruble">&#8381;</span></span></td>
                   <td>{{ row.pistachio }}</td>
-                  <td><span class="price-with-ruble"><span>{{ row.packaging }}</span><span class="price-ruble">&#8381;</span></span></td>
+                  <td>
+                    <template v-if="row.packaging === '-'">-</template>
+                    <span v-else class="price-with-ruble"><span>{{ row.packaging }}</span><span class="price-ruble">&#8381;</span></span>
+                  </td>
                   <td><span class="price-with-ruble"><span>{{ row.promo10 }}</span><span class="price-ruble">&#8381;</span></span></td>
                   <td><span class="price-with-ruble"><span>{{ row.promo15 }}</span><span class="price-ruble">&#8381;</span></span></td>
                 </tr>
@@ -1095,7 +1194,9 @@ onMounted(async () => {
             <tr>
               <th>{{ uiLabels.flowerKind }}</th>
               <th>{{ uiLabels.qty }}</th>
-              <th><span class="popular-sizes-title">{{ uiLabels.popularSizes }}</span></th>
+              <th>
+                <span class="popular-sizes-title">{{ uiLabels.popularSizes }}</span>
+              </th>
               <th class="offer-divider">{{ uiLabels.withoutPromo }}</th>
               <th class="promo-divider">{{ uiLabels.promo }}</th>
               <th class="price-divider">{{ uiLabels.flowerPrice }}</th>
@@ -1106,24 +1207,35 @@ onMounted(async () => {
           </thead>
           <tbody>
             <tr v-for="(item, index) in visibleRows" :key="item.id" :class="{ 'is-active': activeRowId === item.id, 'group-start': isGroupStart(item, index) }" @click="activeRowId = item.id">
-              <td class="flower-name-cell" @click="activeRowId = item.id">{{ item.flowerName }}</td>
+              <td class="flower-name-cell" @click="activeRowId = item.id">
+                <span>{{ item.flowerName }}</span>
+                <span v-if="isGypsophilaComposition(item)" class="popular-sizes-note">{{ POPULAR_SIZES_NOTE }}</span>
+              </td>
 <td>
                 <div class="qty-stack">
                   <div class="qty-cell">
-                    <input
-                      class="center-input qty-select"
-                      type="number"
-                      :min="getMinQty(item)"
-                      max="101"
-                      step="2"
-                      :value="getQtyInputValue(item)"
-                      :placeholder="uiLabels.qtyPlaceholder"
-                      @input="updateQtyInput(item, ($event.target as HTMLInputElement).value)"
-                      @change="commitQtyInput(item)"
-                    />
-                    <button class="qty-reset" type="button" :aria-label="uiLabels.qtyResetOne" @click="resetQty(item)">
-                      <img class="qty-reset-icon" :src="resetIcon" alt="" />
-                    </button>
+                    <template v-if="isQtyInputLocked(item)">
+                      <span class="center-input qty-select promo-disabled-mark qty-dash">-</span>
+                      <button class="qty-reset" type="button" :aria-label="uiLabels.qtyResetOne" @click="resetQty(item)">
+                        <img class="qty-reset-icon" :src="resetIcon" alt="" />
+                      </button>
+                    </template>
+                    <template v-else>
+                      <input
+                        class="center-input qty-select"
+                        type="number"
+                        :min="getMinQty(item)"
+                        max="101"
+                        step="2"
+                        :value="getQtyInputValue(item)"
+                        :placeholder="uiLabels.qtyPlaceholder"
+                        @input="updateQtyInput(item, ($event.target as HTMLInputElement).value)"
+                        @change="commitQtyInput(item)"
+                      />
+                      <button class="qty-reset" type="button" :aria-label="uiLabels.qtyResetOne" @click="resetQty(item)">
+                        <img class="qty-reset-icon" :src="resetIcon" alt="" />
+                      </button>
+                    </template>
                   </div>
                   <div class="target-price-cell">
                     <div class="currency-input-wrap currency-input-wrap-target">
@@ -1152,7 +1264,7 @@ onMounted(async () => {
                       :class="{ active: getQty(item) === size }"
                       @click="chooseSize(item, size)"
                     >
-                      {{ size }}
+                      {{ getPopularSizeLabel(item, size) }}
                     </button>
                   </div>
                   <div class="price-pick-layout inline-price-pick-layout">
@@ -1179,16 +1291,21 @@ onMounted(async () => {
               </td>
               <td class="offer-divider" :class="{ 'price-strong': activeRowId === item.id }"><span class="price-with-ruble"><span>{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></span></td>
               <td class="promo-divider">
-                <div class="promo-col">
-                  <select
-                    class="center-input"
-                    :value="item.discountPercent"
-                    @change="store.patchFlower(item.id, { discountPercent: Number(($event.target as HTMLSelectElement).value), isPromoEnabled: true })"
-                  >
-                    <option :value="10">10</option>
-                    <option :value="15">15</option>
-                  </select>
-                  <span class="center-cell price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></span>
+                <div class="promo-col" :class="{ 'promo-col-disabled': isPromoDisabledForQty(item, getQty(item)) }">
+                  <template v-if="isPromoDisabledForQty(item, getQty(item))">
+                    <span class="center-cell promo-disabled-mark">-</span>
+                  </template>
+                  <template v-else>
+                    <select
+                      class="center-input"
+                      :value="item.discountPercent"
+                      @change="store.patchFlower(item.id, { discountPercent: Number(($event.target as HTMLSelectElement).value), isPromoEnabled: true })"
+                    >
+                      <option :value="10">10</option>
+                      <option :value="15">15</option>
+                    </select>
+                    <span class="center-cell price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></span>
+                  </template>
                 </div>
               </td>
               <td class="price-divider">
@@ -1235,7 +1352,10 @@ onMounted(async () => {
                 </div>
               </td>
               <td>
-                <div class="currency-input-wrap">
+                <template v-if="isPackagingHidden(item)">
+                  <span class="promo-disabled-mark">-</span>
+                </template>
+                <div v-else class="currency-input-wrap">
                   <input
                     class="short-input center-input"
                     :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
@@ -1303,6 +1423,7 @@ onMounted(async () => {
                   <button class="mobile-flower-name" type="button" @click="activeRowId = item.id">
                     {{ item.flowerName }}
                   </button>
+                  <span v-if="isGypsophilaComposition(item)" class="mobile-helper-note">{{ POPULAR_SIZES_NOTE }}</span>
                   <div v-if="store.unlocked" class="mobile-card-actions">
                     <button type="button" @click="openEdit(item)">{{ uiLabels.edit }}</button>
                     <button type="button" class="danger" @click="store.deleteFlower(item.id)">{{ uiLabels.delete }}</button>
@@ -1315,20 +1436,28 @@ onMounted(async () => {
                       <span class="mobile-label">{{ uiLabels.qty }}</span>
                       <div class="qty-stack">
                         <div class="qty-cell">
-                          <input
-                            class="center-input qty-select"
-                            type="number"
-                            :min="getMinQty(item)"
-                            max="101"
-                            step="2"
-                            :value="getQtyInputValue(item)"
-                            :placeholder="uiLabels.qtyPlaceholder"
-                            @input="updateQtyInput(item, ($event.target as HTMLInputElement).value)"
-                            @change="commitQtyInput(item)"
-                          />
-                          <button class="qty-reset" type="button" :aria-label="uiLabels.mobileQtyReset" @click="resetQty(item)">
-                            <img class="qty-reset-icon" :src="resetIcon" alt="" />
-                          </button>
+                          <template v-if="isQtyInputLocked(item)">
+                      <span class="center-input qty-select promo-disabled-mark qty-dash">-</span>
+                      <button class="qty-reset" type="button" :aria-label="uiLabels.qtyResetOne" @click="resetQty(item)">
+                        <img class="qty-reset-icon" :src="resetIcon" alt="" />
+                      </button>
+                    </template>
+                          <template v-else>
+                            <input
+                              class="center-input qty-select"
+                              type="number"
+                              :min="getMinQty(item)"
+                              max="101"
+                              step="2"
+                              :value="getQtyInputValue(item)"
+                              :placeholder="uiLabels.qtyPlaceholder"
+                              @input="updateQtyInput(item, ($event.target as HTMLInputElement).value)"
+                              @change="commitQtyInput(item)"
+                            />
+                            <button class="qty-reset" type="button" :aria-label="uiLabels.mobileQtyReset" @click="resetQty(item)">
+                              <img class="qty-reset-icon" :src="resetIcon" alt="" />
+                            </button>
+                          </template>
                         </div>
                         <div class="target-price-cell">
                           <div class="currency-input-wrap currency-input-wrap-target currency-input-wrap-mobile">
@@ -1359,7 +1488,7 @@ onMounted(async () => {
                             :class="{ active: getQty(item) === size }"
                             @click="chooseSize(item, size)"
                           >
-                            {{ size }}
+                            {{ getPopularSizeLabel(item, size) }}
                           </button>
                         </div>
                         <div class="price-pick-layout inline-price-pick-layout">
@@ -1393,16 +1522,21 @@ onMounted(async () => {
                     </div>
                     <div class="mobile-metric">
                       <span class="mobile-label">{{ uiLabels.promo }}</span>
-                      <div class="mobile-promo-value">
-                        <select
-                          class="center-input"
-                          :value="item.discountPercent"
-                          @change="store.patchFlower(item.id, { discountPercent: Number(($event.target as HTMLSelectElement).value), isPromoEnabled: true })"
-                        >
-                          <option :value="10">10</option>
-                          <option :value="15">15</option>
-                        </select>
-                        <strong class="price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></strong>
+                      <div class="mobile-promo-value" :class="{ 'mobile-promo-value-disabled': isPromoDisabledForQty(item, getQty(item)) }">
+                        <template v-if="isPromoDisabledForQty(item, getQty(item))">
+                          <strong class="price-with-ruble promo-disabled-mark">-</strong>
+                        </template>
+                        <template v-else>
+                          <select
+                            class="center-input"
+                            :value="item.discountPercent"
+                            @change="store.patchFlower(item.id, { discountPercent: Number(($event.target as HTMLSelectElement).value), isPromoEnabled: true })"
+                          >
+                            <option :value="10">10</option>
+                            <option :value="15">15</option>
+                          </select>
+                          <strong class="price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></strong>
+                        </template>
                       </div>
                     </div>
                   </div>
@@ -1455,7 +1589,10 @@ onMounted(async () => {
 
                     <label class="mobile-field mobile-field-compact">
                       <span class="mobile-label">{{ uiLabels.packaging }}</span>
-                      <div class="currency-input-wrap currency-input-wrap-mobile">
+                      <template v-if="isPackagingHidden(item)">
+                        <span class="promo-disabled-mark">-</span>
+                      </template>
+                      <div v-else class="currency-input-wrap currency-input-wrap-mobile">
                         <input
                           class="short-input center-input mobile-input"
                           :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
@@ -1514,6 +1651,24 @@ onMounted(async () => {
     />
   </div>
 </template>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

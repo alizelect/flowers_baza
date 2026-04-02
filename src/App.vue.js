@@ -16,15 +16,18 @@ const targetPriceMap = reactive({});
 const suggestedSelectionMap = reactive({});
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1);
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1);
+const POPULAR_SIZES_NOTE = '*в столбце "Популярные размеры" указан диаметр коробок';
 const mobileOpenCategory = ref(null);
 const CHRYZA_BUSH_220_ID = 'b3d0d1d2-4fd5-4a12-9ea8-220220220220';
 const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1';
 const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de';
 const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3';
+const GYPSOPHILA_ID = '5d8d5e68-cbd2-4e9a-a2ea-9fd6b7f9c201';
+const GYPSOPHILA_COMPOSITION_ID = '0f3b0a0d-6b0c-4cf0-8d32-7e5f49d0b902';
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01';
-const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'];
+const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila'];
 const MOBILE_SEASONAL_CATEGORY_ORDER = ['peony', 'tulip'];
-const PRIMARY_FLOWER_FILTER_ORDER = ['all', 'rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea'];
+const PRIMARY_FLOWER_FILTER_ORDER = ['all', 'rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila'];
 const SEASONAL_FLOWER_FILTER_ORDER = ['all', 'peony', 'tulip'];
 const FLOWER_FILTER_STORAGE_KEY = 'flowers-baza-active-flower-filters';
 const uiLabels = {
@@ -69,6 +72,7 @@ const MOBILE_PRIMARY_CATEGORY_LABELS = {
     carnation: '\u0413\u0432\u043e\u0437\u0434\u0438\u043a\u0438',
     chryza: '\u0425\u0440\u0438\u0437\u0430\u043d\u0442\u0435\u043c\u044b',
     hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
+    gypsophila: '\u0413\u0438\u043f\u0441\u043e\u0444\u0438\u043b\u0430',
 };
 const FLOWER_FILTER_LABELS = {
     all: '\u0412\u0441\u0435 \u0446\u0432\u0435\u0442\u044b',
@@ -77,6 +81,7 @@ const FLOWER_FILTER_LABELS = {
     carnation: '\u0413\u0432\u043e\u0437\u0434\u0438\u043a\u0438',
     chryza: '\u0425\u0440\u0438\u0437\u0430\u043d\u0442\u0435\u043c\u044b',
     hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
+    gypsophila: '\u0413\u0438\u043f\u0441\u043e\u0444\u0438\u043b\u0430',
     peony: '\u041f\u0438\u043e\u043d\u044b',
     tulip: '\u0422\u044e\u043b\u044c\u043f\u0430\u043d\u044b',
 };
@@ -115,6 +120,8 @@ const MAIN_ORDER = [
     '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 300',
     '\u0425\u0420\u0418\u0417\u0410 - \u043e\u0434\u043d\u043e\u0433\u043e\u043b\u043e\u0432\u0430\u044f',
     '\u0413\u041e\u0420\u0422\u0415\u041d\u0417\u0418\u0418',
+    '\u0413\u0418\u041f\u0421\u041e\u0424\u0418\u041b\u0410 - \u0431\u0443\u043a\u0435\u0442\u044b',
+    '\u0413\u0418\u041f\u0421\u041e\u0424\u0418\u041b\u0410 - \u043a\u043e\u043c\u043f\u043e\u0437\u0438\u0446\u0438\u0438',
 ];
 const MAIN_ORDER_INDEX = new Map(MAIN_ORDER.map((name, index) => [name, index]));
 function getMainOrderIndex(item) {
@@ -296,6 +303,28 @@ const CHRYZA_BUSH_220_PACKAGING_BY_ODD = [
     1170, 1230, 1290, 1250, 1310, 1270, 1330, 1390, 1350, 1410,
     1370,
 ];
+const GYPSOPHILA_COMPOSITION_PACKAGING_BY_QTY = {
+    1: 800,
+    3: 1090,
+    5: 990,
+    7: 1090,
+    25: 1690,
+};
+const GYPSOPHILA_COMPOSITION_LABELS = {
+    1: 'стак.',
+    3: '10',
+    5: '13',
+    7: '15',
+    25: '20',
+};
+const GYPSOPHILA_PACKAGING_BY_ODD = [
+    90, 190, 190, 190, 290, 390, 390, 390, 490, 490,
+    590, 590, 690, 690, 790, 790, 890, 890, 890, 890,
+    890, 890, 890, 990, 990, 990, 990, 1090, 1090, 1090,
+    1090, 1190, 1190, 1190, 1190, 1190, 1290, 1290, 1290, 1290,
+    1290, 1390, 1390, 1390, 1390, 1390, 1490, 1490, 1490, 1490,
+    1590,
+];
 const CHRYZA_BUSH_300_PACKAGING_BY_ODD = [
     190, 190, 290, 290, 290, 390, 390, 490, 490, 590,
     590, 690, 690, 790, 790, 890, 890, 890, 990, 990,
@@ -406,6 +435,8 @@ function getFlowerGroup(item) {
         return 'carnation';
     if (isHydrangea(item))
         return 'hydrangea';
+    if (isGypsophila(item) || isGypsophilaComposition(item))
+        return 'gypsophila';
     if (isPeonies(item))
         return 'peony';
     if (isTulips(item))
@@ -432,6 +463,23 @@ function getMaxQty(item) {
     return 101;
 }
 function normalizeQty(item, value) {
+    if (isGypsophilaComposition(item)) {
+        const options = item.popularSizes;
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+            return options[0] ?? 1;
+        }
+        let nearest = options[0] ?? 1;
+        let nearestDistance = Math.abs(nearest - numeric);
+        for (const option of options) {
+            const distance = Math.abs(option - numeric);
+            if (distance < nearestDistance) {
+                nearest = option;
+                nearestDistance = distance;
+            }
+        }
+        return nearest;
+    }
     const odd = toOdd(value);
     const min = getMinQty(item);
     const max = getMaxQty(item);
@@ -442,6 +490,8 @@ function normalizeQty(item, value) {
     return odd;
 }
 function getQtyOptions(item) {
+    if (isGypsophilaComposition(item))
+        return item.popularSizes;
     if (isCarnationMix(item))
         return oddOptions.slice(1);
     return isHydrangea(item) || isChryzaSingle(item) ? hydrangeaOddOptions : oddOptions;
@@ -491,6 +541,18 @@ function isHydrangea(item) {
     const name = item.flowerName.trim().toLowerCase();
     return name.includes('\u0433\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438');
 }
+function isGypsophila(item) {
+    return item.id === GYPSOPHILA_ID;
+}
+function isGypsophilaComposition(item) {
+    return item.id === GYPSOPHILA_COMPOSITION_ID;
+}
+function isPromoDisabledForQty(item, qty) {
+    return isGypsophilaComposition(item) && [1, 3, 5].includes(qty);
+}
+function isPackagingHidden(item) {
+    return isGypsophilaComposition(item);
+}
 function isChryzaSingle(item) {
     return item.id === CHRYZA_SINGLE_ID;
 }
@@ -504,7 +566,7 @@ function isChryzaBush300(item) {
     return item.id === CHRYZA_BUSH_300_ID;
 }
 function hasAutoPackagingByQty(item) {
-    return isRose150(item) || isRose250(item) || isRose300(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item);
+    return isRose150(item) || isRose250(item) || isRose300(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isGypsophila(item) || isGypsophilaComposition(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item);
 }
 function getPackagingPrice(item, qty) {
     if (!hasAutoPackagingByQty(item)) {
@@ -543,6 +605,12 @@ function getPackagingPrice(item, qty) {
     }
     if (isHydrangea(item)) {
         return HYDRANGEA_PACKAGING_BY_ODD[idx] ?? HYDRANGEA_PACKAGING_BY_ODD[HYDRANGEA_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice;
+    }
+    if (isGypsophilaComposition(item)) {
+        return GYPSOPHILA_COMPOSITION_PACKAGING_BY_QTY[qty] ?? item.packagingPrice;
+    }
+    if (isGypsophila(item)) {
+        return GYPSOPHILA_PACKAGING_BY_ODD[idx] ?? GYPSOPHILA_PACKAGING_BY_ODD[GYPSOPHILA_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice;
     }
     if (isChryzaSingle(item)) {
         return CHRYZA_SINGLE_PACKAGING_BY_ODD[idx] ?? CHRYZA_SINGLE_PACKAGING_BY_ODD[CHRYZA_SINGLE_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice;
@@ -597,6 +665,9 @@ function calcWithoutPromoForRow(item, qty) {
     }, qty);
 }
 function calcWithPromoForRow(item, qty) {
+    if (isPromoDisabledForQty(item, qty)) {
+        return calcWithoutPromoForRow(item, qty);
+    }
     const pistachioLocked = isPistachioLocked(item);
     return calcWithPromo({
         ...item,
@@ -731,6 +802,9 @@ function getFlowerCostValue(item, qty) {
     return qty * item.unitPrice;
 }
 function getCompositionLabel(item, qty) {
+    if (isGypsophilaComposition(item)) {
+        return GYPSOPHILA_COMPOSITION_LABELS[qty] ?? '';
+    }
     if (isCarnationMix(item)) {
         const split = getMixQtySplit(qty);
         return `${split.primary} + ${split.secondary} \u0448\u0442.`;
@@ -738,6 +812,10 @@ function getCompositionLabel(item, qty) {
     return `${qty} \u0448\u0442.`;
 }
 function getFlowerCostLabel(item, qty) {
+    if (isGypsophilaComposition(item)) {
+        const label = GYPSOPHILA_COMPOSITION_LABELS[qty] ?? qty;
+        return `${label} = ${formatPriceWithRuble(calcWithoutPromoForRow(item, qty))}`;
+    }
     const secondaryUnitPrice = Number(item.secondaryUnitPrice) || 0;
     if (secondaryUnitPrice > 0) {
         const split = getMixQtySplit(qty);
@@ -765,6 +843,9 @@ function getPistachioLabel(item, qty) {
     return `${pistachioQty} x ${PISTACHIO_UNIT_PRICE} = ${formatPriceWithRuble(getPistachioCostValue(item, qty))}`;
 }
 function getPromoPriceForPercent(item, qty, discountPercent) {
+    if (isPromoDisabledForQty(item, qty)) {
+        return calcWithoutPromoForRow(item, qty);
+    }
     const pistachioLocked = isPistachioLocked(item);
     return calcWithPromo({
         ...item,
@@ -777,6 +858,9 @@ function getPromoPriceForPercent(item, qty, discountPercent) {
     }, qty);
 }
 function getCurrentPromoLabel(item, qty) {
+    if (isPromoDisabledForQty(item, qty)) {
+        return '-';
+    }
     if (!item.isPromoEnabled) {
         return '\u0432\u044b\u043a\u043b.';
     }
@@ -787,19 +871,28 @@ function getPriceTableRows(item) {
         qty,
         withoutPromo: formatPriceWithRuble(calcWithoutPromoForRow(item, qty)),
         pistachio: getPistachioLabel(item, qty),
-        packaging: formatPriceWithRuble(getPackagingPrice(item, qty)),
-        promo10: formatPriceWithRuble(getPromoPriceForPercent(item, qty, 10)),
-        promo15: formatPriceWithRuble(getPromoPriceForPercent(item, qty, 15)),
+        packaging: isPackagingHidden(item) ? '-' : formatPriceWithRuble(getPackagingPrice(item, qty)),
+        promo10: isPromoDisabledForQty(item, qty) ? '-' : formatPriceWithRuble(getPromoPriceForPercent(item, qty, 10)),
+        promo15: isPromoDisabledForQty(item, qty) ? '-' : formatPriceWithRuble(getPromoPriceForPercent(item, qty, 15)),
     }));
 }
 function isPistachioLocked(item) {
-    return isTulips(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item);
+    return isTulips(item) || isGypsophila(item) || isGypsophilaComposition(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item);
 }
 function hidesMobilePistachio(item) {
-    return isTulips(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item);
+    return isTulips(item) || isGypsophila(item) || isGypsophilaComposition(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item);
 }
 function usesAutoPistachioQty(item) {
     return isRose150(item) || isRose250(item) || isRose300(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item);
+}
+function isQtyInputLocked(item) {
+    return isGypsophilaComposition(item);
+}
+function getPopularSizeLabel(item, size) {
+    if (isGypsophilaComposition(item)) {
+        return GYPSOPHILA_COMPOSITION_LABELS[size] ?? String(size);
+    }
+    return String(size);
 }
 function clearActiveRow() {
     activeRowId.value = '';
@@ -1049,14 +1142,18 @@ if (__VLS_ctx.store.activeSection === 'priceTables') {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
             (row.pistachio);
             __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
-            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                ...{ class: "price-with-ruble" },
-            });
-            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-            (row.packaging);
-            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                ...{ class: "price-ruble" },
-            });
+            if (row.packaging === '-') {
+            }
+            else {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "price-with-ruble" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+                (row.packaging);
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "price-ruble" },
+                });
+            }
             __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
             __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                 ...{ class: "price-with-ruble" },
@@ -1182,7 +1279,14 @@ else {
                 } },
             ...{ class: "flower-name-cell" },
         });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
         (item.flowerName);
+        if (__VLS_ctx.isGypsophilaComposition(item)) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "popular-sizes-note" },
+            });
+            (__VLS_ctx.POPULAR_SIZES_NOTE);
+        }
         __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "qty-stack" },
@@ -1190,40 +1294,70 @@ else {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "qty-cell" },
         });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-            ...{ onInput: (...[$event]) => {
-                    if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
-                        return;
-                    __VLS_ctx.updateQtyInput(item, $event.target.value);
-                } },
-            ...{ onChange: (...[$event]) => {
-                    if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
-                        return;
-                    __VLS_ctx.commitQtyInput(item);
-                } },
-            ...{ class: "center-input qty-select" },
-            type: "number",
-            min: (__VLS_ctx.getMinQty(item)),
-            max: "101",
-            step: "2",
-            value: (__VLS_ctx.getQtyInputValue(item)),
-            placeholder: (__VLS_ctx.uiLabels.qtyPlaceholder),
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-            ...{ onClick: (...[$event]) => {
-                    if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
-                        return;
-                    __VLS_ctx.resetQty(item);
-                } },
-            ...{ class: "qty-reset" },
-            type: "button",
-            'aria-label': (__VLS_ctx.uiLabels.qtyResetOne),
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
-            ...{ class: "qty-reset-icon" },
-            src: (__VLS_ctx.resetIcon),
-            alt: "",
-        });
+        if (__VLS_ctx.isQtyInputLocked(item)) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "center-input qty-select promo-disabled-mark qty-dash" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+                ...{ onClick: (...[$event]) => {
+                        if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
+                            return;
+                        if (!(__VLS_ctx.isQtyInputLocked(item)))
+                            return;
+                        __VLS_ctx.resetQty(item);
+                    } },
+                ...{ class: "qty-reset" },
+                type: "button",
+                'aria-label': (__VLS_ctx.uiLabels.qtyResetOne),
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
+                ...{ class: "qty-reset-icon" },
+                src: (__VLS_ctx.resetIcon),
+                alt: "",
+            });
+        }
+        else {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                ...{ onInput: (...[$event]) => {
+                        if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
+                            return;
+                        if (!!(__VLS_ctx.isQtyInputLocked(item)))
+                            return;
+                        __VLS_ctx.updateQtyInput(item, $event.target.value);
+                    } },
+                ...{ onChange: (...[$event]) => {
+                        if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
+                            return;
+                        if (!!(__VLS_ctx.isQtyInputLocked(item)))
+                            return;
+                        __VLS_ctx.commitQtyInput(item);
+                    } },
+                ...{ class: "center-input qty-select" },
+                type: "number",
+                min: (__VLS_ctx.getMinQty(item)),
+                max: "101",
+                step: "2",
+                value: (__VLS_ctx.getQtyInputValue(item)),
+                placeholder: (__VLS_ctx.uiLabels.qtyPlaceholder),
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+                ...{ onClick: (...[$event]) => {
+                        if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
+                            return;
+                        if (!!(__VLS_ctx.isQtyInputLocked(item)))
+                            return;
+                        __VLS_ctx.resetQty(item);
+                    } },
+                ...{ class: "qty-reset" },
+                type: "button",
+                'aria-label': (__VLS_ctx.uiLabels.qtyResetOne),
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
+                ...{ class: "qty-reset-icon" },
+                src: (__VLS_ctx.resetIcon),
+                alt: "",
+            });
+        }
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "target-price-cell" },
         });
@@ -1279,7 +1413,7 @@ else {
                 key: (size),
                 ...{ class: ({ active: __VLS_ctx.getQty(item) === size }) },
             });
-            (size);
+            (__VLS_ctx.getPopularSizeLabel(item, size));
         }
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "price-pick-layout inline-price-pick-layout" },
@@ -1343,31 +1477,41 @@ else {
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "promo-col" },
+            ...{ class: ({ 'promo-col-disabled': __VLS_ctx.isPromoDisabledForQty(item, __VLS_ctx.getQty(item)) }) },
         });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.select, __VLS_intrinsicElements.select)({
-            ...{ onChange: (...[$event]) => {
-                    if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
-                        return;
-                    __VLS_ctx.store.patchFlower(item.id, { discountPercent: Number($event.target.value), isPromoEnabled: true });
-                } },
-            ...{ class: "center-input" },
-            value: (item.discountPercent),
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
-            value: (10),
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
-            value: (15),
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "center-cell price-with-ruble" },
-            ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-        (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "price-ruble" },
-        });
+        if (__VLS_ctx.isPromoDisabledForQty(item, __VLS_ctx.getQty(item))) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "center-cell promo-disabled-mark" },
+            });
+        }
+        else {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.select, __VLS_intrinsicElements.select)({
+                ...{ onChange: (...[$event]) => {
+                        if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
+                            return;
+                        if (!!(__VLS_ctx.isPromoDisabledForQty(item, __VLS_ctx.getQty(item))))
+                            return;
+                        __VLS_ctx.store.patchFlower(item.id, { discountPercent: Number($event.target.value), isPromoEnabled: true });
+                    } },
+                ...{ class: "center-input" },
+                value: (item.discountPercent),
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
+                value: (10),
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
+                value: (15),
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "center-cell price-with-ruble" },
+                ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+            (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "price-ruble" },
+            });
+        }
         __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
             ...{ class: "price-divider" },
         });
@@ -1455,24 +1599,33 @@ else {
             (__VLS_ctx.uiLabels.pieces);
         }
         __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "currency-input-wrap" },
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-            ...{ onInput: (...[$event]) => {
-                    if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
-                        return;
-                    __VLS_ctx.store.patchFlower(item.id, { packagingPrice: Number($event.target.value) || 0 });
-                } },
-            ...{ class: "short-input center-input" },
-            disabled: (__VLS_ctx.hasAutoPackagingByQty(item) || !__VLS_ctx.store.unlocked),
-            type: "number",
-            min: "0",
-            value: (__VLS_ctx.getPackagingPrice(item, __VLS_ctx.getQty(item))),
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "currency-input-sign" },
-        });
+        if (__VLS_ctx.isPackagingHidden(item)) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "promo-disabled-mark" },
+            });
+        }
+        else {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "currency-input-wrap" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                ...{ onInput: (...[$event]) => {
+                        if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
+                            return;
+                        if (!!(__VLS_ctx.isPackagingHidden(item)))
+                            return;
+                        __VLS_ctx.store.patchFlower(item.id, { packagingPrice: Number($event.target.value) || 0 });
+                    } },
+                ...{ class: "short-input center-input" },
+                disabled: (__VLS_ctx.hasAutoPackagingByQty(item) || !__VLS_ctx.store.unlocked),
+                type: "number",
+                min: "0",
+                value: (__VLS_ctx.getPackagingPrice(item, __VLS_ctx.getQty(item))),
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "currency-input-sign" },
+            });
+        }
         __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
         if (!__VLS_ctx.isPistachioLocked(item)) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -1604,6 +1757,12 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                         type: "button",
                     });
                     (item.flowerName);
+                    if (__VLS_ctx.isGypsophilaComposition(item)) {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                            ...{ class: "mobile-helper-note" },
+                        });
+                        (__VLS_ctx.POPULAR_SIZES_NOTE);
+                    }
                     if (__VLS_ctx.store.unlocked) {
                         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                             ...{ class: "mobile-card-actions" },
@@ -1659,52 +1818,86 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                         ...{ class: "qty-cell" },
                     });
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-                        ...{ onInput: (...[$event]) => {
-                                if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
-                                    return;
-                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
-                                    return;
-                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
-                                    return;
-                                __VLS_ctx.updateQtyInput(item, $event.target.value);
-                            } },
-                        ...{ onChange: (...[$event]) => {
-                                if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
-                                    return;
-                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
-                                    return;
-                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
-                                    return;
-                                __VLS_ctx.commitQtyInput(item);
-                            } },
-                        ...{ class: "center-input qty-select" },
-                        type: "number",
-                        min: (__VLS_ctx.getMinQty(item)),
-                        max: "101",
-                        step: "2",
-                        value: (__VLS_ctx.getQtyInputValue(item)),
-                        placeholder: (__VLS_ctx.uiLabels.qtyPlaceholder),
-                    });
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-                        ...{ onClick: (...[$event]) => {
-                                if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
-                                    return;
-                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
-                                    return;
-                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
-                                    return;
-                                __VLS_ctx.resetQty(item);
-                            } },
-                        ...{ class: "qty-reset" },
-                        type: "button",
-                        'aria-label': (__VLS_ctx.uiLabels.mobileQtyReset),
-                    });
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
-                        ...{ class: "qty-reset-icon" },
-                        src: (__VLS_ctx.resetIcon),
-                        alt: "",
-                    });
+                    if (__VLS_ctx.isQtyInputLocked(item)) {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                            ...{ class: "center-input qty-select promo-disabled-mark qty-dash" },
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+                            ...{ onClick: (...[$event]) => {
+                                    if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
+                                        return;
+                                    if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                        return;
+                                    if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                        return;
+                                    if (!(__VLS_ctx.isQtyInputLocked(item)))
+                                        return;
+                                    __VLS_ctx.resetQty(item);
+                                } },
+                            ...{ class: "qty-reset" },
+                            type: "button",
+                            'aria-label': (__VLS_ctx.uiLabels.qtyResetOne),
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
+                            ...{ class: "qty-reset-icon" },
+                            src: (__VLS_ctx.resetIcon),
+                            alt: "",
+                        });
+                    }
+                    else {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                            ...{ onInput: (...[$event]) => {
+                                    if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
+                                        return;
+                                    if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                        return;
+                                    if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                        return;
+                                    if (!!(__VLS_ctx.isQtyInputLocked(item)))
+                                        return;
+                                    __VLS_ctx.updateQtyInput(item, $event.target.value);
+                                } },
+                            ...{ onChange: (...[$event]) => {
+                                    if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
+                                        return;
+                                    if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                        return;
+                                    if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                        return;
+                                    if (!!(__VLS_ctx.isQtyInputLocked(item)))
+                                        return;
+                                    __VLS_ctx.commitQtyInput(item);
+                                } },
+                            ...{ class: "center-input qty-select" },
+                            type: "number",
+                            min: (__VLS_ctx.getMinQty(item)),
+                            max: "101",
+                            step: "2",
+                            value: (__VLS_ctx.getQtyInputValue(item)),
+                            placeholder: (__VLS_ctx.uiLabels.qtyPlaceholder),
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+                            ...{ onClick: (...[$event]) => {
+                                    if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
+                                        return;
+                                    if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                        return;
+                                    if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                        return;
+                                    if (!!(__VLS_ctx.isQtyInputLocked(item)))
+                                        return;
+                                    __VLS_ctx.resetQty(item);
+                                } },
+                            ...{ class: "qty-reset" },
+                            type: "button",
+                            'aria-label': (__VLS_ctx.uiLabels.mobileQtyReset),
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
+                            ...{ class: "qty-reset-icon" },
+                            src: (__VLS_ctx.resetIcon),
+                            alt: "",
+                        });
+                    }
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                         ...{ class: "target-price-cell" },
                     });
@@ -1778,7 +1971,7 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                             key: (size),
                             ...{ class: ({ active: __VLS_ctx.getQty(item) === size }) },
                         });
-                        (size);
+                        (__VLS_ctx.getPopularSizeLabel(item, size));
                     }
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                         ...{ class: "price-pick-layout inline-price-pick-layout" },
@@ -1861,35 +2054,45 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                     (__VLS_ctx.uiLabels.promo);
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                         ...{ class: "mobile-promo-value" },
+                        ...{ class: ({ 'mobile-promo-value-disabled': __VLS_ctx.isPromoDisabledForQty(item, __VLS_ctx.getQty(item)) }) },
                     });
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.select, __VLS_intrinsicElements.select)({
-                        ...{ onChange: (...[$event]) => {
-                                if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
-                                    return;
-                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
-                                    return;
-                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
-                                    return;
-                                __VLS_ctx.store.patchFlower(item.id, { discountPercent: Number($event.target.value), isPromoEnabled: true });
-                            } },
-                        ...{ class: "center-input" },
-                        value: (item.discountPercent),
-                    });
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
-                        value: (10),
-                    });
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
-                        value: (15),
-                    });
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
-                        ...{ class: "price-with-ruble" },
-                        ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
-                    });
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-                    (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                        ...{ class: "price-ruble" },
-                    });
+                    if (__VLS_ctx.isPromoDisabledForQty(item, __VLS_ctx.getQty(item))) {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
+                            ...{ class: "price-with-ruble promo-disabled-mark" },
+                        });
+                    }
+                    else {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.select, __VLS_intrinsicElements.select)({
+                            ...{ onChange: (...[$event]) => {
+                                    if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
+                                        return;
+                                    if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                        return;
+                                    if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                        return;
+                                    if (!!(__VLS_ctx.isPromoDisabledForQty(item, __VLS_ctx.getQty(item))))
+                                        return;
+                                    __VLS_ctx.store.patchFlower(item.id, { discountPercent: Number($event.target.value), isPromoEnabled: true });
+                                } },
+                            ...{ class: "center-input" },
+                            value: (item.discountPercent),
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
+                            value: (10),
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
+                            value: (15),
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
+                            ...{ class: "price-with-ruble" },
+                            ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+                        (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                            ...{ class: "price-ruble" },
+                        });
+                    }
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                         ...{ class: "mobile-card-row mobile-card-row-bottom" },
                     });
@@ -2002,28 +2205,37 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                         ...{ class: "mobile-label" },
                     });
                     (__VLS_ctx.uiLabels.packaging);
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-                        ...{ class: "currency-input-wrap currency-input-wrap-mobile" },
-                    });
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-                        ...{ onInput: (...[$event]) => {
-                                if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
-                                    return;
-                                if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
-                                    return;
-                                if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
-                                    return;
-                                __VLS_ctx.store.patchFlower(item.id, { packagingPrice: Number($event.target.value) || 0 });
-                            } },
-                        ...{ class: "short-input center-input mobile-input" },
-                        disabled: (__VLS_ctx.hasAutoPackagingByQty(item) || !__VLS_ctx.store.unlocked),
-                        type: "number",
-                        min: "0",
-                        value: (__VLS_ctx.getPackagingPrice(item, __VLS_ctx.getQty(item))),
-                    });
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                        ...{ class: "currency-input-sign" },
-                    });
+                    if (__VLS_ctx.isPackagingHidden(item)) {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                            ...{ class: "promo-disabled-mark" },
+                        });
+                    }
+                    else {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                            ...{ class: "currency-input-wrap currency-input-wrap-mobile" },
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                            ...{ onInput: (...[$event]) => {
+                                    if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
+                                        return;
+                                    if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                        return;
+                                    if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                        return;
+                                    if (!!(__VLS_ctx.isPackagingHidden(item)))
+                                        return;
+                                    __VLS_ctx.store.patchFlower(item.id, { packagingPrice: Number($event.target.value) || 0 });
+                                } },
+                            ...{ class: "short-input center-input mobile-input" },
+                            disabled: (__VLS_ctx.hasAutoPackagingByQty(item) || !__VLS_ctx.store.unlocked),
+                            type: "number",
+                            min: "0",
+                            value: (__VLS_ctx.getPackagingPrice(item, __VLS_ctx.getQty(item))),
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                            ...{ class: "currency-input-sign" },
+                        });
+                    }
                     if (__VLS_ctx.hidesMobilePistachio(item)) {
                         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                             ...{ class: "mobile-field mobile-field-compact mobile-field-pistachio mobile-field-pistachio-empty" },
@@ -2162,8 +2374,15 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['promo-divider']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-divider']} */ ;
 /** @type {__VLS_StyleScopedClasses['flower-name-cell']} */ ;
+/** @type {__VLS_StyleScopedClasses['popular-sizes-note']} */ ;
 /** @type {__VLS_StyleScopedClasses['qty-stack']} */ ;
 /** @type {__VLS_StyleScopedClasses['qty-cell']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-select']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-dash']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-reset']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-reset-icon']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['qty-select']} */ ;
 /** @type {__VLS_StyleScopedClasses['qty-reset']} */ ;
@@ -2195,6 +2414,8 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['price-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['promo-divider']} */ ;
 /** @type {__VLS_StyleScopedClasses['promo-col']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-cell']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-cell']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-with-ruble']} */ ;
@@ -2217,6 +2438,7 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['currency-input-sign']} */ ;
 /** @type {__VLS_StyleScopedClasses['mix-price-qty']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
 /** @type {__VLS_StyleScopedClasses['currency-input-wrap']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
@@ -2235,6 +2457,7 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['mobile-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-card-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-flower-name']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-helper-note']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-card-actions']} */ ;
 /** @type {__VLS_StyleScopedClasses['danger']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-card-grid']} */ ;
@@ -2246,6 +2469,12 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
 /** @type {__VLS_StyleScopedClasses['qty-stack']} */ ;
 /** @type {__VLS_StyleScopedClasses['qty-cell']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-select']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-dash']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-reset']} */ ;
+/** @type {__VLS_StyleScopedClasses['qty-reset-icon']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['qty-select']} */ ;
 /** @type {__VLS_StyleScopedClasses['qty-reset']} */ ;
@@ -2287,6 +2516,8 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['mobile-metric']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-promo-value']} */ ;
+/** @type {__VLS_StyleScopedClasses['price-with-ruble']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-with-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-ruble']} */ ;
@@ -2322,6 +2553,7 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['mobile-field']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field-compact']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
 /** @type {__VLS_StyleScopedClasses['currency-input-wrap']} */ ;
 /** @type {__VLS_StyleScopedClasses['currency-input-wrap-mobile']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
@@ -2361,6 +2593,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             editorItem: editorItem,
             activeRowId: activeRowId,
             suggestedSelectionMap: suggestedSelectionMap,
+            POPULAR_SIZES_NOTE: POPULAR_SIZES_NOTE,
             CHRYZA_BUSH_250_ID: CHRYZA_BUSH_250_ID,
             uiLabels: uiLabels,
             activeFlowerFilter: activeFlowerFilter,
@@ -2376,6 +2609,9 @@ const __VLS_self = (await import('vue')).defineComponent({
             getMinQty: getMinQty,
             getQty: getQty,
             isCarnationMix: isCarnationMix,
+            isGypsophilaComposition: isGypsophilaComposition,
+            isPromoDisabledForQty: isPromoDisabledForQty,
+            isPackagingHidden: isPackagingHidden,
             hasAutoPackagingByQty: hasAutoPackagingByQty,
             getPackagingPrice: getPackagingPrice,
             getPistachioQty: getPistachioQty,
@@ -2397,6 +2633,8 @@ const __VLS_self = (await import('vue')).defineComponent({
             isPistachioLocked: isPistachioLocked,
             hidesMobilePistachio: hidesMobilePistachio,
             usesAutoPistachioQty: usesAutoPistachioQty,
+            isQtyInputLocked: isQtyInputLocked,
+            getPopularSizeLabel: getPopularSizeLabel,
             handlePageClick: handlePageClick,
             onSectionChange: onSectionChange,
             openCreate: openCreate,
