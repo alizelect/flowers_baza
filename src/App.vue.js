@@ -14,6 +14,7 @@ const qtyMap = reactive({});
 const qtyInputMap = reactive({});
 const targetPriceMap = reactive({});
 const suggestedSelectionMap = reactive({});
+const sizeButtonSelectionMap = reactive({});
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1);
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1);
 const POPULAR_SIZES_NOTE = '*в столбце "Популярные размеры" указан диаметр коробок';
@@ -682,12 +683,14 @@ function chooseQty(item, value) {
     qtyMap[item.id] = normalized;
     qtyInputMap[item.id] = String(normalized);
     suggestedSelectionMap[item.id] = '';
+    sizeButtonSelectionMap[item.id] = false;
     activeRowId.value = item.id;
 }
 function resetQty(item) {
     qtyMap[item.id] = getMinQty(item);
     qtyInputMap[item.id] = '';
     suggestedSelectionMap[item.id] = '';
+    sizeButtonSelectionMap[item.id] = false;
     activeRowId.value = item.id;
 }
 function resetTargetPrice(item) {
@@ -700,6 +703,7 @@ function chooseSize(item, size) {
     qtyMap[item.id] = normalized;
     qtyInputMap[item.id] = String(normalized);
     suggestedSelectionMap[item.id] = '';
+    sizeButtonSelectionMap[item.id] = true;
     activeRowId.value = item.id;
 }
 function getTargetPriceValue(item) {
@@ -718,6 +722,7 @@ function updateQtyInput(item, value) {
     if (!value.trim()) {
         qtyMap[item.id] = getMinQty(item);
         suggestedSelectionMap[item.id] = '';
+        sizeButtonSelectionMap[item.id] = false;
         activeRowId.value = item.id;
         return;
     }
@@ -725,6 +730,7 @@ function updateQtyInput(item, value) {
     if (Number.isFinite(parsed)) {
         qtyMap[item.id] = normalizeQty(item, parsed);
         suggestedSelectionMap[item.id] = '';
+        sizeButtonSelectionMap[item.id] = false;
     }
     activeRowId.value = item.id;
 }
@@ -734,6 +740,7 @@ function commitQtyInput(item) {
         qtyMap[item.id] = getMinQty(item);
         qtyInputMap[item.id] = '';
         suggestedSelectionMap[item.id] = '';
+        sizeButtonSelectionMap[item.id] = false;
         activeRowId.value = item.id;
         return;
     }
@@ -746,6 +753,7 @@ function chooseSuggestedQty(item, option, side) {
     qtyMap[item.id] = normalized;
     qtyInputMap[item.id] = String(normalized);
     suggestedSelectionMap[item.id] = side;
+    sizeButtonSelectionMap[item.id] = false;
     activeRowId.value = item.id;
 }
 function getPriceSelectionOptions(item) {
@@ -893,6 +901,12 @@ function getPopularSizeLabel(item, size) {
         return GYPSOPHILA_COMPOSITION_LABELS[size] ?? String(size);
     }
     return String(size);
+}
+function isPopularSizeActive(item, size) {
+    if (isGypsophilaComposition(item)) {
+        return Boolean(sizeButtonSelectionMap[item.id]) && getQty(item) === size;
+    }
+    return getQty(item) === size;
 }
 function clearActiveRow() {
     activeRowId.value = '';
@@ -1411,7 +1425,7 @@ else {
                         __VLS_ctx.chooseSize(item, size);
                     } },
                 key: (size),
-                ...{ class: ({ active: __VLS_ctx.getQty(item) === size }) },
+                ...{ class: ({ active: __VLS_ctx.isPopularSizeActive(item, size) }) },
             });
             (__VLS_ctx.getPopularSizeLabel(item, size));
         }
@@ -1969,7 +1983,7 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                                     __VLS_ctx.chooseSize(item, size);
                                 } },
                             key: (size),
-                            ...{ class: ({ active: __VLS_ctx.getQty(item) === size }) },
+                            ...{ class: ({ active: __VLS_ctx.isPopularSizeActive(item, size) }) },
                         });
                         (__VLS_ctx.getPopularSizeLabel(item, size));
                     }
@@ -2635,6 +2649,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             usesAutoPistachioQty: usesAutoPistachioQty,
             isQtyInputLocked: isQtyInputLocked,
             getPopularSizeLabel: getPopularSizeLabel,
+            isPopularSizeActive: isPopularSizeActive,
             handlePageClick: handlePageClick,
             onSectionChange: onSectionChange,
             openCreate: openCreate,

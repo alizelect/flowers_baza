@@ -20,6 +20,7 @@ const qtyMap = reactive<Record<string, number>>({})
 const qtyInputMap = reactive<Record<string, string>>({})
 const targetPriceMap = reactive<Record<string, string>>({})
 const suggestedSelectionMap = reactive<Record<string, 'lower' | 'higher' | ''>>({})
+const sizeButtonSelectionMap = reactive<Record<string, boolean>>({})
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1)
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1)
 const POPULAR_SIZES_NOTE = '*в столбце "Популярные размеры" указан диаметр коробок'
@@ -769,6 +770,7 @@ function chooseQty(item: FlowerItem, value: number): void {
   qtyMap[item.id] = normalized
   qtyInputMap[item.id] = String(normalized)
   suggestedSelectionMap[item.id] = ''
+  sizeButtonSelectionMap[item.id] = false
   activeRowId.value = item.id
 }
 
@@ -776,6 +778,7 @@ function resetQty(item: FlowerItem): void {
   qtyMap[item.id] = getMinQty(item)
   qtyInputMap[item.id] = ''
   suggestedSelectionMap[item.id] = ''
+  sizeButtonSelectionMap[item.id] = false
   activeRowId.value = item.id
 }
 
@@ -790,6 +793,7 @@ function chooseSize(item: FlowerItem, size: number): void {
   qtyMap[item.id] = normalized
   qtyInputMap[item.id] = String(normalized)
   suggestedSelectionMap[item.id] = ''
+  sizeButtonSelectionMap[item.id] = true
   activeRowId.value = item.id
 }
 
@@ -812,6 +816,7 @@ function updateQtyInput(item: FlowerItem, value: string): void {
   if (!value.trim()) {
     qtyMap[item.id] = getMinQty(item)
     suggestedSelectionMap[item.id] = ''
+    sizeButtonSelectionMap[item.id] = false
     activeRowId.value = item.id
     return
   }
@@ -820,6 +825,7 @@ function updateQtyInput(item: FlowerItem, value: string): void {
   if (Number.isFinite(parsed)) {
     qtyMap[item.id] = normalizeQty(item, parsed)
     suggestedSelectionMap[item.id] = ''
+    sizeButtonSelectionMap[item.id] = false
   }
   activeRowId.value = item.id
 }
@@ -830,6 +836,7 @@ function commitQtyInput(item: FlowerItem): void {
     qtyMap[item.id] = getMinQty(item)
     qtyInputMap[item.id] = ''
     suggestedSelectionMap[item.id] = ''
+    sizeButtonSelectionMap[item.id] = false
     activeRowId.value = item.id
     return
   }
@@ -842,6 +849,7 @@ function chooseSuggestedQty(item: FlowerItem, option: PriceSelectionOption | nul
   qtyMap[item.id] = normalized
   qtyInputMap[item.id] = String(normalized)
   suggestedSelectionMap[item.id] = side
+  sizeButtonSelectionMap[item.id] = false
   activeRowId.value = item.id
 }
 
@@ -1020,6 +1028,13 @@ function getPopularSizeLabel(item: FlowerItem, size: number): string {
     return GYPSOPHILA_COMPOSITION_LABELS[size] ?? String(size)
   }
   return String(size)
+}
+
+function isPopularSizeActive(item: FlowerItem, size: number): boolean {
+  if (isGypsophilaComposition(item)) {
+    return Boolean(sizeButtonSelectionMap[item.id]) && getQty(item) === size
+  }
+  return getQty(item) === size
 }
 
 function clearActiveRow(): void {
@@ -1261,7 +1276,7 @@ onMounted(async () => {
                     <button
                       v-for="size in item.popularSizes"
                       :key="size"
-                      :class="{ active: getQty(item) === size }"
+                      :class="{ active: isPopularSizeActive(item, size) }"
                       @click="chooseSize(item, size)"
                     >
                       {{ getPopularSizeLabel(item, size) }}
@@ -1485,7 +1500,7 @@ onMounted(async () => {
                           <button
                             v-for="size in item.popularSizes"
                             :key="size"
-                            :class="{ active: getQty(item) === size }"
+                            :class="{ active: isPopularSizeActive(item, size) }"
                             @click="chooseSize(item, size)"
                           >
                             {{ getPopularSizeLabel(item, size) }}
@@ -1651,6 +1666,13 @@ onMounted(async () => {
     />
   </div>
 </template>
+
+
+
+
+
+
+
 
 
 
