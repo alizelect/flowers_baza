@@ -1,5 +1,5 @@
 ﻿{
-  "updatedAt": "2026-04-02T00:00:00.000Z",
+  "updatedAt": "2026-04-22T00:00:00.000Z",
   "items": [
     {
       "id": "d0dc5c2b-3db1-4da0-bf0b-42e2fdf154f4",
@@ -239,6 +239,26 @@
         3,
         5,
         7,
+        25
+      ]
+    },
+    {
+      "id": "2a6a1bd0-7a7d-4c58-9f1d-590590590590",
+      "section": "sezonnye",
+      "flowerName": "ПИОНЫ по 590",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 590,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": true,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
         25
       ]
     },
