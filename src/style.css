@@ -1767,17 +1767,18 @@ select {
   }
 
   .price-matrix-card-head {
-    flex-direction: column;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
     gap: 6px;
   }
 
   .price-matrix-card-meta {
-    width: 100%;
-    text-align: left;
-    font-size: 13px;
+    width: auto;
+    text-align: right;
+    font-size: 12px;
     gap: 2px;
-    white-space: normal;
+    white-space: nowrap;
   }
 
   .table-wrap.price-matrix-table-wrap,
