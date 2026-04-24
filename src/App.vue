@@ -1469,8 +1469,8 @@ onBeforeUnmount(() => {
                   <template v-if="isMobileViewport">
                     <th>
                       <select v-model="mobilePriceMatrixPromo" class="price-matrix-promo-select">
-                        <option value="10">10%</option>
-                        <option value="15">15%</option>
+                        <option value="10">Скидка 10%</option>
+                        <option value="15">Скидка 15%</option>
                       </select>
                     </th>
                   </template>
