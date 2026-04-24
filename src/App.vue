@@ -27,7 +27,7 @@ const mobilePriceMatrixPromo = ref<'10' | '15'>('10')
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1)
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1)
 const POPULAR_SIZES_NOTE = '*в столбце "Популярные размеры" указан диаметр коробок'
-const mobileOpenCategory = ref<string | null>(null)
+const mobileOpenCategory = ref<string | null>(loadStoredMobileOpenCategories()[store.activeSection] ?? null)
 const CHRYZA_BUSH_220_ID = 'b3d0d1d2-4fd5-4a12-9ea8-220220220220'
 const CHRYZA_BUSH_250_ID = '72e51316-081c-46c8-8be2-86871bd63ec1'
 const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de'
@@ -41,6 +41,8 @@ type FlowerFilterKey = 'all' | 'rose' | 'alstroemerii' | 'carnation' | 'chryza' 
 const PRIMARY_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila']
 const SEASONAL_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'peony', 'tulip']
 const FLOWER_FILTER_STORAGE_KEY = 'flowers-baza-active-flower-filters'
+const PRICE_MATRIX_STORAGE_KEY = 'flowers-baza-price-matrix-state'
+const MOBILE_OPEN_CATEGORY_STORAGE_KEY = 'flowers-baza-mobile-open-categories'
 const uiLabels = {
   title: '\u041f\u0440\u0430\u0439\u0441 \u0431\u0443\u043a\u0435\u0442\u043e\u0432',
   chooseJson: '\u0412\u044b\u0431\u0440\u0430\u0442\u044c JSON',
@@ -116,6 +118,42 @@ function loadStoredFlowerFilters(): Partial<Record<SectionKey, FlowerFilterKey>>
 function getInitialFlowerFilter(section: SectionKey): FlowerFilterKey {
   const stored = loadStoredFlowerFilters()[section]
   return stored && getAllowedFlowerFilters(section).includes(stored) ? stored : 'all'
+}
+
+function loadStoredPriceMatrixState(): { selectedPriceTableId: string, mobilePriceMatrixCategory: MobilePriceMatrixCategoryKey } {
+  const allowedCategories: MobilePriceMatrixCategoryKey[] = ['rose', 'carnation', 'chryza', 'alstroemerii', 'hydrangea', 'gypsophila', 'tulip', 'peony']
+  if (typeof window === 'undefined') {
+    return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose' }
+  }
+  try {
+    const raw = window.localStorage.getItem(PRICE_MATRIX_STORAGE_KEY)
+    if (!raw) {
+      return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose' }
+    }
+    const parsed = JSON.parse(raw) as Partial<{ selectedPriceTableId: string, mobilePriceMatrixCategory: MobilePriceMatrixCategoryKey }>
+    const mobileCategory = parsed.mobilePriceMatrixCategory
+    return {
+      selectedPriceTableId: typeof parsed.selectedPriceTableId === 'string' ? parsed.selectedPriceTableId : '',
+      mobilePriceMatrixCategory: allowedCategories.includes(mobileCategory as MobilePriceMatrixCategoryKey)
+        ? mobileCategory as MobilePriceMatrixCategoryKey
+        : 'rose',
+    }
+  } catch {
+    return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose' }
+  }
+}
+
+function loadStoredMobileOpenCategories(): Partial<Record<SectionKey, string | null>> {
+  if (typeof window === 'undefined') {
+    return {}
+  }
+  try {
+    const raw = window.localStorage.getItem(MOBILE_OPEN_CATEGORY_STORAGE_KEY)
+    if (!raw) return {}
+    return JSON.parse(raw) as Partial<Record<SectionKey, string | null>>
+  } catch {
+    return {}
+  }
 }
 
 const activeFlowerFilter = ref<FlowerFilterKey>(getInitialFlowerFilter(store.activeSection))
@@ -515,7 +553,8 @@ const flowerFilterTabs = computed(() => {
   }))
 })
 
-const selectedPriceTableId = ref<string>('')
+const initialPriceMatrixState = loadStoredPriceMatrixState()
+const selectedPriceTableId = ref<string>(initialPriceMatrixState.selectedPriceTableId)
 
 const priceTableGroups = computed<PriceTableGroup[]>(() => [...store.flowers]
   .sort(compareFlowers)
@@ -543,7 +582,7 @@ const MOBILE_PRICE_MATRIX_CATEGORY_ORDER: MobilePriceMatrixCategoryKey[] = [
   'peony',
 ]
 
-const mobilePriceMatrixCategory = ref<MobilePriceMatrixCategoryKey>('rose')
+const mobilePriceMatrixCategory = ref<MobilePriceMatrixCategoryKey>(initialPriceMatrixState.mobilePriceMatrixCategory)
 
 const PRICE_MATRIX_TAB_ROWS = [
   ['РОЗЫ по 150', 'РОЗЫ по 200', 'РОЗЫ по 250', 'РОЗЫ по 300', 'РОЗЫ по 400', null, 'ГВОЗДИКИ - обычные', 'ГВОЗДИКИ - лунные', 'ГВОЗДИКИ - микс'],
@@ -1312,11 +1351,12 @@ function handlePageClick(event: MouseEvent): void {
 function onSectionChange(section: SectionKey): void {
   store.activeSection = section
   activeFlowerFilter.value = getInitialFlowerFilter(section)
-  mobileOpenCategory.value = null
   if (section !== 'priceTables') {
+    mobileOpenCategory.value = loadStoredMobileOpenCategories()[section] ?? null
     return
   }
-  selectedPriceTableId.value = activePriceTableGroup.value?.item.id ?? priceTableGroups.value[0]?.item.id ?? ''
+  const storedState = loadStoredPriceMatrixState()
+  selectedPriceTableId.value = storedState.selectedPriceTableId || activePriceTableGroup.value?.item.id || priceTableGroups.value[0]?.item.id || ''
 }
 
 function openCreate(): void {
@@ -1347,6 +1387,25 @@ watch(activeFlowerFilter, (value) => {
   window.localStorage.setItem(FLOWER_FILTER_STORAGE_KEY, JSON.stringify(stored))
 })
 
+watch([selectedPriceTableId, mobilePriceMatrixCategory], ([selectedId, category]) => {
+  if (typeof window === 'undefined') {
+    return
+  }
+  window.localStorage.setItem(PRICE_MATRIX_STORAGE_KEY, JSON.stringify({
+    selectedPriceTableId: selectedId,
+    mobilePriceMatrixCategory: category,
+  }))
+}, { immediate: true })
+
+watch([() => store.activeSection, mobileOpenCategory], ([section, openCategory]) => {
+  if (section === 'priceTables' || typeof window === 'undefined') {
+    return
+  }
+  const stored = loadStoredMobileOpenCategories()
+  stored[section] = openCategory
+  window.localStorage.setItem(MOBILE_OPEN_CATEGORY_STORAGE_KEY, JSON.stringify(stored))
+}, { immediate: true })
+
 watch(() => store.activeSection, (section) => {
   if (section === 'priceTables') {
     const activeGroup = activePriceTableGroup.value
@@ -1357,9 +1416,13 @@ watch(() => store.activeSection, (section) => {
     return
   }
   activeFlowerFilter.value = getInitialFlowerFilter(section)
+  mobileOpenCategory.value = loadStoredMobileOpenCategories()[section] ?? null
 }, { immediate: true })
 
 watch(activePriceTableGroup, (group) => {
+  if (group && selectedPriceTableId.value !== group.item.id) {
+    selectedPriceTableId.value = group.item.id
+  }
   const nextCategory = group ? getPriceMatrixCategoryKey(group.item) : mobilePriceMatrixCategories.value[0]?.key ?? null
   if (nextCategory) {
     mobilePriceMatrixCategory.value = nextCategory
