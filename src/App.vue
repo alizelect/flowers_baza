@@ -1430,7 +1430,7 @@ onMounted(async () => {
 
         <article v-if="activePriceTableGroup" class="price-matrix-card">
           <div class="price-matrix-card-head">
-            <div>
+            <div class="price-matrix-card-title">
               <h3>{{ activePriceTableGroup.item.flowerName }}</h3>
             </div>
             <div class="price-matrix-card-meta">

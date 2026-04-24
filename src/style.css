@@ -1044,7 +1044,12 @@ select {
   }
 
   .sidebar h2 {
-    display: none;
+    visibility: hidden;
+    display: block;
+    margin: 0 0 8px;
+    font-size: 16px;
+    line-height: 1;
+    min-height: 16px;
   }
 
   .sidebar-footer {
@@ -1127,7 +1132,7 @@ select {
   }
 
   .price-matrix-mobile-categories {
-    margin-bottom: 8px;
+    margin-bottom: 14px;
   }
 
   .price-matrix-mobile-tab,
@@ -1165,6 +1170,11 @@ select {
     line-height: 1.1;
   }
 
+  .price-matrix-card-title {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
   .price-matrix-card-meta {
     width: auto;
     text-align: right;
@@ -1172,6 +1182,7 @@ select {
     gap: 2px;
     white-space: nowrap;
     flex: 0 0 auto;
+    align-self: flex-start;
   }
 
   .price-matrix-table-wrap {
@@ -1587,6 +1598,11 @@ select {
   gap: 14px;
 }
 
+.price-matrix-card-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .price-matrix-card-head p {
   margin: 4px 0 0;
   color: #5b665b;
@@ -1600,6 +1616,8 @@ select {
   color: #35533f;
   font-size: 18px;
   white-space: nowrap;
+  flex: 0 0 auto;
+  align-self: flex-start;
 }
 
 .price-matrix-table-wrap {
@@ -1764,8 +1782,8 @@ select {
 
   .table-wrap.price-matrix-table-wrap,
   .price-matrix-table-wrap {
-    width: calc(100vw - 28px) !important;
-    max-width: calc(100vw - 28px) !important;
+    width: calc(100vw - 36px) !important;
+    max-width: calc(100vw - 36px) !important;
     min-height: 0;
     align-self: stretch;
     overflow: visible !important;
@@ -1779,8 +1797,8 @@ select {
 
   .price-matrix-table th,
   .price-matrix-table td {
-    padding: 4px 3px !important;
-    font-size: 11px !important;
+    padding: 4px 2px !important;
+    font-size: 10px !important;
     line-height: 1.2;
     white-space: normal !important;
     word-break: break-word;
