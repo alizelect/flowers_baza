@@ -606,6 +606,8 @@ const mobilePriceMatrixSubtabs = computed<PriceTableGroup[]>(() => {
   return priceTableGroups.value.filter((group) => getFlowerGroup(group.item) === key)
 })
 
+const mobilePriceMatrixHasSubtabs = computed(() => mobilePriceMatrixSubtabs.value.length > 1)
+
 function selectMobilePriceMatrixCategory(key: MobilePriceMatrixCategoryKey): void {
   mobilePriceMatrixCategory.value = key
   const firstGroup = priceTableGroups.value.find((group) => getFlowerGroup(group.item) === key)
@@ -1420,7 +1422,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="price-matrix-mobile-nav">
-          <div class="price-matrix-mobile-categories">
+          <div class="price-matrix-mobile-categories" :class="{ 'with-subtabs': mobilePriceMatrixHasSubtabs }">
             <button
               v-for="category in mobilePriceMatrixCategories"
               :key="category.key"
@@ -1433,7 +1435,7 @@ onBeforeUnmount(() => {
             </button>
           </div>
 
-          <div v-if="mobilePriceMatrixSubtabs.length" class="price-matrix-mobile-subtabs">
+          <div v-if="mobilePriceMatrixHasSubtabs" class="price-matrix-mobile-subtabs">
             <button
               v-for="group in mobilePriceMatrixSubtabs"
               :key="group.item.id"

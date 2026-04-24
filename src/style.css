@@ -1127,7 +1127,7 @@ select {
     gap: 6px;
   }
 
-  .price-matrix-mobile-categories {
+  .price-matrix-mobile-categories.with-subtabs {
     margin-bottom: 14px;
   }
 
