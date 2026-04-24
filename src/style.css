@@ -1046,10 +1046,10 @@ select {
   .sidebar h2 {
     visibility: hidden;
     display: block;
-    margin: 0 0 8px;
+    margin: 0 0 6px;
     font-size: 16px;
     line-height: 1;
-    min-height: 16px;
+    min-height: 10px;
   }
 
   .sidebar-footer {
