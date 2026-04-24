@@ -237,6 +237,8 @@ const ROSE_EXTRA_PISTACHIO_QTY_START = 21
 const ALSTROMERII_EXTRA_PISTACHIO_QTY_AFTER = 19
 const CHRYZA_SINGLE_PACKAGING_DISCOUNT_START = 5
 const CHRYZA_SINGLE_PACKAGING_DISCOUNT = 100
+const ROSE_200_PACKAGING_DISCOUNT_START = 5
+const ROSE_200_PACKAGING_DISCOUNT = 100
 
 function getArrayValue(values: number[], idx: number, fallback = 0): number {
   return values[idx] ?? values[values.length - 1] ?? fallback
@@ -266,6 +268,14 @@ function getRosePackagingPrice(packagingPrice: number, oldPistachioQty: number, 
   const adjustedPrice = getAdjustedPackagingPrice(packagingPrice, oldPistachioQty)
   if (shouldAddExtraRosePistachio(qty)) {
     return Math.max(0, adjustedPrice - PISTACHIO_UNIT_PRICE)
+  }
+  return adjustedPrice
+}
+
+function getRose200PackagingPrice(packagingPrice: number, oldPistachioQty: number, qty: number): number {
+  const adjustedPrice = getRosePackagingPrice(packagingPrice, oldPistachioQty, qty)
+  if (toOdd(qty) >= ROSE_200_PACKAGING_DISCOUNT_START) {
+    return Math.max(0, adjustedPrice - ROSE_200_PACKAGING_DISCOUNT)
   }
   return adjustedPrice
 }
@@ -323,7 +333,7 @@ const ROSE_150_PACKAGING_BY_ODD = [
 ]
 
 const ROSE_300_PACKAGING_BY_ODD = [
-  190, 190, 290, 310, 310, 410, 370, 570, 570, 670,
+  190, 190, 290, 310, 310, 310, 370, 570, 570, 670,
   630, 730, 730, 730, 790, 790, 790, 890, 850, 850,
   850, 850, 1010, 1010, 1010, 1010, 970, 970, 970, 970,
   1030, 1030, 1030, 1030, 1090, 1090, 1090, 1090, 1050, 1050,
@@ -797,7 +807,7 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
     )
   }
   if (isRose200(item)) {
-    return getRosePackagingPrice(
+    return getRose200PackagingPrice(
       getArrayValue(ROSE_300_PACKAGING_BY_ODD, idx, item.packagingPrice),
       getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx),
       qty,
