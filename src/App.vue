@@ -480,6 +480,8 @@ type PriceMatrixTabEntry =
   | { type: 'item'; group: PriceTableGroup }
   | { type: 'spacer' }
 
+type MobilePriceMatrixCategoryKey = Exclude<FlowerFilterKey, 'all'>
+
 function compareFlowers(a: FlowerItem, b: FlowerItem): number {
   if (a.section !== b.section) {
     return SECTION_ORDER.indexOf(a.section as BaseSectionKey) - SECTION_ORDER.indexOf(b.section as BaseSectionKey)
@@ -527,6 +529,19 @@ const activePriceTableGroup = computed<PriceTableGroup | null>(() => {
   return groups.find((group) => group.item.id === selectedPriceTableId.value) ?? groups[0]
 })
 
+const MOBILE_PRICE_MATRIX_CATEGORY_ORDER: MobilePriceMatrixCategoryKey[] = [
+  'rose',
+  'carnation',
+  'chryza',
+  'alstroemerii',
+  'hydrangea',
+  'gypsophila',
+  'tulip',
+  'peony',
+]
+
+const mobilePriceMatrixCategory = ref<MobilePriceMatrixCategoryKey>('rose')
+
 const PRICE_MATRIX_TAB_ROWS = [
   ['РОЗЫ по 150', 'РОЗЫ по 200', 'РОЗЫ по 250', 'РОЗЫ по 300', 'РОЗЫ по 400', null, 'ГВОЗДИКИ - обычные', 'ГВОЗДИКИ - лунные', 'ГВОЗДИКИ - микс'],
   ['ХРИЗА - одноголовая', null, 'ХРИЗА - кустовая по 220', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ГОРТЕНЗИИ', null, 'АЛЬСТРОМЕРИИ'],
@@ -553,6 +568,48 @@ const priceMatrixTabRows = computed<PriceMatrixTabEntry[][]>(() => {
     })
     .filter((entry): entry is PriceMatrixTabEntry => entry !== null))
 })
+
+function getPriceMatrixCategoryKey(item: FlowerItem): MobilePriceMatrixCategoryKey | null {
+  const group = getFlowerGroup(item)
+  return MOBILE_PRICE_MATRIX_CATEGORY_ORDER.includes(group as MobilePriceMatrixCategoryKey)
+    ? group as MobilePriceMatrixCategoryKey
+    : null
+}
+
+const mobilePriceMatrixCategories = computed(() => MOBILE_PRICE_MATRIX_CATEGORY_ORDER
+  .map((key) => ({
+    key,
+    label: FLOWER_FILTER_LABELS[key],
+    items: priceTableGroups.value.filter((group) => getFlowerGroup(group.item) === key),
+  }))
+  .filter((category) => category.items.length > 0))
+
+const mobileActivePriceMatrixCategory = computed<MobilePriceMatrixCategoryKey | null>(() => {
+  const availableKeys = mobilePriceMatrixCategories.value.map((category) => category.key)
+  if (!availableKeys.length) {
+    return null
+  }
+  if (availableKeys.includes(mobilePriceMatrixCategory.value)) {
+    return mobilePriceMatrixCategory.value
+  }
+  return availableKeys[0] ?? null
+})
+
+const mobilePriceMatrixSubtabs = computed<PriceTableGroup[]>(() => {
+  const key = mobileActivePriceMatrixCategory.value
+  if (!key) {
+    return []
+  }
+  return priceTableGroups.value.filter((group) => getFlowerGroup(group.item) === key)
+})
+
+function selectMobilePriceMatrixCategory(key: MobilePriceMatrixCategoryKey): void {
+  mobilePriceMatrixCategory.value = key
+  const firstGroup = priceTableGroups.value.find((group) => getFlowerGroup(group.item) === key)
+  if (firstGroup) {
+    selectedPriceTableId.value = firstGroup.item.id
+  }
+}
 
 const mobileSectionDefinitions = computed(() => {
   if (store.activeSection === 'osnovnye') {
@@ -1279,9 +1336,21 @@ watch(activeFlowerFilter, (value) => {
 
 watch(() => store.activeSection, (section) => {
   if (section === 'priceTables') {
+    const activeGroup = activePriceTableGroup.value
+    const nextCategory = activeGroup ? getPriceMatrixCategoryKey(activeGroup.item) : mobilePriceMatrixCategories.value[0]?.key ?? null
+    if (nextCategory) {
+      mobilePriceMatrixCategory.value = nextCategory
+    }
     return
   }
   activeFlowerFilter.value = getInitialFlowerFilter(section)
+}, { immediate: true })
+
+watch(activePriceTableGroup, (group) => {
+  const nextCategory = group ? getPriceMatrixCategoryKey(group.item) : mobilePriceMatrixCategories.value[0]?.key ?? null
+  if (nextCategory) {
+    mobilePriceMatrixCategory.value = nextCategory
+  }
 }, { immediate: true })
 
 onMounted(async () => {
@@ -1314,7 +1383,7 @@ onMounted(async () => {
 
       <section v-if="store.activeSection === 'priceTables'" class="price-matrix-page">
 
-        <div class="price-matrix-tabs">
+        <div class="price-matrix-tabs price-matrix-tabs-desktop">
           <div v-for="(row, rowIndex) in priceMatrixTabRows" :key="`price-matrix-row-${rowIndex}`" class="price-matrix-tabs-row">
             <template v-for="(entry, entryIndex) in row" :key="entry.type === 'item' ? entry.group.item.id : `spacer-${rowIndex}-${entryIndex}`">
               <div v-if="entry.type === 'spacer'" class="price-matrix-tab-spacer" aria-hidden="true"></div>
@@ -1328,6 +1397,34 @@ onMounted(async () => {
                 {{ entry.group.item.flowerName }}
               </button>
             </template>
+          </div>
+        </div>
+
+        <div class="price-matrix-mobile-nav">
+          <div class="price-matrix-mobile-categories">
+            <button
+              v-for="category in mobilePriceMatrixCategories"
+              :key="category.key"
+              type="button"
+              class="price-matrix-tab price-matrix-mobile-tab"
+              :class="{ active: mobileActivePriceMatrixCategory === category.key }"
+              @click="selectMobilePriceMatrixCategory(category.key)"
+            >
+              {{ category.label }}
+            </button>
+          </div>
+
+          <div v-if="mobilePriceMatrixSubtabs.length" class="price-matrix-mobile-subtabs">
+            <button
+              v-for="group in mobilePriceMatrixSubtabs"
+              :key="group.item.id"
+              type="button"
+              class="price-matrix-tab price-matrix-mobile-subtab"
+              :class="{ active: activePriceTableGroup?.item.id === group.item.id }"
+              @click="selectedPriceTableId = group.item.id"
+            >
+              {{ group.item.flowerName }}
+            </button>
           </div>
         </div>
 

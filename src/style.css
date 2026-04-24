@@ -1035,7 +1035,7 @@ select {
     align-items: stretch;
     justify-items: stretch;
     flex-wrap: nowrap;
-    gap: 4px;
+    gap: 2px;
     position: static;
     height: auto;
     min-height: 0;
@@ -1045,6 +1045,9 @@ select {
 
   .sidebar h2 {
     margin: 0;
+    font-size: 16px;
+    line-height: 1;
+    margin-bottom: 8px;
   }
 
   .sidebar-footer {
@@ -1056,10 +1059,10 @@ select {
   .sidebar-menu-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 4px;
+    gap: 2px;
     align-items: start;
-    min-height: 42px;
-    grid-auto-rows: 28px;
+    min-height: 0;
+    grid-auto-rows: 26px;
     align-content: start;
     order: 1;
   }
@@ -1077,6 +1080,15 @@ select {
   .toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: 0;
+  }
+
+  .toolbar-title {
+    display: none;
+  }
+
+  .content > .toolbar {
+    display: none;
   }
 
   .toolbar-actions {
@@ -1093,8 +1105,113 @@ select {
     gap: 8px;
   }
 
+  .content > .status-row {
+    display: none;
+  }
+
   .desktop-table-wrap {
     display: none;
+  }
+
+  .price-matrix-tabs-desktop {
+    display: none;
+  }
+
+  .price-matrix-mobile-nav {
+    display: grid;
+    gap: 8px;
+  }
+
+  .price-matrix-mobile-categories,
+  .price-matrix-mobile-subtabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .price-matrix-mobile-tab,
+  .price-matrix-mobile-subtab {
+    padding: 6px 10px;
+    font-size: 13px;
+    line-height: 1.15;
+  }
+
+  .price-matrix-mobile-tab {
+    flex: 1 1 calc(50% - 3px);
+    justify-content: center;
+    text-align: center;
+  }
+
+  .price-matrix-mobile-subtab {
+    flex: 1 1 auto;
+  }
+
+  .price-matrix-card {
+    width: 100%;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .price-matrix-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .price-matrix-card-meta {
+    width: 100%;
+    text-align: left;
+    font-size: 13px;
+    gap: 2px;
+    white-space: normal;
+  }
+
+  .price-matrix-table-wrap {
+    width: 100%;
+    max-width: none;
+    align-self: stretch;
+    overflow: visible;
+  }
+
+  .table-wrap.price-matrix-table-wrap {
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+    min-height: 0;
+    align-self: stretch;
+    overflow: visible;
+  }
+
+  .price-matrix-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  .price-matrix-table th,
+  .price-matrix-table td {
+    padding: 5px 4px;
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .price-matrix-table th:nth-child(1),
+  .price-matrix-table td:nth-child(1) {
+    width: 10%;
+  }
+
+  .price-matrix-table th:nth-child(2),
+  .price-matrix-table td:nth-child(2),
+  .price-matrix-table th:nth-child(3),
+  .price-matrix-table td:nth-child(3),
+  .price-matrix-table th:nth-child(4),
+  .price-matrix-table td:nth-child(4),
+  .price-matrix-table th:nth-child(5),
+  .price-matrix-table td:nth-child(5),
+  .price-matrix-table th:nth-child(6),
+  .price-matrix-table td:nth-child(6) {
+    width: 18%;
   }
 
   .mobile-cards {
@@ -1107,8 +1224,8 @@ select {
   }
 
   .sidebar {
-    padding: 4px 10px;
-    gap: 4px;
+    padding: 2px 8px 14px;
+    gap: 2px;
     overflow: hidden;
   }
 
@@ -1127,12 +1244,20 @@ select {
     min-height: 28px;
   }
 
+  .toolbar-side .auth-wrap {
+    display: none;
+  }
+
   .menu-btn {
     width: 100%;
     border-radius: 999px;
-    padding: 3px 8px;
+    padding: 2px 8px;
     white-space: nowrap;
     text-align: center;
+  }
+
+  .sidebar-menu-list .menu-btn:nth-child(3) {
+    margin-top: 4px;
   }
 
   .modal {
@@ -1433,6 +1558,10 @@ select {
   color: #fff;
   border-color: #0f3a2b;
 }
+
+.price-matrix-mobile-nav {
+  display: none;
+}
 .price-matrix-card {
   display: grid;
   gap: 10px;
@@ -1537,6 +1666,12 @@ select {
   margin-top: 24px;
 }
 
+@media (max-width: 760px) {
+  .sidebar-menu-list .menu-btn:nth-child(3) {
+    margin-top: 4px;
+  }
+}
+
 .price-table td:nth-child(1),
 .price-table td:nth-child(4),
 .price-table td:nth-child(5),
@@ -1558,6 +1693,108 @@ select {
   min-width: 64px;
   position: relative;
   left: -10px;
+}
+
+@media (max-width: 760px) {
+  .price-matrix-tabs-desktop {
+    display: none !important;
+  }
+
+  .price-matrix-mobile-nav {
+    display: grid !important;
+    gap: 8px;
+  }
+
+  .price-matrix-mobile-categories,
+  .price-matrix-mobile-subtabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .price-matrix-mobile-tab,
+  .price-matrix-mobile-subtab {
+    padding: 6px 10px;
+    font-size: 13px;
+    line-height: 1.15;
+  }
+
+  .price-matrix-mobile-tab {
+    flex: 1 1 calc(50% - 3px);
+    justify-content: center;
+    text-align: center;
+  }
+
+  .price-matrix-mobile-subtab {
+    flex: 1 1 auto;
+  }
+
+  .price-matrix-page {
+    width: 100%;
+  }
+
+  .price-matrix-card {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .price-matrix-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .price-matrix-card-meta {
+    width: 100%;
+    text-align: left;
+    font-size: 13px;
+    gap: 2px;
+    white-space: normal;
+  }
+
+  .table-wrap.price-matrix-table-wrap,
+  .price-matrix-table-wrap {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+    min-height: 0;
+    align-self: stretch;
+    overflow: visible !important;
+  }
+
+  .price-matrix-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
+  }
+
+  .price-matrix-table th,
+  .price-matrix-table td {
+    padding: 5px 4px !important;
+    font-size: 12px !important;
+    line-height: 1.2;
+    white-space: normal !important;
+    word-break: break-word;
+  }
+
+  .price-matrix-table th:nth-child(1),
+  .price-matrix-table td:nth-child(1) {
+    width: 10% !important;
+  }
+
+  .price-matrix-table th:nth-child(2),
+  .price-matrix-table td:nth-child(2),
+  .price-matrix-table th:nth-child(3),
+  .price-matrix-table td:nth-child(3),
+  .price-matrix-table th:nth-child(4),
+  .price-matrix-table td:nth-child(4),
+  .price-matrix-table th:nth-child(5),
+  .price-matrix-table td:nth-child(5),
+  .price-matrix-table th:nth-child(6),
+  .price-matrix-table td:nth-child(6) {
+    width: 18% !important;
+  }
 }
 
 
