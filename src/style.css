@@ -1625,10 +1625,17 @@ select {
   min-width: 0;
   max-width: none;
   height: 22px;
-  padding: 0 18px 0 6px;
+  padding: 0 14px 0 4px;
   border: 1px solid #cfd8cf;
   border-radius: 5px;
-  background: #fff;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath fill='%231f2a1f' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 3px center;
+  background-size: 8px 5px;
   color: #1f2a1f;
   font-size: 10px;
 }
@@ -1820,7 +1827,7 @@ select {
 
   .price-matrix-table th:nth-child(1),
   .price-matrix-table td:nth-child(1) {
-    width: 12% !important;
+    width: 11% !important;
   }
 
   .price-matrix-table th:nth-child(2),
@@ -1829,12 +1836,12 @@ select {
   .price-matrix-table td:nth-child(3),
   .price-matrix-table th:nth-child(4),
   .price-matrix-table td:nth-child(4) {
-    width: 20% !important;
+    width: 19% !important;
   }
 
   .price-matrix-table th:nth-child(5),
   .price-matrix-table td:nth-child(5) {
-    width: 26% !important;
+    width: 28% !important;
   }
 
   .price-matrix-table:not(:has(.price-matrix-promo-select)) th:nth-child(6),
