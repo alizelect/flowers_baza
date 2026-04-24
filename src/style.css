@@ -1620,6 +1620,17 @@ select {
   align-self: flex-start;
 }
 
+.price-matrix-promo-select {
+  width: 100%;
+  min-width: 0;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid #cfd8cf;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2a1f;
+}
+
 .price-matrix-table-wrap {
   width: 100%;
   max-width: 100%;
@@ -1807,7 +1818,7 @@ select {
 
   .price-matrix-table th:nth-child(1),
   .price-matrix-table td:nth-child(1) {
-    width: 10% !important;
+    width: 12% !important;
   }
 
   .price-matrix-table th:nth-child(2),
@@ -1817,10 +1828,13 @@ select {
   .price-matrix-table th:nth-child(4),
   .price-matrix-table td:nth-child(4),
   .price-matrix-table th:nth-child(5),
-  .price-matrix-table td:nth-child(5),
-  .price-matrix-table th:nth-child(6),
-  .price-matrix-table td:nth-child(6) {
-    width: 18% !important;
+  .price-matrix-table td:nth-child(5) {
+    width: 22% !important;
+  }
+
+  .price-matrix-table:not(:has(.price-matrix-promo-select)) th:nth-child(6),
+  .price-matrix-table:not(:has(.price-matrix-promo-select)) td:nth-child(6) {
+    width: 22% !important;
   }
 }
 

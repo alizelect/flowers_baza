@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import AuthGate from './components/AuthGate.vue'
 import FlowerEditorModal from './components/FlowerEditorModal.vue'
 import SidebarMenu from './components/SidebarMenu.vue'
@@ -21,6 +21,9 @@ const qtyInputMap = reactive<Record<string, string>>({})
 const targetPriceMap = reactive<Record<string, string>>({})
 const suggestedSelectionMap = reactive<Record<string, 'lower' | 'higher' | ''>>({})
 const sizeButtonSelectionMap = reactive<Record<string, boolean>>({})
+const MOBILE_BREAKPOINT = 760
+const isMobileViewport = ref(false)
+const mobilePriceMatrixPromo = ref<'10' | '15'>('10')
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1)
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1)
 const POPULAR_SIZES_NOTE = '*в столбце "Популярные размеры" указан диаметр коробок'
@@ -1353,8 +1356,24 @@ watch(activePriceTableGroup, (group) => {
   }
 }, { immediate: true })
 
+function updateViewportMode(): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+  isMobileViewport.value = window.innerWidth <= MOBILE_BREAKPOINT
+}
+
 onMounted(async () => {
   await store.bootstrap()
+  updateViewportMode()
+  window.addEventListener('resize', updateViewportMode)
+})
+
+onBeforeUnmount(() => {
+  if (typeof window === 'undefined') {
+    return
+  }
+  window.removeEventListener('resize', updateViewportMode)
 })
 </script>
 
@@ -1447,8 +1466,18 @@ onMounted(async () => {
                   <th>{{ uiLabels.withoutPromo }}</th>
                   <th>{{ uiLabels.pistachio }}</th>
                   <th>{{ uiLabels.packaging }}</th>
-                  <th>{{ uiLabels.promo10 }}</th>
-                  <th>{{ uiLabels.promo15 }}</th>
+                  <template v-if="isMobileViewport">
+                    <th>
+                      <select v-model="mobilePriceMatrixPromo" class="price-matrix-promo-select">
+                        <option value="10">10%</option>
+                        <option value="15">15%</option>
+                      </select>
+                    </th>
+                  </template>
+                  <template v-else>
+                    <th>{{ uiLabels.promo10 }}</th>
+                    <th>{{ uiLabels.promo15 }}</th>
+                  </template>
                 </tr>
               </thead>
               <tbody>
@@ -1460,8 +1489,18 @@ onMounted(async () => {
                     <template v-if="row.packaging === '-'">-</template>
                     <span v-else class="price-with-ruble"><span>{{ row.packaging }}</span><span class="price-ruble">&#8381;</span></span>
                   </td>
-                  <td><span class="price-with-ruble"><span>{{ row.promo10 }}</span><span class="price-ruble">&#8381;</span></span></td>
-                  <td><span class="price-with-ruble"><span>{{ row.promo15 }}</span><span class="price-ruble">&#8381;</span></span></td>
+                  <template v-if="isMobileViewport">
+                    <td>
+                      <span class="price-with-ruble">
+                        <span>{{ mobilePriceMatrixPromo === '10' ? row.promo10 : row.promo15 }}</span>
+                        <span class="price-ruble">&#8381;</span>
+                      </span>
+                    </td>
+                  </template>
+                  <template v-else>
+                    <td><span class="price-with-ruble"><span>{{ row.promo10 }}</span><span class="price-ruble">&#8381;</span></span></td>
+                    <td><span class="price-with-ruble"><span>{{ row.promo15 }}</span><span class="price-ruble">&#8381;</span></span></td>
+                  </template>
                 </tr>
               </tbody>
             </table>
