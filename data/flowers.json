@@ -1,5 +1,5 @@
 ﻿{
-  "updatedAt": "2026-04-22T00:00:00.000Z",
+  "updatedAt": "2026-04-24T00:00:00.000Z",
   "items": [
     {
       "id": "d0dc5c2b-3db1-4da0-bf0b-42e2fdf154f4",
@@ -13,6 +13,26 @@
       "pistachioUnitPrice": 40,
       "discountPercent": 10,
       "isPromoEnabled": true,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "2d6c2000-1111-4222-8333-200200200200",
+      "section": "osnovnye",
+      "flowerName": "РОЗЫ по 200",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 200,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": false,
       "popularSizes": [
         7,
         9,
@@ -47,6 +67,26 @@
       "flowerName": "РОЗЫ по 300",
       "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
       "unitPrice": 300,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": false,
+      "popularSizes": [
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "4d6c4000-1111-4222-8333-400400400400",
+      "section": "osnovnye",
+      "flowerName": "РОЗЫ по 400",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 400,
       "packagingPrice": 0,
       "hasPistachio": true,
       "pistachioQty": 0,

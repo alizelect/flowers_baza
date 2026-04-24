@@ -118,8 +118,10 @@ function getInitialFlowerFilter(section: SectionKey): FlowerFilterKey {
 const activeFlowerFilter = ref<FlowerFilterKey>(getInitialFlowerFilter(store.activeSection))
 const MAIN_ORDER = [
   '\u0420\u041e\u0417\u042b \u043f\u043e 150',
+  '\u0420\u041e\u0417\u042b \u043f\u043e 200',
   '\u0420\u041e\u0417\u042b \u043f\u043e 250',
   '\u0420\u041e\u0417\u042b \u043f\u043e 300',
+  '\u0420\u041e\u0417\u042b \u043f\u043e 400',
   '\u0410\u041b\u042c\u0421\u0422\u0420\u041e\u041c\u0415\u0420\u0418\u0418',
   '\u0413\u0412\u041e\u0417\u0414\u0418\u041a\u0418 - \u043e\u0431\u044b\u0447\u043d\u044b\u0435',
   '\u0413\u0412\u041e\u0417\u0414\u0418\u041a\u0418 - \u043b\u0443\u043d\u043d\u044b\u0435',
@@ -516,8 +518,8 @@ const activePriceTableGroup = computed<PriceTableGroup | null>(() => {
 })
 
 const PRICE_MATRIX_TAB_ROWS = [
-  ['РОЗЫ по 150', 'РОЗЫ по 250', 'РОЗЫ по 300', null, 'АЛЬСТРОМЕРИИ', null, 'ГВОЗДИКИ - обычные', 'ГВОЗДИКИ - лунные', 'ГВОЗДИКИ - микс'],
-  ['ХРИЗА - одноголовая', null, 'ХРИЗА - кустовая по 220', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ГОРТЕНЗИИ'],
+  ['РОЗЫ по 150', 'РОЗЫ по 200', 'РОЗЫ по 250', 'РОЗЫ по 300', 'РОЗЫ по 400', null, 'ГВОЗДИКИ - обычные', 'ГВОЗДИКИ - лунные', 'ГВОЗДИКИ - микс'],
+  ['ХРИЗА - одноголовая', null, 'ХРИЗА - кустовая по 220', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ГОРТЕНЗИИ', null, 'АЛЬСТРОМЕРИИ'],
   ['ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композиции', null, 'ТЮЛЬПАНЫ по 220', null, 'ПИОНЫ по 590', 'ПИОНЫ по 690', 'ПИОНЫ по 790'],
 ] as const
 
@@ -601,7 +603,7 @@ function selectMobileCategory(key: string): void {
 
 function getFlowerGroup(item: FlowerItem): string {
   if (isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)) return 'chryza'
-  if (isRose150(item) || isRose250(item) || isRose300(item)) return 'rose'
+  if (isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose400(item)) return 'rose'
   if (isAlstroemerii(item)) return 'alstroemerii'
   if (isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item)) return 'carnation'
   if (isHydrangea(item)) return 'hydrangea'
@@ -617,9 +619,6 @@ function isGroupStart(item: FlowerItem, index: number): boolean {
   }
   const previous = visibleRows.value[index - 1]
   if (!previous) {
-    return false
-  }
-  if (isChryzaBush300(previous) && isChryzaSingle(item)) {
     return false
   }
   return getFlowerGroup(previous) !== getFlowerGroup(item)
@@ -679,6 +678,11 @@ function isRose150(item: FlowerItem): boolean {
   return name.includes('150')
 }
 
+function isRose200(item: FlowerItem): boolean {
+  const name = item.flowerName.trim().toLowerCase()
+  return name.includes('200')
+}
+
 function isRose250(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
   return name.includes('250')
@@ -687,6 +691,11 @@ function isRose250(item: FlowerItem): boolean {
 function isRose300(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
   return name.includes('300')
+}
+
+function isRose400(item: FlowerItem): boolean {
+  const name = item.flowerName.trim().toLowerCase()
+  return name.includes('400')
 }
 
 function isAlstroemerii(item: FlowerItem): boolean {
@@ -754,7 +763,7 @@ function isChryzaBush300(item: FlowerItem): boolean {
 
 
 function hasAutoPackagingByQty(item: FlowerItem): boolean {
-  return isRose150(item) || isRose250(item) || isRose300(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isGypsophila(item) || isGypsophilaComposition(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
+  return isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose400(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isGypsophila(item) || isGypsophilaComposition(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 function getPackagingPrice(item: FlowerItem, qty: number): number {
   if (!hasAutoPackagingByQty(item)) {
@@ -774,6 +783,20 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
     return getArrayValue(CHRYZA_BUSH_300_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
   if (isRose300(item)) {
+    return getRosePackagingPrice(
+      getArrayValue(ROSE_300_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx),
+      qty,
+    )
+  }
+  if (isRose400(item)) {
+    return getRosePackagingPrice(
+      getArrayValue(ROSE_300_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx),
+      qty,
+    )
+  }
+  if (isRose200(item)) {
     return getRosePackagingPrice(
       getArrayValue(ROSE_300_PACKAGING_BY_ODD, idx, item.packagingPrice),
       getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx),
@@ -859,6 +882,12 @@ function getPistachioQty(item: FlowerItem, qty: number): number {
     return getRosePistachioQty(getArrayValue(ROSE_250_PISTACHIO_QTY_BY_ODD, idx), qty)
   }
   if (isRose300(item)) {
+    return getRosePistachioQty(getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx), qty)
+  }
+  if (isRose400(item)) {
+    return getRosePistachioQty(getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx), qty)
+  }
+  if (isRose200(item)) {
     return getRosePistachioQty(getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx), qty)
   }
   if (isCarnationCommon(item)) {
@@ -1168,7 +1197,7 @@ function hidesMobilePistachio(item: FlowerItem): boolean {
 }
 
 function usesAutoPistachioQty(item: FlowerItem): boolean {
-  return isRose150(item) || isRose250(item) || isRose300(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item)
+  return isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose400(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item)
 }
 
 function isQtyInputLocked(item: FlowerItem): boolean {
