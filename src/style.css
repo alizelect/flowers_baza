@@ -1041,15 +1041,11 @@ select {
     min-height: 0;
     align-content: start;
     align-self: start;
+    padding-top: 8px;
   }
 
   .sidebar h2 {
-    visibility: hidden;
-    display: block;
-    margin: 0 0 6px;
-    font-size: 16px;
-    line-height: 1;
-    min-height: 10px;
+    display: none;
   }
 
   .sidebar-footer {
@@ -1243,7 +1239,7 @@ select {
   }
 
   .sidebar {
-    padding: 2px 8px 14px;
+    padding: 14px 8px 14px;
     gap: 2px;
     overflow: hidden;
   }
