@@ -1844,6 +1844,18 @@ select {
   .price-matrix-table:not(:has(.price-matrix-promo-select)) td:nth-child(6) {
     width: 20% !important;
   }
+
+  .price-matrix-table.without-pistachio th:nth-child(2),
+  .price-matrix-table.without-pistachio td:nth-child(2),
+  .price-matrix-table.without-pistachio th:nth-child(3),
+  .price-matrix-table.without-pistachio td:nth-child(3) {
+    width: 22% !important;
+  }
+
+  .price-matrix-table.without-pistachio th:nth-child(4),
+  .price-matrix-table.without-pistachio td:nth-child(4) {
+    width: 34% !important;
+  }
 }
 
 

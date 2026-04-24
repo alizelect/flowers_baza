@@ -608,6 +608,14 @@ const mobilePriceMatrixSubtabs = computed<PriceTableGroup[]>(() => {
 
 const mobilePriceMatrixHasSubtabs = computed(() => mobilePriceMatrixSubtabs.value.length > 1)
 
+const activePriceTableHidesPistachio = computed(() => {
+  const item = activePriceTableGroup.value?.item
+  if (!item) {
+    return false
+  }
+  return hidesMobilePistachio(item) || isPistachioLocked(item)
+})
+
 function selectMobilePriceMatrixCategory(key: MobilePriceMatrixCategoryKey): void {
   mobilePriceMatrixCategory.value = key
   const firstGroup = priceTableGroups.value.find((group) => getFlowerGroup(group.item) === key)
@@ -1461,12 +1469,12 @@ onBeforeUnmount(() => {
           </div>
 
           <div class="table-wrap price-matrix-table-wrap">
-            <table class="price-matrix-table">
+            <table class="price-matrix-table" :class="{ 'without-pistachio': activePriceTableHidesPistachio }">
               <thead>
                 <tr>
                   <th></th>
                   <th>{{ uiLabels.withoutPromo }}</th>
-                  <th>{{ uiLabels.pistachio }}</th>
+                  <th v-if="!activePriceTableHidesPistachio">{{ uiLabels.pistachio }}</th>
                   <th>{{ uiLabels.packaging }}</th>
                   <template v-if="isMobileViewport">
                     <th>
@@ -1486,7 +1494,7 @@ onBeforeUnmount(() => {
                 <tr v-for="row in activePriceTableGroup.rows" :key="`${activePriceTableGroup.item.id}-${row.qty}`">
                   <td>{{ row.qty }}</td>
                   <td><span class="price-with-ruble"><span>{{ row.withoutPromo }}</span><span class="price-ruble">&#8381;</span></span></td>
-                  <td>{{ row.pistachio }}</td>
+                  <td v-if="!activePriceTableHidesPistachio">{{ row.pistachio }}</td>
                   <td>
                     <template v-if="row.packaging === '-'">-</template>
                     <span v-else class="price-with-ruble"><span>{{ row.packaging }}</span><span class="price-ruble">&#8381;</span></span>
