@@ -1215,7 +1215,7 @@ function getPistachioLabel(item: FlowerItem, qty: number): string {
   if (!pistachioQty) {
     return '0'
   }
-  return `${pistachioQty} x ${PISTACHIO_UNIT_PRICE} = ${formatPriceWithRuble(getPistachioCostValue(item, qty))}`
+  return `${formatPriceWithRuble(getPistachioCostValue(item, qty))} (${pistachioQty})`
 }
 
 function getPromoPriceForPercent(item: FlowerItem, qty: number, discountPercent: number): number {
