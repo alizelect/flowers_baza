@@ -53,11 +53,11 @@ const uiLabels = {
   qtyPlaceholder: '\u043a\u043e\u043b-\u0432\u043e',
   popularSizes: '\u041f\u043e\u043f\u0443\u043b\u044f\u0440\u043d\u044b\u0435 \u0440\u0430\u0437\u043c\u0435\u0440\u044b',
   targetPrice: '\u0446\u0435\u043d\u0430',
-  withoutPromo: '\u0411\u0435\u0437 \u0430\u043a\u0446\u0438\u0438',
+  withoutPromo: '\u0426\u0435\u043d\u0430',
   promo: '\u0410\u043a\u0446\u0438\u044f',
   flowerPrice: '\u0426\u0435\u043d\u0430 \u0446\u0432\u0435\u0442\u043a\u0430',
   packaging: '\u0423\u043f\u0430\u043a\u043e\u0432\u043a\u0430',
-  pistachio: '\u0424\u0438\u0441\u0442.',
+  pistachio: '\u0424\u0438\u0441\u0442\u0430\u0448\u043a\u0430',
   actions: '\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f',
   qtyResetOne: '\u0441\u0431\u0440\u043e\u0441 \u043d\u0430 1',
   pieces: '\u0448\u0442.',
@@ -1213,7 +1213,7 @@ function getPistachioLabel(item: FlowerItem, qty: number): string {
   }
   const pistachioQty = getPistachioQty(item, qty)
   if (!pistachioQty) {
-    return '0'
+    return '0 (0)'
   }
   return `${formatPriceWithRuble(getPistachioCostValue(item, qty))} (${pistachioQty})`
 }
