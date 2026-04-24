@@ -71,14 +71,14 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
     const mixItem: FlowerItem = {
       id: CARNATION_MIX_ID,
       section: 'osnovnye',
-      flowerName: '\u0413\u0412\u041E\u0417\u0414\u0418\u041A\u0418 - \u043C\u0438\u043A\u0441',
+      flowerName: 'ГВОЗДИКИ - микс',
       photoUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
       unitPrice: 100,
       secondaryUnitPrice: 130,
       packagingPrice: 0,
       hasPistachio: true,
       pistachioQty: 0,
-      pistachioUnitPrice: 40,
+      pistachioUnitPrice: 80,
       discountPercent: 10,
       isPromoEnabled: true,
       popularSizes: [9, 11, 15, 25, 35],
@@ -97,13 +97,13 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
     const bush220Item: FlowerItem = {
       id: CHRYZA_BUSH_220_ID,
       section: 'osnovnye',
-      flowerName: '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 220',
+      flowerName: 'ХРИЗА - кустовая по 220',
       photoUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
       unitPrice: 220,
       packagingPrice: 0,
       hasPistachio: false,
       pistachioQty: 0,
-      pistachioUnitPrice: 40,
+      pistachioUnitPrice: 80,
       discountPercent: 10,
       isPromoEnabled: false,
       popularSizes: [3, 5, 7, 9, 11, 15],
@@ -121,13 +121,13 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
     const gypsophilaItem: FlowerItem = {
       id: GYPSOPHILA_ID,
       section: 'osnovnye',
-      flowerName: '\u0413\u0418\u041f\u0421\u041e\u0424\u0418\u041b\u0410 - \u0431\u0443\u043a\u0435\u0442\u044b',
+      flowerName: 'ГИПСОФИЛА - букеты',
       photoUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
       unitPrice: 200,
       packagingPrice: 0,
       hasPistachio: false,
       pistachioQty: 0,
-      pistachioUnitPrice: 40,
+      pistachioUnitPrice: 80,
       discountPercent: 10,
       isPromoEnabled: false,
       popularSizes: [7, 9, 11, 15, 25],
@@ -145,13 +145,13 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
     const gypsophilaCompositionItem: FlowerItem = {
       id: GYPSOPHILA_COMPOSITION_ID,
       section: 'osnovnye',
-      flowerName: '\u0413\u0418\u041f\u0421\u041e\u0424\u0418\u041b\u0410 - \u043a\u043e\u043c\u043f\u043e\u0437\u0438\u0446\u0438\u0438',
+      flowerName: 'ГИПСОФИЛА - композиции',
       photoUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
       unitPrice: 200,
       packagingPrice: 0,
       hasPistachio: false,
       pistachioQty: 0,
-      pistachioUnitPrice: 40,
+      pistachioUnitPrice: 80,
       discountPercent: 10,
       isPromoEnabled: false,
       popularSizes: [1, 3, 5, 7, 25],
@@ -168,7 +168,7 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
 }
 
 function normalizeItem(item: FlowerItem): FlowerItem {
-  const normalizedFlowerName = item.id === CARNATION_MIX_ID ? '\u0413\u0412\u041E\u0417\u0414\u0418\u041A\u0418 - \u043C\u0438\u043A\u0441' : item.flowerName
+  const normalizedFlowerName = item.id === CARNATION_MIX_ID ? 'ГВОЗДИКИ - микс' : item.flowerName
   const popularSizes = item.id === HYDRANGEA_ID
     ? [1, 3, 5, 7, 9, 11]
     : item.id === CHRYZA_SINGLE_ID
@@ -189,7 +189,7 @@ function normalizeItem(item: FlowerItem): FlowerItem {
     secondaryUnitPrice: Number(item.secondaryUnitPrice) || 0,
     packagingPrice: Number(item.packagingPrice) || 0,
     pistachioQty: Number(item.pistachioQty) || 0,
-    pistachioUnitPrice: Number(item.pistachioUnitPrice) || 40,
+    pistachioUnitPrice: 80,
     discountPercent: normalizeLoadedDiscountPercent(item),
     photoUrl: item.photoUrl || getPlaceholderImage(),
   }
@@ -206,7 +206,14 @@ function errorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
     return error.message
   }
-  return 'РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РґР°РЅРЅС‹Рµ РёР· С„Р°Р№Р»Р°'
+  return 'Не удалось загрузить данные из файла'
+}
+
+function getDbSignature(db: FlowerDatabase): string {
+  return JSON.stringify({
+    updatedAt: db.updatedAt ?? null,
+    items: db.items ?? [],
+  })
 }
 
 export const useFlowersStore = defineStore('flowers', () => {
@@ -220,6 +227,7 @@ export const useFlowersStore = defineStore('flowers', () => {
   const handle = ref<FileSystemFileHandle>()
   const saveTimer = ref<number>()
   const projectJsonPoller = ref<number>()
+  const lastLoadedSignature = ref('')
 
   watch(activeSection, (value) => {
     localStorage.setItem(ACTIVE_SECTION_KEY, value)
@@ -245,11 +253,20 @@ export const useFlowersStore = defineStore('flowers', () => {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY)
     if (!raw) {
       flowers.value = []
+      lastLoadedSignature.value = ''
       return
     }
     const parsed = JSON.parse(raw) as FlowerDatabase
     flowers.value = ensureRequiredItems(parsed.items || []).map(normalizeItem)
     fileName.value = 'localStorage'
+    lastLoadedSignature.value = getDbSignature(parsed)
+  }
+
+  async function applyDatabase(db: FlowerDatabase, nextFileName: string): Promise<void> {
+    flowers.value = ensureRequiredItems(db.items || []).map(normalizeItem)
+    fileName.value = nextFileName
+    saveError.value = ''
+    lastLoadedSignature.value = getDbSignature(db)
   }
 
   async function loadFromProjectJson(): Promise<boolean> {
@@ -259,20 +276,36 @@ export const useFlowersStore = defineStore('flowers', () => {
         return false
       }
       const db = (await response.json()) as FlowerDatabase
-      flowers.value = ensureRequiredItems(db.items || []).map(normalizeItem)
-      fileName.value = 'data/flowers.json'
-      saveError.value = ''
+      await applyDatabase(db, 'data/flowers.json')
       return true
     } catch {
       return false
     }
   }
 
-  async function refreshFromProjectJsonIfAvailable(): Promise<void> {
-    if (!usingFallbackStorage.value || handle.value) {
+  async function refreshFromSourceIfAvailable(): Promise<void> {
+    if (usingFallbackStorage.value && !handle.value) {
+      const response = await fetch(PROJECT_JSON_PATH, { cache: 'no-store' })
+      if (!response.ok) {
+        return
+      }
+      const db = (await response.json()) as FlowerDatabase
+      const signature = getDbSignature(db)
+      if (signature !== lastLoadedSignature.value) {
+        await applyDatabase(db, 'data/flowers.json')
+      }
       return
     }
-    await loadFromProjectJson()
+
+    if (!handle.value) {
+      return
+    }
+
+    const db = await readJsonFile<FlowerDatabase>(handle.value)
+    const signature = getDbSignature(db)
+    if (signature !== lastLoadedSignature.value) {
+      await applyDatabase(db, handle.value.name)
+    }
   }
 
   function stopProjectJsonPolling(): void {
@@ -288,7 +321,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     }
     stopProjectJsonPolling()
     projectJsonPoller.value = window.setInterval(() => {
-      void refreshFromProjectJsonIfAvailable()
+      void refreshFromSourceIfAvailable()
     }, PROJECT_JSON_REFRESH_MS)
   }
 
@@ -304,6 +337,7 @@ export const useFlowersStore = defineStore('flowers', () => {
       if (!loaded && hasFallbackData()) {
         await loadFromFallback()
       }
+      startProjectJsonPolling()
       return
     }
 
@@ -312,7 +346,7 @@ export const useFlowersStore = defineStore('flowers', () => {
       const canRead = await ensureReadPermission(picked)
       const canWrite = await ensureReadWritePermission(picked)
       if (!canRead || !canWrite) {
-        throw new Error('РќРµС‚ РґРѕСЃС‚СѓРїР° РЅР° С‡С‚РµРЅРёРµ/Р·Р°РїРёСЃСЊ JSON-С„Р°Р№Р»Р°')
+        throw new Error('Нет доступа на чтение/запись JSON-файла')
       }
 
       handle.value = picked
@@ -320,11 +354,11 @@ export const useFlowersStore = defineStore('flowers', () => {
       await storeHandle(picked)
 
       const db = await readJsonFile<FlowerDatabase>(picked)
-      flowers.value = (db.items || []).map(normalizeItem)
+      await applyDatabase(db, picked.name)
       usingFallbackStorage.value = false
-      stopProjectJsonPolling()
+      startProjectJsonPolling()
     } catch (error) {
-      saveError.value = `РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё: ${errorMessage(error)}`
+      saveError.value = `Ошибка загрузки: ${errorMessage(error)}`
       const loaded = await loadFromProjectJson()
       if (!loaded) {
         await loadFromFallback()
@@ -354,6 +388,7 @@ export const useFlowersStore = defineStore('flowers', () => {
         if (!loaded && hasFallbackData()) {
           await loadFromFallback()
         }
+        startProjectJsonPolling()
         return
       }
 
@@ -366,16 +401,18 @@ export const useFlowersStore = defineStore('flowers', () => {
         if (!loaded && hasFallbackData()) {
           await loadFromFallback()
         }
+        startProjectJsonPolling()
         return
       }
 
       handle.value = stored
       fileName.value = stored.name
       const db = await readJsonFile<FlowerDatabase>(stored)
-      flowers.value = (db.items || []).map(normalizeItem)
+      await applyDatabase(db, stored.name)
       usingFallbackStorage.value = false
+      startProjectJsonPolling()
     } catch (error) {
-      saveError.value = `РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё: ${errorMessage(error)}`
+      saveError.value = `Ошибка загрузки: ${errorMessage(error)}`
       await clearStoredHandle()
       const loaded = await loadFromProjectJson()
       if (!loaded) {
@@ -391,12 +428,16 @@ export const useFlowersStore = defineStore('flowers', () => {
     saveError.value = ''
     try {
       if (usingFallbackStorage.value || !handle.value) {
+        const db = buildDb(flowers.value)
         await saveToFallback()
+        lastLoadedSignature.value = getDbSignature(db)
         return
       }
-      await writeJsonFile(handle.value, buildDb(flowers.value))
+      const db = buildDb(flowers.value)
+      await writeJsonFile(handle.value, db)
+      lastLoadedSignature.value = getDbSignature(db)
     } catch {
-      saveError.value = 'РћС€РёР±РєР° Р°РІС‚РѕСЃРѕС…СЂР°РЅРµРЅРёСЏ. Р’С‹Р±РµСЂРёС‚Рµ JSON-С„Р°Р№Р» Р·Р°РЅРѕРІРѕ.'
+      saveError.value = 'Ошибка автосохранения. Выберите JSON-файл заново.'
     }
   }
 
@@ -454,14 +495,3 @@ export const useFlowersStore = defineStore('flowers', () => {
     attachAutoImage,
   }
 })
-
-
-
-
-
-
-
-
-
-
-

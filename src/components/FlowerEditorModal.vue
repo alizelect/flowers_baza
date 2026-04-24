@@ -21,7 +21,7 @@ const form = reactive<FlowerItem>({
   packagingPrice: 0,
   hasPistachio: true,
   pistachioQty: 0,
-  pistachioUnitPrice: 40,
+  pistachioUnitPrice: 80,
   discountPercent: 10,
   isPromoEnabled: false,
   popularSizes: [...DEFAULT_SIZES],
@@ -43,7 +43,7 @@ watch(
       packagingPrice: props.initial?.packagingPrice ?? 0,
       hasPistachio: props.initial?.hasPistachio ?? true,
       pistachioQty: props.initial?.pistachioQty ?? 0,
-      pistachioUnitPrice: props.initial?.pistachioUnitPrice ?? 40,
+      pistachioUnitPrice: props.initial?.pistachioUnitPrice ?? 80,
       discountPercent: props.initial?.discountPercent ?? 10,
       isPromoEnabled: props.initial?.isPromoEnabled ?? false,
       popularSizes: props.initial?.popularSizes?.length ? [...props.initial.popularSizes] : [...DEFAULT_SIZES],
@@ -108,4 +108,3 @@ function submit(): void {
     </div>
   </div>
 </template>
-

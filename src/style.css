@@ -1403,14 +1403,21 @@ select {
 
 
 .price-matrix-tabs {
+  display: grid;
+  gap: 6px;
+}
+
+.price-matrix-tabs-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
 }
 
-.price-matrix-tabs-break {
-  flex-basis: 100%;
-  height: 0;
+.price-matrix-tab-spacer {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 1px;
 }
 
 .price-matrix-tab {
@@ -1555,6 +1562,9 @@ select {
 
 
 .flower-filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 24px;
 }
 

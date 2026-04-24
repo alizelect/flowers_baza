@@ -229,7 +229,87 @@ const PEONY_PISTACHIO_QTY_BY_ODD = [
   14,
 ]
 
-const PISTACHIO_UNIT_PRICE = 40
+const PISTACHIO_UNIT_PRICE = 80
+const ODD_PISTACHIO_PACKAGING_ADJUSTMENT = 40
+const ROSE_EXTRA_PISTACHIO_QTY_START = 21
+const ALSTROMERII_EXTRA_PISTACHIO_QTY_AFTER = 19
+const CHRYZA_SINGLE_PACKAGING_DISCOUNT_START = 5
+const CHRYZA_SINGLE_PACKAGING_DISCOUNT = 100
+
+function getArrayValue(values: number[], idx: number, fallback = 0): number {
+  return values[idx] ?? values[values.length - 1] ?? fallback
+}
+
+function getAdjustedPistachioQty(qty: number): number {
+  return qty > 0 ? Math.ceil(qty / 2) : 0
+}
+
+function getAdjustedPackagingPrice(packagingPrice: number, oldPistachioQty: number): number {
+  if (oldPistachioQty > 0 && oldPistachioQty % 2 === 1) {
+    return Math.max(0, packagingPrice - ODD_PISTACHIO_PACKAGING_ADJUSTMENT)
+  }
+  return packagingPrice
+}
+
+function shouldAddExtraRosePistachio(qty: number): boolean {
+  return toOdd(qty) >= ROSE_EXTRA_PISTACHIO_QTY_START
+}
+
+function getRosePistachioQty(oldPistachioQty: number, qty: number): number {
+  const adjustedQty = getAdjustedPistachioQty(oldPistachioQty)
+  return shouldAddExtraRosePistachio(qty) ? adjustedQty + 1 : adjustedQty
+}
+
+function getRosePackagingPrice(packagingPrice: number, oldPistachioQty: number, qty: number): number {
+  const adjustedPrice = getAdjustedPackagingPrice(packagingPrice, oldPistachioQty)
+  if (shouldAddExtraRosePistachio(qty)) {
+    return Math.max(0, adjustedPrice - PISTACHIO_UNIT_PRICE)
+  }
+  return adjustedPrice
+}
+
+function shouldAddExtraAlstroemeriiPistachio(qty: number): boolean {
+  return toOdd(qty) >= ALSTROMERII_EXTRA_PISTACHIO_QTY_AFTER
+}
+
+function getAlstroemeriiPistachioQty(oldPistachioQty: number, qty: number): number {
+  const adjustedQty = getAdjustedPistachioQty(oldPistachioQty)
+  return shouldAddExtraAlstroemeriiPistachio(qty) ? adjustedQty + 1 : adjustedQty
+}
+
+function getAlstroemeriiPackagingPrice(packagingPrice: number, oldPistachioQty: number, qty: number): number {
+  const adjustedPrice = getAdjustedPackagingPrice(packagingPrice, oldPistachioQty)
+  if (shouldAddExtraAlstroemeriiPistachio(qty)) {
+    return Math.max(0, adjustedPrice - PISTACHIO_UNIT_PRICE)
+  }
+  return adjustedPrice
+}
+
+function isChryzaSingleSpecialPistachioQty(qty: number): boolean {
+  const normalizedQty = toOdd(qty)
+  return normalizedQty === 7 || normalizedQty === 9
+}
+
+function getChryzaSinglePistachioQty(oldPistachioQty: number, qty: number): number {
+  if (isChryzaSingleSpecialPistachioQty(qty)) {
+    return 1
+  }
+  return getAdjustedPistachioQty(oldPistachioQty)
+}
+
+function getChryzaSinglePackagingPrice(packagingPrice: number, oldPistachioQty: number, qty: number): number {
+  const normalizedQty = toOdd(qty)
+  let adjustedPrice = getAdjustedPackagingPrice(packagingPrice, oldPistachioQty)
+  if (normalizedQty >= CHRYZA_SINGLE_PACKAGING_DISCOUNT_START) {
+    adjustedPrice = Math.max(0, adjustedPrice - CHRYZA_SINGLE_PACKAGING_DISCOUNT)
+  }
+  if (!isChryzaSingleSpecialPistachioQty(normalizedQty)) {
+    return adjustedPrice
+  }
+  const currentPistachioCost = getAdjustedPistachioQty(oldPistachioQty) * PISTACHIO_UNIT_PRICE
+  const nextPistachioCost = getChryzaSinglePistachioQty(oldPistachioQty, normalizedQty) * PISTACHIO_UNIT_PRICE
+  return Math.max(0, adjustedPrice + (currentPistachioCost - nextPistachioCost))
+}
 
 const ROSE_150_PACKAGING_BY_ODD = [
   140, 140, 240, 260, 260, 360, 420, 520, 520, 620,
@@ -384,6 +464,10 @@ type PriceTableGroup = {
   rows: PriceTableRow[]
 }
 
+type PriceMatrixTabEntry =
+  | { type: 'item'; group: PriceTableGroup }
+  | { type: 'spacer' }
+
 function compareFlowers(a: FlowerItem, b: FlowerItem): number {
   if (a.section !== b.section) {
     return SECTION_ORDER.indexOf(a.section as BaseSectionKey) - SECTION_ORDER.indexOf(b.section as BaseSectionKey)
@@ -429,6 +513,33 @@ const activePriceTableGroup = computed<PriceTableGroup | null>(() => {
     return null
   }
   return groups.find((group) => group.item.id === selectedPriceTableId.value) ?? groups[0]
+})
+
+const PRICE_MATRIX_TAB_ROWS = [
+  ['РОЗЫ по 150', 'РОЗЫ по 250', 'РОЗЫ по 300', null, 'АЛЬСТРОМЕРИИ', null, 'ГВОЗДИКИ - обычные', 'ГВОЗДИКИ - лунные', 'ГВОЗДИКИ - микс'],
+  ['ХРИЗА - одноголовая', null, 'ХРИЗА - кустовая по 220', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ГОРТЕНЗИИ'],
+  ['ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композиции', null, 'ТЮЛЬПАНЫ по 220', null, 'ПИОНЫ по 590', 'ПИОНЫ по 690', 'ПИОНЫ по 790'],
+] as const
+
+function normalizePriceMatrixTabName(name: string): string {
+  const normalized = name.trim()
+  if (normalized === 'ГИПСОФИЛА - композ.') {
+    return 'ГИПСОФИЛА - композиции'
+  }
+  return normalized
+}
+
+const priceMatrixTabRows = computed<PriceMatrixTabEntry[][]>(() => {
+  const groupMap = new Map(priceTableGroups.value.map((group) => [normalizePriceMatrixTabName(group.item.flowerName), group]))
+  return PRICE_MATRIX_TAB_ROWS.map((row) => row
+    .map((name) => {
+      if (name === null) {
+        return { type: 'spacer' } satisfies PriceMatrixTabEntry
+      }
+      const group = groupMap.get(normalizePriceMatrixTabName(name))
+      return group ? ({ type: 'item', group } satisfies PriceMatrixTabEntry) : null
+    })
+    .filter((entry): entry is PriceMatrixTabEntry => entry !== null))
 })
 
 const mobileSectionDefinitions = computed(() => {
@@ -651,48 +762,89 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
   }
   const idx = isCarnationMix(item) ? (toOdd(qty) - 3) / 2 : (toOdd(qty) - 1) / 2
   if (isTulips(item)) {
-    return TULIP_PACKAGING_BY_ODD[idx] ?? TULIP_PACKAGING_BY_ODD[TULIP_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+    return getArrayValue(TULIP_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
   if (isChryzaBush220(item)) {
-    return CHRYZA_BUSH_220_PACKAGING_BY_ODD[idx] ?? CHRYZA_BUSH_220_PACKAGING_BY_ODD[CHRYZA_BUSH_220_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+    return getArrayValue(CHRYZA_BUSH_220_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
   if (isChryzaBush250(item)) {
-    return CHRYZA_BUSH_250_PACKAGING_BY_ODD[idx] ?? CHRYZA_BUSH_250_PACKAGING_BY_ODD[CHRYZA_BUSH_250_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+    return getArrayValue(CHRYZA_BUSH_250_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
   if (isChryzaBush300(item)) {
-    return CHRYZA_BUSH_300_PACKAGING_BY_ODD[idx] ?? CHRYZA_BUSH_300_PACKAGING_BY_ODD[CHRYZA_BUSH_300_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+    return getArrayValue(CHRYZA_BUSH_300_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
   if (isRose300(item)) {
-    return ROSE_300_PACKAGING_BY_ODD[idx] ?? item.packagingPrice
+    return getRosePackagingPrice(
+      getArrayValue(ROSE_300_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx),
+      qty,
+    )
+  }
+  if (isRose250(item)) {
+    return getRosePackagingPrice(
+      getArrayValue(ROSE_150_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(ROSE_250_PISTACHIO_QTY_BY_ODD, idx),
+      qty,
+    )
+  }
+  if (isRose150(item)) {
+    return getRosePackagingPrice(
+      getArrayValue(ROSE_150_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(ROSE_150_PISTACHIO_QTY_BY_ODD, idx),
+      qty,
+    )
   }
   if (isAlstroemerii(item)) {
-    return ALSTROMERII_PACKAGING_BY_ODD[idx] ?? item.packagingPrice
+    return getAlstroemeriiPackagingPrice(
+      getArrayValue(ALSTROMERII_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(ALSTROMERII_PISTACHIO_QTY_BY_ODD, idx),
+      qty,
+    )
   }
   if (isCarnationCommon(item)) {
-    return CARNATION_COMMON_PACKAGING_BY_ODD[idx] ?? CARNATION_COMMON_PACKAGING_BY_ODD[CARNATION_COMMON_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+    return getAdjustedPackagingPrice(
+      getArrayValue(CARNATION_COMMON_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(CARNATION_COMMON_PISTACHIO_QTY_BY_ODD, idx),
+    )
   }
   if (isCarnationMoon(item)) {
-    return CARNATION_MOON_PACKAGING_BY_ODD[idx] ?? CARNATION_MOON_PACKAGING_BY_ODD[CARNATION_MOON_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+    return getAdjustedPackagingPrice(
+      getArrayValue(CARNATION_MOON_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(CARNATION_MOON_PISTACHIO_QTY_BY_ODD, idx),
+    )
   }
   if (isCarnationMix(item)) {
-    return CARNATION_MIX_PACKAGING_BY_ODD[idx] ?? CARNATION_MIX_PACKAGING_BY_ODD[CARNATION_MIX_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+    return getAdjustedPackagingPrice(
+      getArrayValue(CARNATION_MIX_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(CARNATION_MIX_PISTACHIO_QTY_BY_ODD, idx),
+    )
   }
   if (isPeonies(item)) {
-    return PEONY_PACKAGING_BY_ODD[idx] ?? PEONY_PACKAGING_BY_ODD[PEONY_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+    return getAdjustedPackagingPrice(
+      getArrayValue(PEONY_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(PEONY_PISTACHIO_QTY_BY_ODD, idx),
+    )
   }
   if (isHydrangea(item)) {
-    return HYDRANGEA_PACKAGING_BY_ODD[idx] ?? HYDRANGEA_PACKAGING_BY_ODD[HYDRANGEA_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+    return getAdjustedPackagingPrice(
+      getArrayValue(HYDRANGEA_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(HYDRANGEA_PISTACHIO_QTY_BY_ODD, idx),
+    )
   }
   if (isGypsophilaComposition(item)) {
     return GYPSOPHILA_COMPOSITION_PACKAGING_BY_QTY[qty] ?? item.packagingPrice
   }
   if (isGypsophila(item)) {
-    return GYPSOPHILA_PACKAGING_BY_ODD[idx] ?? GYPSOPHILA_PACKAGING_BY_ODD[GYPSOPHILA_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+    return getArrayValue(GYPSOPHILA_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
   if (isChryzaSingle(item)) {
-    return CHRYZA_SINGLE_PACKAGING_BY_ODD[idx] ?? CHRYZA_SINGLE_PACKAGING_BY_ODD[CHRYZA_SINGLE_PACKAGING_BY_ODD.length - 1] ?? item.packagingPrice
+    return getChryzaSinglePackagingPrice(
+      getArrayValue(CHRYZA_SINGLE_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(CHRYZA_SINGLE_PISTACHIO_QTY_BY_ODD, idx),
+      qty,
+    )
   }
-  return ROSE_150_PACKAGING_BY_ODD[idx] ?? item.packagingPrice
+  return item.packagingPrice
 }
 
 function getPistachioQty(item: FlowerItem, qty: number): number {
@@ -701,36 +853,36 @@ function getPistachioQty(item: FlowerItem, qty: number): number {
   }
   const idx = isCarnationMix(item) ? (toOdd(qty) - 3) / 2 : (toOdd(qty) - 1) / 2
   if (isRose150(item)) {
-    return ROSE_150_PISTACHIO_QTY_BY_ODD[idx] ?? 0
+    return getRosePistachioQty(getArrayValue(ROSE_150_PISTACHIO_QTY_BY_ODD, idx), qty)
   }
   if (isRose250(item)) {
-    return ROSE_250_PISTACHIO_QTY_BY_ODD[idx] ?? 0
+    return getRosePistachioQty(getArrayValue(ROSE_250_PISTACHIO_QTY_BY_ODD, idx), qty)
   }
   if (isRose300(item)) {
-    return ROSE_300_PISTACHIO_QTY_BY_ODD[idx] ?? 0
+    return getRosePistachioQty(getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx), qty)
   }
   if (isCarnationCommon(item)) {
-    return CARNATION_COMMON_PISTACHIO_QTY_BY_ODD[idx] ?? CARNATION_COMMON_PISTACHIO_QTY_BY_ODD[CARNATION_COMMON_PISTACHIO_QTY_BY_ODD.length - 1] ?? 0
+    return getAdjustedPistachioQty(getArrayValue(CARNATION_COMMON_PISTACHIO_QTY_BY_ODD, idx))
   }
   if (isCarnationMoon(item)) {
-    return CARNATION_MOON_PISTACHIO_QTY_BY_ODD[idx] ?? CARNATION_MOON_PISTACHIO_QTY_BY_ODD[CARNATION_MOON_PISTACHIO_QTY_BY_ODD.length - 1] ?? 0
+    return getAdjustedPistachioQty(getArrayValue(CARNATION_MOON_PISTACHIO_QTY_BY_ODD, idx))
   }
   if (isCarnationMix(item)) {
-    return CARNATION_MIX_PISTACHIO_QTY_BY_ODD[idx] ?? CARNATION_MIX_PISTACHIO_QTY_BY_ODD[CARNATION_MIX_PISTACHIO_QTY_BY_ODD.length - 1] ?? 0
+    return getAdjustedPistachioQty(getArrayValue(CARNATION_MIX_PISTACHIO_QTY_BY_ODD, idx))
   }
   if (isAlstroemerii(item)) {
-    return ALSTROMERII_PISTACHIO_QTY_BY_ODD[idx] ?? 0
+    return getAlstroemeriiPistachioQty(getArrayValue(ALSTROMERII_PISTACHIO_QTY_BY_ODD, idx), qty)
   }
   if (isPeonies(item)) {
-    return PEONY_PISTACHIO_QTY_BY_ODD[idx] ?? PEONY_PISTACHIO_QTY_BY_ODD[PEONY_PISTACHIO_QTY_BY_ODD.length - 1] ?? 0
+    return getAdjustedPistachioQty(getArrayValue(PEONY_PISTACHIO_QTY_BY_ODD, idx))
   }
   if (isHydrangea(item)) {
-    return HYDRANGEA_PISTACHIO_QTY_BY_ODD[idx] ?? HYDRANGEA_PISTACHIO_QTY_BY_ODD[HYDRANGEA_PISTACHIO_QTY_BY_ODD.length - 1] ?? 0
+    return getAdjustedPistachioQty(getArrayValue(HYDRANGEA_PISTACHIO_QTY_BY_ODD, idx))
   }
   if (isChryzaSingle(item)) {
-    return CHRYZA_SINGLE_PISTACHIO_QTY_BY_ODD[idx] ?? CHRYZA_SINGLE_PISTACHIO_QTY_BY_ODD[CHRYZA_SINGLE_PISTACHIO_QTY_BY_ODD.length - 1] ?? 0
+    return getChryzaSinglePistachioQty(getArrayValue(CHRYZA_SINGLE_PISTACHIO_QTY_BY_ODD, idx), qty)
   }
-  return item.pistachioQty
+  return getAdjustedPistachioQty(item.pistachioQty)
 }
 
 function calcWithoutPromoForRow(item: FlowerItem, qty: number): number {
@@ -1124,17 +1276,20 @@ onMounted(async () => {
       <section v-if="store.activeSection === 'priceTables'" class="price-matrix-page">
 
         <div class="price-matrix-tabs">
-          <template v-for="group in priceTableGroups" :key="group.item.id">
-            <div v-if="group.item.id === CHRYZA_BUSH_250_ID" class="price-matrix-tabs-break"></div>
-            <button
-              type="button"
-              class="price-matrix-tab"
-              :class="{ active: activePriceTableGroup?.item.id === group.item.id }"
-              @click="selectedPriceTableId = group.item.id"
-            >
-              {{ group.item.flowerName }}
-            </button>
-          </template>
+          <div v-for="(row, rowIndex) in priceMatrixTabRows" :key="`price-matrix-row-${rowIndex}`" class="price-matrix-tabs-row">
+            <template v-for="(entry, entryIndex) in row" :key="entry.type === 'item' ? entry.group.item.id : `spacer-${rowIndex}-${entryIndex}`">
+              <div v-if="entry.type === 'spacer'" class="price-matrix-tab-spacer" aria-hidden="true"></div>
+              <button
+                v-else
+                type="button"
+                class="price-matrix-tab"
+                :class="{ active: activePriceTableGroup?.item.id === entry.group.item.id }"
+                @click="selectedPriceTableId = entry.group.item.id"
+              >
+                {{ entry.group.item.flowerName }}
+              </button>
+            </template>
+          </div>
         </div>
 
         <article v-if="activePriceTableGroup" class="price-matrix-card">
