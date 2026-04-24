@@ -1621,16 +1621,16 @@ select {
 }
 
 .price-matrix-promo-select {
-  width: auto;
-  min-width: 54px;
-  max-width: 60px;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
   height: 22px;
-  padding: 0 4px;
+  padding: 0 18px 0 6px;
   border: 1px solid #cfd8cf;
   border-radius: 5px;
   background: #fff;
   color: #1f2a1f;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .price-matrix-table-wrap {
@@ -1828,15 +1828,18 @@ select {
   .price-matrix-table th:nth-child(3),
   .price-matrix-table td:nth-child(3),
   .price-matrix-table th:nth-child(4),
-  .price-matrix-table td:nth-child(4),
+  .price-matrix-table td:nth-child(4) {
+    width: 20% !important;
+  }
+
   .price-matrix-table th:nth-child(5),
   .price-matrix-table td:nth-child(5) {
-    width: 22% !important;
+    width: 26% !important;
   }
 
   .price-matrix-table:not(:has(.price-matrix-promo-select)) th:nth-child(6),
   .price-matrix-table:not(:has(.price-matrix-promo-select)) td:nth-child(6) {
-    width: 22% !important;
+    width: 20% !important;
   }
 }
 
