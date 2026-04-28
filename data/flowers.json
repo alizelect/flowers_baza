@@ -1,5 +1,5 @@
-﻿{
-  "updatedAt": "2026-04-24T00:00:00.000Z",
+{
+  "updatedAt": "2026-04-28T00:00:00.000Z",
   "items": [
     {
       "id": "d0dc5c2b-3db1-4da0-bf0b-42e2fdf154f4",
@@ -243,7 +243,8 @@
         9,
         11
       ]
-    },    {
+    },
+    {
       "id": "49771275-f9ae-4bd3-9fe6-d42bda7b5dfd",
       "section": "osnovnye",
       "flowerName": "ГОРТЕНЗИИ",
@@ -287,7 +288,7 @@
     {
       "id": "0f3b0a0d-6b0c-4cf0-8d32-7e5f49d0b902",
       "section": "osnovnye",
-      "flowerName": "\u0413\u0418\u041f\u0421\u041e\u0424\u0418\u041b\u0410 - \u043a\u043e\u043c\u043f\u043e\u0437.",
+      "flowerName": "ГИПСОФИЛА - композ.",
       "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
       "unitPrice": 200,
       "packagingPrice": 0,
@@ -404,14 +405,27 @@
         11,
         15
       ]
+    },
+    {
+      "id": "c2dcf0a6-f7fb-4c48-b2a4-290290290290",
+      "section": "osnovnye",
+      "flowerName": "ТАНАЦЕТУМ",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 290,
+      "packagingPrice": 0,
+      "hasPistachio": false,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 40,
+      "discountPercent": 10,
+      "isPromoEnabled": true,
+      "popularSizes": [
+        5,
+        7,
+        9,
+        11,
+        15,
+        25
+      ]
     }
   ]
 }
-
-
-
-
-
-
-
-

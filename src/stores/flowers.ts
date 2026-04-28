@@ -18,7 +18,7 @@ import { fetchWikimediaImage, getPlaceholderImage } from '../utils/wikimedia'
 const LOCAL_STORAGE_KEY = 'flowers-baza-fallback'
 const ACTIVE_SECTION_KEY = 'flowers-baza-active-section'
 const PROJECT_JSON_PATH = `${import.meta.env.BASE_URL}data/flowers.json`
-const PROJECT_JSON_REFRESH_MS = 1500
+const PROJECT_JSON_REFRESH_MS = 500
 const HYDRANGEA_ID = '49771275-f9ae-4bd3-9fe6-d42bda7b5dfd'
 const CHRYZA_SINGLE_ID = 'd30dc4f7-bba6-4ca5-88bf-11bb46dca6de'
 const CARNATION_COMMON_ID = 'e44cee36-55f1-4532-8ab3-9d60ea7175dc'
@@ -30,6 +30,7 @@ const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3'
 const GYPSOPHILA_ID = '5d8d5e68-cbd2-4e9a-a2ea-9fd6b7f9c201'
 const GYPSOPHILA_COMPOSITION_ID = '0f3b0a0d-6b0c-4cf0-8d32-7e5f49d0b902'
 const ALSTROMERII_ID = 'd9821a47-a022-4147-a88e-4857ed43deb9'
+const TANACETUM_ID = 'c2dcf0a6-f7fb-4c48-b2a4-290290290290'
 
 function isSectionKey(value: string | null): value is SectionKey {
   return value === 'osnovnye' || value === 'sezonnye' || value === 'priceTables'
@@ -65,6 +66,7 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
   const hasChryzaBush220 = next.some((item) => item.id === CHRYZA_BUSH_220_ID)
   const hasGypsophila = next.some((item) => item.id === GYPSOPHILA_ID)
   const hasGypsophilaComposition = next.some((item) => item.id === GYPSOPHILA_COMPOSITION_ID)
+  const hasTanacetum = next.some((item) => item.id === TANACETUM_ID)
 
   if (!hasMix) {
     const moonIndex = next.findIndex((item) => item.id === CARNATION_MOON_ID)
@@ -164,6 +166,25 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
     }
   }
 
+  if (!hasTanacetum) {
+    const tanacetumItem: FlowerItem = {
+      id: TANACETUM_ID,
+      section: 'osnovnye',
+      flowerName: 'ТАНАЦЕТУМ',
+      photoUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
+      unitPrice: 290,
+      packagingPrice: 0,
+      hasPistachio: false,
+      pistachioQty: 0,
+      pistachioUnitPrice: 80,
+      discountPercent: 10,
+      isPromoEnabled: true,
+      popularSizes: [5, 7, 9, 11, 15, 25],
+    }
+
+    next.push(tanacetumItem)
+  }
+
   return next
 }
 
@@ -179,6 +200,8 @@ function normalizeItem(item: FlowerItem): FlowerItem {
           ? [3, 5, 7, 9, 11, 15]
           : item.id === ALSTROMERII_ID
             ? [5, 7, 9, 11, 15]
+            : item.id === TANACETUM_ID
+              ? [5, 7, 9, 11, 15, 25]
             : item.popularSizes?.length ? item.popularSizes.map((s) => Number(s)) : [...DEFAULT_SIZES]
 
   return {
@@ -228,6 +251,7 @@ export const useFlowersStore = defineStore('flowers', () => {
   const saveTimer = ref<number>()
   const projectJsonPoller = ref<number>()
   const lastLoadedSignature = ref('')
+  const isRefreshing = ref(false)
 
   watch(activeSection, (value) => {
     localStorage.setItem(ACTIVE_SECTION_KEY, value)
@@ -284,28 +308,48 @@ export const useFlowersStore = defineStore('flowers', () => {
   }
 
   async function refreshFromSourceIfAvailable(): Promise<void> {
-    if (usingFallbackStorage.value && !handle.value) {
-      const response = await fetch(PROJECT_JSON_PATH, { cache: 'no-store' })
-      if (!response.ok) {
+    if (isRefreshing.value) {
+      return
+    }
+
+    isRefreshing.value = true
+    try {
+      if (usingFallbackStorage.value && !handle.value) {
+        const response = await fetch(PROJECT_JSON_PATH, { cache: 'no-store' })
+        if (!response.ok) {
+          return
+        }
+        const db = (await response.json()) as FlowerDatabase
+        const signature = getDbSignature(db)
+        if (signature !== lastLoadedSignature.value) {
+          await applyDatabase(db, 'data/flowers.json')
+        }
         return
       }
-      const db = (await response.json()) as FlowerDatabase
+
+      if (!handle.value) {
+        return
+      }
+
+      const db = await readJsonFile<FlowerDatabase>(handle.value)
       const signature = getDbSignature(db)
       if (signature !== lastLoadedSignature.value) {
-        await applyDatabase(db, 'data/flowers.json')
+        await applyDatabase(db, handle.value.name)
       }
+    } finally {
+      isRefreshing.value = false
+    }
+  }
+
+  function refreshFromSourceSoon(): void {
+    void refreshFromSourceIfAvailable()
+  }
+
+  function refreshWhenVisible(): void {
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
       return
     }
-
-    if (!handle.value) {
-      return
-    }
-
-    const db = await readJsonFile<FlowerDatabase>(handle.value)
-    const signature = getDbSignature(db)
-    if (signature !== lastLoadedSignature.value) {
-      await applyDatabase(db, handle.value.name)
-    }
+    refreshFromSourceSoon()
   }
 
   function stopProjectJsonPolling(): void {
@@ -320,9 +364,23 @@ export const useFlowersStore = defineStore('flowers', () => {
       return
     }
     stopProjectJsonPolling()
+    refreshFromSourceSoon()
     projectJsonPoller.value = window.setInterval(() => {
       void refreshFromSourceIfAvailable()
     }, PROJECT_JSON_REFRESH_MS)
+    window.removeEventListener('focus', refreshFromSourceSoon)
+    document.removeEventListener('visibilitychange', refreshWhenVisible)
+    window.addEventListener('focus', refreshFromSourceSoon)
+    document.addEventListener('visibilitychange', refreshWhenVisible)
+  }
+
+  function dispose(): void {
+    stopProjectJsonPolling()
+    if (typeof window === 'undefined') {
+      return
+    }
+    window.removeEventListener('focus', refreshFromSourceSoon)
+    document.removeEventListener('visibilitychange', refreshWhenVisible)
   }
 
   async function saveToFallback(): Promise<void> {
@@ -488,6 +546,8 @@ export const useFlowersStore = defineStore('flowers', () => {
     setUnlocked,
     bootstrap,
     chooseFile,
+    dispose,
+    refreshFromSourceIfAvailable,
     saveNow,
     upsertFlower,
     deleteFlower,

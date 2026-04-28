@@ -35,10 +35,11 @@ const CHRYZA_BUSH_300_ID = '6aab0f2f-8d6e-42b7-a23e-c140b3563db3'
 const GYPSOPHILA_ID = '5d8d5e68-cbd2-4e9a-a2ea-9fd6b7f9c201'
 const GYPSOPHILA_COMPOSITION_ID = '0f3b0a0d-6b0c-4cf0-8d32-7e5f49d0b902'
 const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01'
-const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila'] as const
+const TANACETUM_ID = 'c2dcf0a6-f7fb-4c48-b2a4-290290290290'
+const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila', 'tanacetum'] as const
 const MOBILE_SEASONAL_CATEGORY_ORDER = ['peony', 'tulip'] as const
-type FlowerFilterKey = 'all' | 'rose' | 'alstroemerii' | 'carnation' | 'chryza' | 'hydrangea' | 'gypsophila' | 'peony' | 'tulip'
-const PRIMARY_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila']
+type FlowerFilterKey = 'all' | 'rose' | 'alstroemerii' | 'carnation' | 'chryza' | 'tanacetum' | 'hydrangea' | 'gypsophila' | 'peony' | 'tulip'
+const PRIMARY_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila', 'tanacetum']
 const SEASONAL_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'peony', 'tulip']
 const FLOWER_FILTER_STORAGE_KEY = 'flowers-baza-active-flower-filters'
 const PRICE_MATRIX_STORAGE_KEY = 'flowers-baza-price-matrix-state'
@@ -84,6 +85,7 @@ const MOBILE_PRIMARY_CATEGORY_LABELS: Record<(typeof MOBILE_PRIMARY_CATEGORY_ORD
   alstroemerii: '\u0410\u043b\u044c\u0441\u0442\u0440\u043e\u043c\u0435\u0440\u0438\u0438',
   carnation: '\u0413\u0432\u043e\u0437\u0434\u0438\u043a\u0438',
   chryza: '\u0425\u0440\u0438\u0437\u0430\u043d\u0442\u0435\u043c\u044b',
+  tanacetum: '\u0422\u0430\u043d\u0430\u0446\u0435\u0442\u0443\u043c',
   hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
   gypsophila: '\u0413\u0438\u043f\u0441\u043e\u0444\u0438\u043b\u0430',
 }
@@ -93,6 +95,7 @@ const FLOWER_FILTER_LABELS: Record<FlowerFilterKey, string> = {
   alstroemerii: '\u0410\u043b\u044c\u0441\u0442\u0440\u043e\u043c\u0435\u0440\u0438\u0438',
   carnation: '\u0413\u0432\u043e\u0437\u0434\u0438\u043a\u0438',
   chryza: '\u0425\u0440\u0438\u0437\u0430\u043d\u0442\u0435\u043c\u044b',
+  tanacetum: '\u0422\u0430\u043d\u0430\u0446\u0435\u0442\u0443\u043c',
   hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
   gypsophila: '\u0413\u0438\u043f\u0441\u043e\u0444\u0438\u043b\u0430',
   peony: '\u041f\u0438\u043e\u043d\u044b',
@@ -121,7 +124,7 @@ function getInitialFlowerFilter(section: SectionKey): FlowerFilterKey {
 }
 
 function loadStoredPriceMatrixState(): { selectedPriceTableId: string, mobilePriceMatrixCategory: MobilePriceMatrixCategoryKey } {
-  const allowedCategories: MobilePriceMatrixCategoryKey[] = ['rose', 'carnation', 'chryza', 'alstroemerii', 'hydrangea', 'gypsophila', 'tulip', 'peony']
+  const allowedCategories: MobilePriceMatrixCategoryKey[] = ['rose', 'carnation', 'chryza', 'alstroemerii', 'hydrangea', 'gypsophila', 'tanacetum', 'tulip', 'peony']
   if (typeof window === 'undefined') {
     return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose' }
   }
@@ -174,6 +177,7 @@ const MAIN_ORDER = [
   '\u0413\u041e\u0420\u0422\u0415\u041d\u0417\u0418\u0418',
   '\u0413\u0418\u041f\u0421\u041e\u0424\u0418\u041b\u0410 - \u0431\u0443\u043a\u0435\u0442\u044b',
   '\u0413\u0418\u041f\u0421\u041e\u0424\u0418\u041b\u0410 - \u043a\u043e\u043c\u043f\u043e\u0437\u0438\u0446\u0438\u0438',
+  '\u0422\u0410\u041d\u0410\u0426\u0415\u0422\u0423\u041c',
 ]
 
 const MAIN_ORDER_INDEX = new Map(MAIN_ORDER.map((name, index) => [name, index]))
@@ -278,6 +282,11 @@ const ROSE_EXTRA_PISTACHIO_QTY_START = 21
 const ALSTROMERII_EXTRA_PISTACHIO_QTY_AFTER = 19
 const CHRYZA_SINGLE_PACKAGING_DISCOUNT_START = 5
 const CHRYZA_SINGLE_PACKAGING_DISCOUNT = 100
+const CHRYZA_SINGLE_EXTRA_PACKAGING_DISCOUNT_START = 15
+const CHRYZA_SINGLE_EXTRA_PACKAGING_DISCOUNT = 100
+const CHRYZA_SINGLE_PACKAGING_OVERRIDES: Record<number, number> = {
+  13: 360,
+}
 const ROSE_200_PACKAGING_DISCOUNT_START = 5
 const ROSE_200_PACKAGING_DISCOUNT = 100
 
@@ -352,9 +361,16 @@ function getChryzaSinglePistachioQty(oldPistachioQty: number, qty: number): numb
 
 function getChryzaSinglePackagingPrice(packagingPrice: number, oldPistachioQty: number, qty: number): number {
   const normalizedQty = toOdd(qty)
+  const overridePrice = CHRYZA_SINGLE_PACKAGING_OVERRIDES[normalizedQty]
+  if (overridePrice !== undefined) {
+    return overridePrice
+  }
   let adjustedPrice = getAdjustedPackagingPrice(packagingPrice, oldPistachioQty)
   if (normalizedQty >= CHRYZA_SINGLE_PACKAGING_DISCOUNT_START) {
     adjustedPrice = Math.max(0, adjustedPrice - CHRYZA_SINGLE_PACKAGING_DISCOUNT)
+  }
+  if (normalizedQty >= CHRYZA_SINGLE_EXTRA_PACKAGING_DISCOUNT_START) {
+    adjustedPrice = Math.max(0, adjustedPrice - CHRYZA_SINGLE_EXTRA_PACKAGING_DISCOUNT)
   }
   if (!isChryzaSingleSpecialPistachioQty(normalizedQty)) {
     return adjustedPrice
@@ -490,6 +506,14 @@ const GYPSOPHILA_PACKAGING_BY_ODD = [
   1290, 1390, 1390, 1390, 1390, 1390, 1490, 1490, 1490, 1490,
   1590,
 ]
+const TANACETUM_PACKAGING_BY_ODD = [
+  100, 120, 200, 260, 280, 300, 320, 440, 560, 580,
+  600, 620, 640, 660, 680, 700, 720, 740, 760, 780,
+  800, 820, 840, 860, 880, 900, 920, 940, 960, 980,
+  1000, 1020, 1040, 1060, 1080, 2000, 2020, 2040, 2060, 2080,
+  2100, 2120, 2140, 2160, 2180, 2200, 2220, 2240, 2260, 2280,
+  2300,
+]
 const CHRYZA_BUSH_300_PACKAGING_BY_ODD = [
   190, 190, 290, 290, 290, 390, 390, 490, 490, 590,
   590, 690, 690, 790, 790, 890, 890, 890, 990, 990,
@@ -529,6 +553,9 @@ function compareFlowers(a: FlowerItem, b: FlowerItem): number {
   }
 
   if (a.section === 'osnovnye' && b.section === 'osnovnye') {
+    if (isTanacetum(a) !== isTanacetum(b)) {
+      return isTanacetum(a) ? 1 : -1
+    }
     const ai = getMainOrderIndex(a)
     const bi = getMainOrderIndex(b)
     if (ai !== bi) return ai - bi
@@ -541,7 +568,13 @@ function matchesFlowerFilter(item: FlowerItem, filter: FlowerFilterKey): boolean
   return filter === 'all' || getFlowerGroup(item) === filter
 }
 
+function isHiddenFlower(item: FlowerItem): boolean {
+  const name = item.flowerName.trim()
+  return name === 'ПИОНЫ по 690' || name === 'ПИОНЫ по 790'
+}
+
 const visibleRows = computed(() => [...store.filteredBySection]
+  .filter((item) => !isHiddenFlower(item))
   .filter((item) => matchesFlowerFilter(item, activeFlowerFilter.value))
   .sort(compareFlowers))
 
@@ -557,6 +590,7 @@ const initialPriceMatrixState = loadStoredPriceMatrixState()
 const selectedPriceTableId = ref<string>(initialPriceMatrixState.selectedPriceTableId)
 
 const priceTableGroups = computed<PriceTableGroup[]>(() => [...store.flowers]
+  .filter((item) => !isHiddenFlower(item))
   .sort(compareFlowers)
   .map((item) => ({
     item,
@@ -578,6 +612,7 @@ const MOBILE_PRICE_MATRIX_CATEGORY_ORDER: MobilePriceMatrixCategoryKey[] = [
   'alstroemerii',
   'hydrangea',
   'gypsophila',
+  'tanacetum',
   'tulip',
   'peony',
 ]
@@ -586,8 +621,8 @@ const mobilePriceMatrixCategory = ref<MobilePriceMatrixCategoryKey>(initialPrice
 
 const PRICE_MATRIX_TAB_ROWS = [
   ['РОЗЫ по 150', 'РОЗЫ по 200', 'РОЗЫ по 250', 'РОЗЫ по 300', 'РОЗЫ по 400', null, 'ГВОЗДИКИ - обычные', 'ГВОЗДИКИ - лунные', 'ГВОЗДИКИ - микс'],
-  ['ХРИЗА - одноголовая', null, 'ХРИЗА - кустовая по 220', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ГОРТЕНЗИИ', null, 'АЛЬСТРОМЕРИИ'],
-  ['ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композиции', null, 'ТЮЛЬПАНЫ по 220', null, 'ПИОНЫ по 590', 'ПИОНЫ по 690', 'ПИОНЫ по 790'],
+  ['ХРИЗА - одноголовая', null, 'ХРИЗА - кустовая по 220', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ТАНАЦЕТУМ', null, 'ГОРТЕНЗИИ'],
+  ['АЛЬСТРОМЕРИИ', null, 'ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композ.', null, 'ТЮЛЬПАНЫ по 220', null, 'ПИОНЫ по 590'],
 ] as const
 
 function normalizePriceMatrixTabName(name: string): string {
@@ -725,6 +760,7 @@ function getFlowerGroup(item: FlowerItem): string {
   if (isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose400(item)) return 'rose'
   if (isAlstroemerii(item)) return 'alstroemerii'
   if (isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item)) return 'carnation'
+  if (isTanacetum(item)) return 'tanacetum'
   if (isHydrangea(item)) return 'hydrangea'
   if (isGypsophila(item) || isGypsophilaComposition(item)) return 'gypsophila'
   if (isPeonies(item)) return 'peony'
@@ -857,6 +893,10 @@ function isGypsophila(item: FlowerItem): boolean {
 function isGypsophilaComposition(item: FlowerItem): boolean {
   return item.id === GYPSOPHILA_COMPOSITION_ID
 }
+
+function isTanacetum(item: FlowerItem): boolean {
+  return item.id === TANACETUM_ID || item.flowerName.trim().toLowerCase().includes('\u0442\u0430\u043d\u0430\u0446\u0435\u0442\u0443\u043c')
+}
 function isPromoDisabledForQty(item: FlowerItem, qty: number): boolean {
   return isGypsophilaComposition(item) && [1, 3, 5].includes(qty)
 }
@@ -882,11 +922,14 @@ function isChryzaBush300(item: FlowerItem): boolean {
 
 
 function hasAutoPackagingByQty(item: FlowerItem): boolean {
-  return isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose400(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isGypsophila(item) || isGypsophilaComposition(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
+  return isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose400(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isGypsophila(item) || isGypsophilaComposition(item) || isTanacetum(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 function getPackagingPrice(item: FlowerItem, qty: number): number {
   if (!hasAutoPackagingByQty(item)) {
     return item.packagingPrice
+  }
+  if (isTanacetum(item)) {
+    return getArrayValue(TANACETUM_PACKAGING_BY_ODD, Math.max(0, Math.min(50, (toOdd(qty) - 1) / 2)), item.packagingPrice)
   }
   const idx = isCarnationMix(item) ? (toOdd(qty) - 3) / 2 : (toOdd(qty) - 1) / 2
   if (isTulips(item)) {
@@ -1308,11 +1351,11 @@ function getPriceTableRows(item: FlowerItem): PriceTableRow[] {
 }
 
 function isPistachioLocked(item: FlowerItem): boolean {
-  return isTulips(item) || isGypsophila(item) || isGypsophilaComposition(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
+  return isTulips(item) || isGypsophila(item) || isGypsophilaComposition(item) || isTanacetum(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 
 function hidesMobilePistachio(item: FlowerItem): boolean {
-  return isTulips(item) || isGypsophila(item) || isGypsophilaComposition(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
+  return isTulips(item) || isGypsophila(item) || isGypsophilaComposition(item) || isTanacetum(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 
 function usesAutoPistachioQty(item: FlowerItem): boolean {
@@ -1447,6 +1490,7 @@ onBeforeUnmount(() => {
     return
   }
   window.removeEventListener('resize', updateViewportMode)
+  store.dispose()
 })
 </script>
 
