@@ -38,7 +38,7 @@ const FLOWER_FILTER_STORAGE_KEY = 'flowers-baza-active-flower-filters';
 const PRICE_MATRIX_STORAGE_KEY = 'flowers-baza-price-matrix-state';
 const MOBILE_OPEN_CATEGORY_STORAGE_KEY = 'flowers-baza-mobile-open-categories';
 const uiLabels = {
-    title: '\u041f\u0440\u0430\u0439\u0441 \u0431\u0443\u043a\u0435\u0442\u043e\u0432',
+    title: '\u041c\u043e\u043d\u043e\u0431\u0443\u043a\u0435\u0442\u044b',
     chooseJson: '\u0412\u044b\u0431\u0440\u0430\u0442\u044c JSON',
     addFlower: '\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0446\u0432\u0435\u0442\u043e\u043a',
     file: '\u0424\u0430\u0439\u043b',
@@ -128,6 +128,40 @@ const ROSE_VARIETY_TABLES = [
         ],
     },
 ];
+const CHRYZA_VARIETY_TABLES = [
+    {
+        title: 'КУСТОВЫЕ по 220',
+        columns: [
+            ['Santini'],
+        ],
+    },
+    {
+        title: 'КУСТОВЫЕ по 250',
+        columns: [
+            ['Kalimba', 'Altay'],
+        ],
+    },
+    {
+        title: 'КУСТОВЫЕ по 300',
+        columns: [
+            ['Newton', 'Pastella Rose'],
+        ],
+    },
+    {
+        title: 'ОДНОГОЛОВЫЕ по 290',
+        columns: [
+            ['Magnum', 'вся одноголовая'],
+        ],
+    },
+];
+const PEONY_VARIETY_TABLES = [
+    {
+        title: 'ПИОНЫ по 590',
+        columns: [
+            ['Coral Charm', 'Sarah Bernhardt'],
+        ],
+    },
+];
 function getAllowedFlowerFilters(section) {
     return section === 'sezonnye' ? SEASONAL_FLOWER_FILTER_ORDER : PRIMARY_FLOWER_FILTER_ORDER;
 }
@@ -152,12 +186,12 @@ function getInitialFlowerFilter(section) {
 function loadStoredPriceMatrixState() {
     const allowedCategories = ['rose', 'carnation', 'chryza', 'alstroemerii', 'hydrangea', 'gypsophila', 'tanacetum', 'tulip', 'peony'];
     if (typeof window === 'undefined') {
-        return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose' };
+        return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose', priceTableSection: 'osnovnye' };
     }
     try {
         const raw = window.localStorage.getItem(PRICE_MATRIX_STORAGE_KEY);
         if (!raw) {
-            return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose' };
+            return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose', priceTableSection: 'osnovnye' };
         }
         const parsed = JSON.parse(raw);
         const mobileCategory = parsed.mobilePriceMatrixCategory;
@@ -166,10 +200,11 @@ function loadStoredPriceMatrixState() {
             mobilePriceMatrixCategory: allowedCategories.includes(mobileCategory)
                 ? mobileCategory
                 : 'rose',
+            priceTableSection: parsed.priceTableSection === 'sezonnye' ? 'sezonnye' : 'osnovnye',
         };
     }
     catch {
-        return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose' };
+        return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose', priceTableSection: 'osnovnye' };
     }
 }
 function loadStoredMobileOpenCategories() {
@@ -535,15 +570,43 @@ function matchesFlowerFilter(item, filter) {
 function shouldShowRoseVarieties() {
     return store.activeSection === 'osnovnye' && activeFlowerFilter.value === 'rose';
 }
-function getRoseVarietyRowCount(table) {
+function shouldShowChryzaVarieties() {
+    return store.activeSection === 'osnovnye' && activeFlowerFilter.value === 'chryza';
+}
+function shouldShowPeonyVarieties() {
+    return store.activeSection === 'sezonnye' && activeFlowerFilter.value === 'peony';
+}
+function getVarietyRowCount(table) {
     return Math.max(...table.columns.map((column) => column.length));
 }
-function isHiddenFlower(item) {
-    const name = item.flowerName.trim();
-    return name === 'ПИОНЫ по 690' || name === 'ПИОНЫ по 790';
+function getRoseVarietyTable(item) {
+    if (getFlowerGroup(item) !== 'rose') {
+        return null;
+    }
+    return ROSE_VARIETY_TABLES.find((table) => table.title === item.flowerName.trim()) ?? null;
+}
+function getChryzaVarietyTable(item) {
+    if (item.id === CHRYZA_BUSH_220_ID) {
+        return CHRYZA_VARIETY_TABLES[0];
+    }
+    if (item.id === CHRYZA_BUSH_250_ID) {
+        return CHRYZA_VARIETY_TABLES[1];
+    }
+    if (item.id === CHRYZA_BUSH_300_ID) {
+        return CHRYZA_VARIETY_TABLES[2];
+    }
+    if (item.id === CHRYZA_SINGLE_ID) {
+        return CHRYZA_VARIETY_TABLES[3];
+    }
+    return null;
+}
+function getPeonyVarietyTable(item) {
+    return item.flowerName.trim() === PEONY_VARIETY_TABLES[0].title ? PEONY_VARIETY_TABLES[0] : null;
+}
+function getPriceMatrixVarietyTable(item) {
+    return getRoseVarietyTable(item) ?? getChryzaVarietyTable(item) ?? getPeonyVarietyTable(item);
 }
 const visibleRows = computed(() => [...store.filteredBySection]
-    .filter((item) => !isHiddenFlower(item))
     .filter((item) => matchesFlowerFilter(item, activeFlowerFilter.value))
     .sort(compareFlowers));
 const flowerFilterTabs = computed(() => {
@@ -555,8 +618,9 @@ const flowerFilterTabs = computed(() => {
 });
 const initialPriceMatrixState = loadStoredPriceMatrixState();
 const selectedPriceTableId = ref(initialPriceMatrixState.selectedPriceTableId);
+const priceTableSection = ref(initialPriceMatrixState.priceTableSection);
 const priceTableGroups = computed(() => [...store.flowers]
-    .filter((item) => !isHiddenFlower(item))
+    .filter((item) => item.section === priceTableSection.value)
     .sort(compareFlowers)
     .map((item) => ({
     item,
@@ -569,6 +633,7 @@ const activePriceTableGroup = computed(() => {
     }
     return groups.find((group) => group.item.id === selectedPriceTableId.value) ?? groups[0];
 });
+const activePriceMatrixVarietyTable = computed(() => (activePriceTableGroup.value ? getPriceMatrixVarietyTable(activePriceTableGroup.value.item) : null));
 const MOBILE_PRICE_MATRIX_CATEGORY_ORDER = [
     'rose',
     'carnation',
@@ -580,12 +645,20 @@ const MOBILE_PRICE_MATRIX_CATEGORY_ORDER = [
     'tulip',
     'peony',
 ];
+const mobilePriceMatrixCategoryOrder = computed(() => (priceTableSection.value === 'sezonnye'
+    ? ['peony', 'tulip']
+    : ['rose', 'carnation', 'chryza', 'alstroemerii', 'hydrangea', 'gypsophila', 'tanacetum']));
 const mobilePriceMatrixCategory = ref(initialPriceMatrixState.mobilePriceMatrixCategory);
-const PRICE_MATRIX_TAB_ROWS = [
-    ['РОЗЫ по 150', 'РОЗЫ по 200', 'РОЗЫ по 250', 'РОЗЫ по 300', 'РОЗЫ по 400', null, 'ГВОЗДИКИ - обычные', 'ГВОЗДИКИ - лунные', 'ГВОЗДИКИ - микс'],
-    ['ХРИЗА - одноголовая', null, 'ХРИЗА - кустовая по 220', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ТАНАЦЕТУМ', null, 'ГОРТЕНЗИИ'],
-    ['АЛЬСТРОМЕРИИ', null, 'ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композ.', null, 'ТЮЛЬПАНЫ по 220', null, 'ПИОНЫ по 590'],
-];
+const PRICE_MATRIX_TAB_ROWS = {
+    osnovnye: [
+        ['РОЗЫ по 150', 'РОЗЫ по 200', 'РОЗЫ по 250', 'РОЗЫ по 300', 'РОЗЫ по 400', null, 'ГВОЗДИКИ - обычные', 'ГВОЗДИКИ - лунные', 'ГВОЗДИКИ - микс'],
+        ['ХРИЗА - одноголовая', null, 'ХРИЗА - кустовая по 220', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ТАНАЦЕТУМ', null, 'ГОРТЕНЗИИ'],
+        ['АЛЬСТРОМЕРИИ', null, 'ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композ.'],
+    ],
+    sezonnye: [
+        ['ПИОНЫ по 590', 'ПИОНЫ по 690', 'ПИОНЫ по 790', null, 'ТЮЛЬПАНЫ по 220'],
+    ],
+};
 function normalizePriceMatrixTabName(name) {
     const normalized = name.trim();
     if (normalized === 'ГИПСОФИЛА - композ.') {
@@ -595,7 +668,7 @@ function normalizePriceMatrixTabName(name) {
 }
 const priceMatrixTabRows = computed(() => {
     const groupMap = new Map(priceTableGroups.value.map((group) => [normalizePriceMatrixTabName(group.item.flowerName), group]));
-    return PRICE_MATRIX_TAB_ROWS.map((row) => row
+    return PRICE_MATRIX_TAB_ROWS[priceTableSection.value].map((row) => row
         .map((name) => {
         if (name === null) {
             return { type: 'spacer' };
@@ -611,7 +684,7 @@ function getPriceMatrixCategoryKey(item) {
         ? group
         : null;
 }
-const mobilePriceMatrixCategories = computed(() => MOBILE_PRICE_MATRIX_CATEGORY_ORDER
+const mobilePriceMatrixCategories = computed(() => mobilePriceMatrixCategoryOrder.value
     .map((key) => ({
     key,
     label: FLOWER_FILTER_LABELS[key],
@@ -647,8 +720,36 @@ function selectMobilePriceMatrixCategory(key) {
     mobilePriceMatrixCategory.value = key;
     const firstGroup = priceTableGroups.value.find((group) => getFlowerGroup(group.item) === key);
     if (firstGroup) {
-        selectedPriceTableId.value = firstGroup.item.id;
+        selectPriceTableGroup(firstGroup);
     }
+}
+function getFirstPriceTableGroupByCategory(key) {
+    if (key === 'all') {
+        return null;
+    }
+    return priceTableGroups.value.find((group) => getFlowerGroup(group.item) === key) ?? null;
+}
+function selectPriceTableGroup(group) {
+    selectedPriceTableId.value = group.item.id;
+    const category = getPriceMatrixCategoryKey(group.item);
+    if (category) {
+        mobilePriceMatrixCategory.value = category;
+    }
+}
+function selectLinkedPriceTableGroup(filter) {
+    const linkedGroup = getFirstPriceTableGroupByCategory(filter);
+    if (!linkedGroup) {
+        return false;
+    }
+    selectPriceTableGroup(linkedGroup);
+    return true;
+}
+function getLinkedFlowerFilterForSection(section) {
+    if (section === 'priceTables') {
+        return 'all';
+    }
+    const group = activePriceTableGroup.value ? getPriceMatrixCategoryKey(activePriceTableGroup.value.item) : null;
+    return group && getAllowedFlowerFilters(section).includes(group) ? group : getInitialFlowerFilter(section);
 }
 const mobileSectionDefinitions = computed(() => {
     if (store.activeSection === 'osnovnye') {
@@ -730,6 +831,9 @@ function isGroupStart(item, index) {
     if (!previous) {
         return false;
     }
+    if (isChryzaBush300(previous) && isChryzaSingle(item)) {
+        return true;
+    }
     return getFlowerGroup(previous) !== getFlowerGroup(item);
 }
 function getMinQty(item) {
@@ -778,6 +882,11 @@ function getQty(item) {
     }
     qtyMap[item.id] = normalizeQty(item, qtyMap[item.id]);
     return qtyMap[item.id];
+}
+function hasQtySelection(item) {
+    return Boolean(qtyInputMap[item.id]?.trim())
+        || Boolean(sizeButtonSelectionMap[item.id])
+        || Boolean(suggestedSelectionMap[item.id]);
 }
 function isRose150(item) {
     const name = item.flowerName.trim().toLowerCase();
@@ -1222,19 +1331,42 @@ function handlePageClick(event) {
     const target = event.target;
     if (!target)
         return;
-    if (target.closest('button, input, select, label, .price-table, .modal, .menu-btn'))
+    if (target.closest('button, input, select, label, .price-table, .modal, .menu-btn, .sidebar-submenu-btn'))
         return;
     clearActiveRow();
 }
 function onSectionChange(section) {
+    const previousSection = store.activeSection;
+    const previousFlowerFilter = activeFlowerFilter.value;
+    if (section === 'priceTables' && previousSection !== 'priceTables') {
+        priceTableSection.value = previousSection;
+    }
     store.activeSection = section;
-    activeFlowerFilter.value = getInitialFlowerFilter(section);
     if (section !== 'priceTables') {
+        activeFlowerFilter.value = previousSection === 'priceTables'
+            ? getLinkedFlowerFilterForSection(section)
+            : getInitialFlowerFilter(section);
         mobileOpenCategory.value = loadStoredMobileOpenCategories()[section] ?? null;
+        return;
+    }
+    if (previousSection !== 'priceTables' && selectLinkedPriceTableGroup(previousFlowerFilter)) {
         return;
     }
     const storedState = loadStoredPriceMatrixState();
     selectedPriceTableId.value = storedState.selectedPriceTableId || activePriceTableGroup.value?.item.id || priceTableGroups.value[0]?.item.id || '';
+}
+function onPriceTablesSectionChange(section) {
+    const previousSection = store.activeSection;
+    const previousFlowerFilter = activeFlowerFilter.value;
+    priceTableSection.value = section;
+    store.activeSection = 'priceTables';
+    if (previousSection === section && selectLinkedPriceTableGroup(previousFlowerFilter)) {
+        return;
+    }
+    const firstGroup = priceTableGroups.value[0];
+    if (firstGroup) {
+        selectPriceTableGroup(firstGroup);
+    }
 }
 function openCreate() {
     editorItem.value = undefined;
@@ -1259,13 +1391,14 @@ watch(activeFlowerFilter, (value) => {
     stored[store.activeSection] = value;
     window.localStorage.setItem(FLOWER_FILTER_STORAGE_KEY, JSON.stringify(stored));
 });
-watch([selectedPriceTableId, mobilePriceMatrixCategory], ([selectedId, category]) => {
+watch([selectedPriceTableId, mobilePriceMatrixCategory, priceTableSection], ([selectedId, category, section]) => {
     if (typeof window === 'undefined') {
         return;
     }
     window.localStorage.setItem(PRICE_MATRIX_STORAGE_KEY, JSON.stringify({
         selectedPriceTableId: selectedId,
         mobilePriceMatrixCategory: category,
+        priceTableSection: section,
     }));
 }, { immediate: true });
 watch([() => store.activeSection, mobileOpenCategory], ([section, openCategory]) => {
@@ -1285,7 +1418,9 @@ watch(() => store.activeSection, (section) => {
         }
         return;
     }
-    activeFlowerFilter.value = getInitialFlowerFilter(section);
+    if (!getAllowedFlowerFilters(section).includes(activeFlowerFilter.value)) {
+        activeFlowerFilter.value = getInitialFlowerFilter(section);
+    }
     mobileOpenCategory.value = loadStoredMobileOpenCategories()[section] ?? null;
 }, { immediate: true });
 watch(activePriceTableGroup, (group) => {
@@ -1327,17 +1462,24 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
 // @ts-ignore
 const __VLS_0 = __VLS_asFunctionalComponent(SidebarMenu, new SidebarMenu({
     ...{ 'onChange': {} },
+    ...{ 'onChangePriceTablesSection': {} },
     active: (__VLS_ctx.store.activeSection),
+    activePriceTablesSection: (__VLS_ctx.priceTableSection),
 }));
 const __VLS_1 = __VLS_0({
     ...{ 'onChange': {} },
+    ...{ 'onChangePriceTablesSection': {} },
     active: (__VLS_ctx.store.activeSection),
+    activePriceTablesSection: (__VLS_ctx.priceTableSection),
 }, ...__VLS_functionalComponentArgsRest(__VLS_0));
 let __VLS_3;
 let __VLS_4;
 let __VLS_5;
 const __VLS_6 = {
     onChange: (__VLS_ctx.onSectionChange)
+};
+const __VLS_7 = {
+    onChangePriceTablesSection: (__VLS_ctx.onPriceTablesSectionChange)
 };
 var __VLS_2;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.main, __VLS_intrinsicElements.main)({
@@ -1357,19 +1499,19 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
 if (!__VLS_ctx.store.unlocked) {
     /** @type {[typeof AuthGate, ]} */ ;
     // @ts-ignore
-    const __VLS_7 = __VLS_asFunctionalComponent(AuthGate, new AuthGate({
+    const __VLS_8 = __VLS_asFunctionalComponent(AuthGate, new AuthGate({
         ...{ 'onUnlocked': {} },
     }));
-    const __VLS_8 = __VLS_7({
+    const __VLS_9 = __VLS_8({
         ...{ 'onUnlocked': {} },
-    }, ...__VLS_functionalComponentArgsRest(__VLS_7));
-    let __VLS_10;
+    }, ...__VLS_functionalComponentArgsRest(__VLS_8));
     let __VLS_11;
     let __VLS_12;
-    const __VLS_13 = {
+    let __VLS_13;
+    const __VLS_14 = {
         onUnlocked: (__VLS_ctx.store.setUnlocked)
     };
-    var __VLS_9;
+    var __VLS_10;
 }
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "toolbar-actions" },
@@ -1492,6 +1634,9 @@ if (__VLS_ctx.store.activeSection === 'priceTables') {
         }
     }
     if (__VLS_ctx.activePriceTableGroup) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "price-matrix-layout" },
+        });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.article, __VLS_intrinsicElements.article)({
             ...{ class: "price-matrix-card" },
         });
@@ -1630,6 +1775,32 @@ if (__VLS_ctx.store.activeSection === 'priceTables') {
                 });
             }
         }
+        if (__VLS_ctx.activePriceMatrixVarietyTable) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "price-matrix-variety" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.table, __VLS_intrinsicElements.table)({
+                ...{ class: "rose-variety-table rose-variety-table-price-matrix" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.thead, __VLS_intrinsicElements.thead)({});
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({});
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
+                colspan: (__VLS_ctx.activePriceMatrixVarietyTable.columns.length),
+            });
+            (__VLS_ctx.activePriceMatrixVarietyTable.title);
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.tbody, __VLS_intrinsicElements.tbody)({});
+            for (const [rowIndex] of __VLS_getVForSourceType((__VLS_ctx.getVarietyRowCount(__VLS_ctx.activePriceMatrixVarietyTable)))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({
+                    key: (`${__VLS_ctx.activePriceTableGroup.item.id}-variety-${rowIndex}`),
+                });
+                for (const [column, columnIndex] of __VLS_getVForSourceType((__VLS_ctx.activePriceMatrixVarietyTable.columns))) {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
+                        key: (`${__VLS_ctx.activePriceTableGroup.item.id}-variety-${rowIndex}-${columnIndex}`),
+                    });
+                    (column[rowIndex - 1] || '');
+                }
+            }
+        }
     }
 }
 else {
@@ -1652,6 +1823,7 @@ else {
     }
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "table-wrap desktop-table-wrap" },
+        ...{ class: ({ 'desktop-table-wrap-fit': __VLS_ctx.store.activeSection === 'sezonnye' || (__VLS_ctx.store.activeSection === 'osnovnye' && __VLS_ctx.activeFlowerFilter !== 'rose') }) },
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.table, __VLS_intrinsicElements.table)({
         ...{ class: "price-table" },
@@ -1921,14 +2093,21 @@ else {
             ...{ class: "offer-divider" },
             ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
         });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "price-with-ruble" },
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-        (__VLS_ctx.formatPrice(__VLS_ctx.calcWithoutPromoForRow(item, __VLS_ctx.getQty(item))));
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "price-ruble" },
-        });
+        if (!__VLS_ctx.hasQtySelection(item)) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "promo-disabled-mark" },
+            });
+        }
+        else {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "price-with-ruble" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+            (__VLS_ctx.formatPrice(__VLS_ctx.calcWithoutPromoForRow(item, __VLS_ctx.getQty(item))));
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "price-ruble" },
+            });
+        }
         __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
             ...{ class: "promo-divider" },
         });
@@ -1959,15 +2138,22 @@ else {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
                 value: (15),
             });
-            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                ...{ class: "center-cell price-with-ruble" },
-                ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
-            });
-            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-            (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
-            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                ...{ class: "price-ruble" },
-            });
+            if (!__VLS_ctx.hasQtySelection(item)) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "center-cell promo-disabled-mark promo-empty-price" },
+                });
+            }
+            else {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "center-cell price-with-ruble" },
+                    ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+                (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "price-ruble" },
+                });
+            }
         }
         __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
             ...{ class: "price-divider" },
@@ -2061,6 +2247,11 @@ else {
                 ...{ class: "promo-disabled-mark" },
             });
         }
+        else if (!__VLS_ctx.hasQtySelection(item)) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "promo-disabled-mark" },
+            });
+        }
         else {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                 ...{ class: "currency-input-wrap" },
@@ -2070,6 +2261,8 @@ else {
                         if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
                             return;
                         if (!!(__VLS_ctx.isPackagingHidden(item)))
+                            return;
+                        if (!!(!__VLS_ctx.hasQtySelection(item)))
                             return;
                         __VLS_ctx.store.patchFlower(item.id, { packagingPrice: Number($event.target.value) || 0 });
                     } },
@@ -2168,7 +2361,65 @@ else {
             });
             (table.title);
             __VLS_asFunctionalElement(__VLS_intrinsicElements.tbody, __VLS_intrinsicElements.tbody)({});
-            for (const [rowIndex] of __VLS_getVForSourceType((__VLS_ctx.getRoseVarietyRowCount(table)))) {
+            for (const [rowIndex] of __VLS_getVForSourceType((__VLS_ctx.getVarietyRowCount(table)))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({
+                    key: (`${table.title}-${rowIndex}`),
+                });
+                for (const [column, columnIndex] of __VLS_getVForSourceType((table.columns))) {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
+                        key: (`${table.title}-${rowIndex}-${columnIndex}`),
+                    });
+                    (column[rowIndex - 1] || '');
+                }
+            }
+        }
+    }
+    if (__VLS_ctx.shouldShowChryzaVarieties()) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "rose-variety-grid rose-variety-grid-desktop chryza-variety-grid" },
+        });
+        for (const [table] of __VLS_getVForSourceType((__VLS_ctx.CHRYZA_VARIETY_TABLES))) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.table, __VLS_intrinsicElements.table)({
+                key: (table.title),
+                ...{ class: "rose-variety-table" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.thead, __VLS_intrinsicElements.thead)({});
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({});
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
+                colspan: (table.columns.length),
+            });
+            (table.title);
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.tbody, __VLS_intrinsicElements.tbody)({});
+            for (const [rowIndex] of __VLS_getVForSourceType((__VLS_ctx.getVarietyRowCount(table)))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({
+                    key: (`${table.title}-${rowIndex}`),
+                });
+                for (const [column, columnIndex] of __VLS_getVForSourceType((table.columns))) {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
+                        key: (`${table.title}-${rowIndex}-${columnIndex}`),
+                    });
+                    (column[rowIndex - 1] || '');
+                }
+            }
+        }
+    }
+    if (__VLS_ctx.shouldShowPeonyVarieties()) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "rose-variety-grid rose-variety-grid-desktop" },
+        });
+        for (const [table] of __VLS_getVForSourceType((__VLS_ctx.PEONY_VARIETY_TABLES))) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.table, __VLS_intrinsicElements.table)({
+                key: (table.title),
+                ...{ class: "rose-variety-table" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.thead, __VLS_intrinsicElements.thead)({});
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({});
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
+                colspan: (table.columns.length),
+            });
+            (table.title);
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.tbody, __VLS_intrinsicElements.tbody)({});
+            for (const [rowIndex] of __VLS_getVForSourceType((__VLS_ctx.getVarietyRowCount(table)))) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({
                     key: (`${table.title}-${rowIndex}`),
                 });
@@ -2522,15 +2773,22 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                         ...{ class: "mobile-label" },
                     });
                     (__VLS_ctx.uiLabels.withoutPromo);
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
-                        ...{ class: "price-with-ruble" },
-                        ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
-                    });
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-                    (__VLS_ctx.formatPrice(__VLS_ctx.calcWithoutPromoForRow(item, __VLS_ctx.getQty(item))));
-                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                        ...{ class: "price-ruble" },
-                    });
+                    if (!__VLS_ctx.hasQtySelection(item)) {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
+                            ...{ class: "promo-disabled-mark" },
+                        });
+                    }
+                    else {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
+                            ...{ class: "price-with-ruble" },
+                            ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+                        (__VLS_ctx.formatPrice(__VLS_ctx.calcWithoutPromoForRow(item, __VLS_ctx.getQty(item))));
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                            ...{ class: "price-ruble" },
+                        });
+                    }
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                         ...{ class: "mobile-metric" },
                     });
@@ -2569,15 +2827,22 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                         __VLS_asFunctionalElement(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({
                             value: (15),
                         });
-                        __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
-                            ...{ class: "price-with-ruble" },
-                            ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
-                        });
-                        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-                        (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
-                        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                            ...{ class: "price-ruble" },
-                        });
+                        if (!__VLS_ctx.hasQtySelection(item)) {
+                            __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
+                                ...{ class: "promo-disabled-mark promo-empty-price" },
+                            });
+                        }
+                        else {
+                            __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
+                                ...{ class: "price-with-ruble" },
+                                ...{ class: ({ 'price-strong': __VLS_ctx.activeRowId === item.id }) },
+                            });
+                            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+                            (__VLS_ctx.formatPrice(__VLS_ctx.calcWithPromoForRow({ ...item, isPromoEnabled: true }, __VLS_ctx.getQty(item))));
+                            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                                ...{ class: "price-ruble" },
+                            });
+                        }
                     }
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                         ...{ class: "mobile-card-row mobile-card-row-bottom" },
@@ -2696,6 +2961,11 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                             ...{ class: "promo-disabled-mark" },
                         });
                     }
+                    else if (!__VLS_ctx.hasQtySelection(item)) {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
+                            ...{ class: "promo-disabled-mark" },
+                        });
+                    }
                     else {
                         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                             ...{ class: "currency-input-wrap currency-input-wrap-mobile" },
@@ -2709,6 +2979,8 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                                     if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
                                         return;
                                     if (!!(__VLS_ctx.isPackagingHidden(item)))
+                                        return;
+                                    if (!!(!__VLS_ctx.hasQtySelection(item)))
                                         return;
                                     __VLS_ctx.store.patchFlower(item.id, { packagingPrice: Number($event.target.value) || 0 });
                                 } },
@@ -2796,7 +3068,65 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                         });
                         (table.title);
                         __VLS_asFunctionalElement(__VLS_intrinsicElements.tbody, __VLS_intrinsicElements.tbody)({});
-                        for (const [rowIndex] of __VLS_getVForSourceType((__VLS_ctx.getRoseVarietyRowCount(table)))) {
+                        for (const [rowIndex] of __VLS_getVForSourceType((__VLS_ctx.getVarietyRowCount(table)))) {
+                            __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({
+                                key: (`${table.title}-${rowIndex}`),
+                            });
+                            for (const [column, columnIndex] of __VLS_getVForSourceType((table.columns))) {
+                                __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
+                                    key: (`${table.title}-${rowIndex}-${columnIndex}`),
+                                });
+                                (column[rowIndex - 1] || '');
+                            }
+                        }
+                    }
+                }
+                if (section.key === 'chryza') {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                        ...{ class: "rose-variety-grid rose-variety-grid-mobile chryza-variety-grid" },
+                    });
+                    for (const [table] of __VLS_getVForSourceType((__VLS_ctx.CHRYZA_VARIETY_TABLES))) {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.table, __VLS_intrinsicElements.table)({
+                            key: (table.title),
+                            ...{ class: "rose-variety-table" },
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.thead, __VLS_intrinsicElements.thead)({});
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({});
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
+                            colspan: (table.columns.length),
+                        });
+                        (table.title);
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.tbody, __VLS_intrinsicElements.tbody)({});
+                        for (const [rowIndex] of __VLS_getVForSourceType((__VLS_ctx.getVarietyRowCount(table)))) {
+                            __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({
+                                key: (`${table.title}-${rowIndex}`),
+                            });
+                            for (const [column, columnIndex] of __VLS_getVForSourceType((table.columns))) {
+                                __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
+                                    key: (`${table.title}-${rowIndex}-${columnIndex}`),
+                                });
+                                (column[rowIndex - 1] || '');
+                            }
+                        }
+                    }
+                }
+                if (section.key === 'peony') {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                        ...{ class: "rose-variety-grid rose-variety-grid-mobile" },
+                    });
+                    for (const [table] of __VLS_getVForSourceType((__VLS_ctx.PEONY_VARIETY_TABLES))) {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.table, __VLS_intrinsicElements.table)({
+                            key: (table.title),
+                            ...{ class: "rose-variety-table" },
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.thead, __VLS_intrinsicElements.thead)({});
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({});
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
+                            colspan: (table.columns.length),
+                        });
+                        (table.title);
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.tbody, __VLS_intrinsicElements.tbody)({});
+                        for (const [rowIndex] of __VLS_getVForSourceType((__VLS_ctx.getVarietyRowCount(table)))) {
                             __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({
                                 key: (`${table.title}-${rowIndex}`),
                             });
@@ -2821,32 +3151,32 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
 }
 /** @type {[typeof FlowerEditorModal, ]} */ ;
 // @ts-ignore
-const __VLS_14 = __VLS_asFunctionalComponent(FlowerEditorModal, new FlowerEditorModal({
+const __VLS_15 = __VLS_asFunctionalComponent(FlowerEditorModal, new FlowerEditorModal({
     ...{ 'onClose': {} },
     ...{ 'onSave': {} },
     modelValue: (__VLS_ctx.editorOpen),
     initial: (__VLS_ctx.editorItem),
     section: (__VLS_ctx.store.activeSection === 'priceTables' ? 'osnovnye' : __VLS_ctx.store.activeSection),
 }));
-const __VLS_15 = __VLS_14({
+const __VLS_16 = __VLS_15({
     ...{ 'onClose': {} },
     ...{ 'onSave': {} },
     modelValue: (__VLS_ctx.editorOpen),
     initial: (__VLS_ctx.editorItem),
     section: (__VLS_ctx.store.activeSection === 'priceTables' ? 'osnovnye' : __VLS_ctx.store.activeSection),
-}, ...__VLS_functionalComponentArgsRest(__VLS_14));
-let __VLS_17;
+}, ...__VLS_functionalComponentArgsRest(__VLS_15));
 let __VLS_18;
 let __VLS_19;
-const __VLS_20 = {
+let __VLS_20;
+const __VLS_21 = {
     onClose: (...[$event]) => {
         __VLS_ctx.editorOpen = false;
     }
 };
-const __VLS_21 = {
+const __VLS_22 = {
     onSave: (__VLS_ctx.saveEditor)
 };
-var __VLS_16;
+var __VLS_17;
 /** @type {__VLS_StyleScopedClasses['layout']} */ ;
 /** @type {__VLS_StyleScopedClasses['content']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar']} */ ;
@@ -2869,6 +3199,7 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['price-matrix-mobile-subtabs']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-matrix-tab']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-matrix-mobile-subtab']} */ ;
+/** @type {__VLS_StyleScopedClasses['price-matrix-layout']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-matrix-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-matrix-card-head']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-matrix-card-title']} */ ;
@@ -2891,6 +3222,9 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['price-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-with-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-ruble']} */ ;
+/** @type {__VLS_StyleScopedClasses['price-matrix-variety']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-table']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-table-price-matrix']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-matrix-tabs']} */ ;
 /** @type {__VLS_StyleScopedClasses['flower-filter-tabs']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-matrix-tab']} */ ;
@@ -2938,6 +3272,7 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['price-with-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['offer-divider']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-with-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['promo-divider']} */ ;
@@ -2945,6 +3280,9 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['center-cell']} */ ;
 /** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-cell']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-empty-price']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-cell']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-with-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-ruble']} */ ;
@@ -2967,6 +3305,7 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['currency-input-sign']} */ ;
 /** @type {__VLS_StyleScopedClasses['mix-price-qty']} */ ;
 /** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
 /** @type {__VLS_StyleScopedClasses['currency-input-wrap']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
@@ -2977,6 +3316,13 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['row-actions']} */ ;
 /** @type {__VLS_StyleScopedClasses['danger']} */ ;
 /** @type {__VLS_StyleScopedClasses['empty']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid-desktop']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-table']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid-desktop']} */ ;
+/** @type {__VLS_StyleScopedClasses['chryza-variety-grid']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-table']} */ ;
 /** @type {__VLS_StyleScopedClasses['rose-variety-grid']} */ ;
 /** @type {__VLS_StyleScopedClasses['rose-variety-grid-desktop']} */ ;
 /** @type {__VLS_StyleScopedClasses['rose-variety-table']} */ ;
@@ -3042,6 +3388,7 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['mobile-metrics']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-metric']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-with-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-metric']} */ ;
@@ -3050,6 +3397,8 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['price-with-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-empty-price']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-with-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['price-ruble']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-card-row']} */ ;
@@ -3085,6 +3434,7 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['mobile-field-compact']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
 /** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
+/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
 /** @type {__VLS_StyleScopedClasses['currency-input-wrap']} */ ;
 /** @type {__VLS_StyleScopedClasses['currency-input-wrap-mobile']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
@@ -3111,6 +3461,13 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['rose-variety-grid']} */ ;
 /** @type {__VLS_StyleScopedClasses['rose-variety-grid-mobile']} */ ;
 /** @type {__VLS_StyleScopedClasses['rose-variety-table']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid-mobile']} */ ;
+/** @type {__VLS_StyleScopedClasses['chryza-variety-grid']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-table']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid-mobile']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-table']} */ ;
 /** @type {__VLS_StyleScopedClasses['empty']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-empty']} */ ;
 var __VLS_dollars;
@@ -3132,13 +3489,19 @@ const __VLS_self = (await import('vue')).defineComponent({
             POPULAR_SIZES_NOTE: POPULAR_SIZES_NOTE,
             uiLabels: uiLabels,
             ROSE_VARIETY_TABLES: ROSE_VARIETY_TABLES,
+            CHRYZA_VARIETY_TABLES: CHRYZA_VARIETY_TABLES,
+            PEONY_VARIETY_TABLES: PEONY_VARIETY_TABLES,
             activeFlowerFilter: activeFlowerFilter,
             shouldShowRoseVarieties: shouldShowRoseVarieties,
-            getRoseVarietyRowCount: getRoseVarietyRowCount,
+            shouldShowChryzaVarieties: shouldShowChryzaVarieties,
+            shouldShowPeonyVarieties: shouldShowPeonyVarieties,
+            getVarietyRowCount: getVarietyRowCount,
             visibleRows: visibleRows,
             flowerFilterTabs: flowerFilterTabs,
             selectedPriceTableId: selectedPriceTableId,
+            priceTableSection: priceTableSection,
             activePriceTableGroup: activePriceTableGroup,
+            activePriceMatrixVarietyTable: activePriceMatrixVarietyTable,
             priceMatrixTabRows: priceMatrixTabRows,
             mobilePriceMatrixCategories: mobilePriceMatrixCategories,
             mobileActivePriceMatrixCategory: mobileActivePriceMatrixCategory,
@@ -3152,6 +3515,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             isGroupStart: isGroupStart,
             getMinQty: getMinQty,
             getQty: getQty,
+            hasQtySelection: hasQtySelection,
             isCarnationMix: isCarnationMix,
             isGypsophilaComposition: isGypsophilaComposition,
             isPromoDisabledForQty: isPromoDisabledForQty,
@@ -3182,6 +3546,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             isPopularSizeActive: isPopularSizeActive,
             handlePageClick: handlePageClick,
             onSectionChange: onSectionChange,
+            onPriceTablesSectionChange: onPriceTablesSectionChange,
             openCreate: openCreate,
             openEdit: openEdit,
             saveEditor: saveEditor,

@@ -73,6 +73,29 @@ select {
   border-color: #f8d146;
 }
 
+.sidebar-submenu {
+  display: grid;
+  gap: 2px;
+  padding: 2px 0 3px 12px;
+}
+
+.sidebar-submenu-btn {
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.82);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.96rem;
+  line-height: 1.2;
+}
+
+.sidebar-submenu-btn.active {
+  background: rgba(248, 209, 70, 0.18);
+  color: #f8d146;
+}
+
 .content {
   padding: 28px 14px 14px;
   display: flex;
@@ -123,6 +146,11 @@ select {
 
 .desktop-table-wrap {
   display: block;
+}
+
+.desktop-table-wrap-fit {
+  flex: 0 0 auto;
+  min-height: 0;
 }
 
 .mobile-cards {
@@ -687,6 +715,10 @@ select {
   display: none;
 }
 
+.chryza-variety-grid .rose-variety-table:nth-child(4) {
+  margin-left: 72px;
+}
+
 .rose-variety-table {
   width: max-content;
   min-width: 0;
@@ -1189,6 +1221,11 @@ select {
     padding: 0;
   }
 
+  .chryza-variety-grid .rose-variety-table:nth-child(4) {
+    margin-top: 48px;
+    margin-left: 0;
+  }
+
   .rose-variety-table {
     font-size: 14px;
     border-radius: 12px;
@@ -1241,6 +1278,17 @@ select {
     width: 100%;
     padding: 10px 8px;
     gap: 8px;
+  }
+
+  .price-matrix-layout {
+    display: grid;
+    gap: 12px;
+  }
+
+  .price-matrix-variety {
+    margin-top: 0;
+    max-width: 100%;
+    overflow-x: auto;
   }
 
   .price-matrix-card-head {
@@ -1565,6 +1613,10 @@ select {
   box-shadow: none;
 }
 
+.promo-empty-price {
+  transform: translateX(-12px);
+}
+
 
 .price-table th:nth-child(5),
 .price-table td:nth-child(5) {
@@ -1666,14 +1718,31 @@ select {
 .price-matrix-mobile-nav {
   display: none;
 }
+
+.price-matrix-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 34px;
+  width: fit-content;
+  max-width: 100%;
+  align-self: flex-start;
+}
+
 .price-matrix-card {
   display: grid;
   gap: 10px;
-  width: min(62%, 980px);
+  width: fit-content;
+  max-width: 100%;
   padding: 14px;
   border: 1px solid #dfe6df;
   border-radius: 16px;
   background: #fff;
+}
+
+.price-matrix-variety {
+  flex: 0 0 auto;
+  margin-top: 52px;
+  padding-top: 0;
 }
 
 .price-matrix-card-head {
@@ -1726,7 +1795,7 @@ select {
 }
 
 .price-matrix-table-wrap {
-  width: 100%;
+  width: 820px;
   max-width: 100%;
 }
 
@@ -1745,6 +1814,13 @@ select {
   vertical-align: middle;
   text-align: center;
   font-size: 18px;
+}
+
+.rose-variety-table-price-matrix th,
+.rose-variety-table-price-matrix td {
+  height: 35px;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 
 .price-matrix-table th {

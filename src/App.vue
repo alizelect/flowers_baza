@@ -39,13 +39,14 @@ const TANACETUM_ID = 'c2dcf0a6-f7fb-4c48-b2a4-290290290290'
 const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila', 'tanacetum'] as const
 const MOBILE_SEASONAL_CATEGORY_ORDER = ['peony', 'tulip'] as const
 type FlowerFilterKey = 'all' | 'rose' | 'alstroemerii' | 'carnation' | 'chryza' | 'tanacetum' | 'hydrangea' | 'gypsophila' | 'peony' | 'tulip'
+type BaseSectionKey = Exclude<SectionKey, 'priceTables'>
 const PRIMARY_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila', 'tanacetum']
 const SEASONAL_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'peony', 'tulip']
 const FLOWER_FILTER_STORAGE_KEY = 'flowers-baza-active-flower-filters'
 const PRICE_MATRIX_STORAGE_KEY = 'flowers-baza-price-matrix-state'
 const MOBILE_OPEN_CATEGORY_STORAGE_KEY = 'flowers-baza-mobile-open-categories'
 const uiLabels = {
-  title: '\u041f\u0440\u0430\u0439\u0441 \u0431\u0443\u043a\u0435\u0442\u043e\u0432',
+  title: '\u041c\u043e\u043d\u043e\u0431\u0443\u043a\u0435\u0442\u044b',
   chooseJson: '\u0412\u044b\u0431\u0440\u0430\u0442\u044c JSON',
   addFlower: '\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0446\u0432\u0435\u0442\u043e\u043a',
   file: '\u0424\u0430\u0439\u043b',
@@ -137,6 +138,42 @@ const ROSE_VARIETY_TABLES = [
   },
 ] as const
 
+const CHRYZA_VARIETY_TABLES = [
+  {
+    title: 'КУСТОВЫЕ по 220',
+    columns: [
+      ['Santini'],
+    ],
+  },
+  {
+    title: 'КУСТОВЫЕ по 250',
+    columns: [
+      ['Kalimba', 'Altay'],
+    ],
+  },
+  {
+    title: 'КУСТОВЫЕ по 300',
+    columns: [
+      ['Newton', 'Pastella Rose'],
+    ],
+  },
+  {
+    title: 'ОДНОГОЛОВЫЕ по 290',
+    columns: [
+      ['Magnum', 'вся одноголовая'],
+    ],
+  },
+] as const
+
+const PEONY_VARIETY_TABLES = [
+  {
+    title: 'ПИОНЫ по 590',
+    columns: [
+      ['Coral Charm', 'Sarah Bernhardt'],
+    ],
+  },
+] as const
+
 function getAllowedFlowerFilters(section: SectionKey): FlowerFilterKey[] {
   return section === 'sezonnye' ? SEASONAL_FLOWER_FILTER_ORDER : PRIMARY_FLOWER_FILTER_ORDER
 }
@@ -159,26 +196,27 @@ function getInitialFlowerFilter(section: SectionKey): FlowerFilterKey {
   return stored && getAllowedFlowerFilters(section).includes(stored) ? stored : 'all'
 }
 
-function loadStoredPriceMatrixState(): { selectedPriceTableId: string, mobilePriceMatrixCategory: MobilePriceMatrixCategoryKey } {
+function loadStoredPriceMatrixState(): { selectedPriceTableId: string, mobilePriceMatrixCategory: MobilePriceMatrixCategoryKey, priceTableSection: BaseSectionKey } {
   const allowedCategories: MobilePriceMatrixCategoryKey[] = ['rose', 'carnation', 'chryza', 'alstroemerii', 'hydrangea', 'gypsophila', 'tanacetum', 'tulip', 'peony']
   if (typeof window === 'undefined') {
-    return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose' }
+    return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose', priceTableSection: 'osnovnye' }
   }
   try {
     const raw = window.localStorage.getItem(PRICE_MATRIX_STORAGE_KEY)
     if (!raw) {
-      return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose' }
+      return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose', priceTableSection: 'osnovnye' }
     }
-    const parsed = JSON.parse(raw) as Partial<{ selectedPriceTableId: string, mobilePriceMatrixCategory: MobilePriceMatrixCategoryKey }>
+    const parsed = JSON.parse(raw) as Partial<{ selectedPriceTableId: string, mobilePriceMatrixCategory: MobilePriceMatrixCategoryKey, priceTableSection: BaseSectionKey }>
     const mobileCategory = parsed.mobilePriceMatrixCategory
     return {
       selectedPriceTableId: typeof parsed.selectedPriceTableId === 'string' ? parsed.selectedPriceTableId : '',
       mobilePriceMatrixCategory: allowedCategories.includes(mobileCategory as MobilePriceMatrixCategoryKey)
         ? mobileCategory as MobilePriceMatrixCategoryKey
         : 'rose',
+      priceTableSection: parsed.priceTableSection === 'sezonnye' ? 'sezonnye' : 'osnovnye',
     }
   } catch {
-    return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose' }
+    return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose', priceTableSection: 'osnovnye' }
   }
 }
 
@@ -559,9 +597,7 @@ const CHRYZA_BUSH_300_PACKAGING_BY_ODD = [
   1690,
 ]
 
-const SECTION_ORDER = ['osnovnye', 'sezonnye'] as const
-
-type BaseSectionKey = (typeof SECTION_ORDER)[number]
+const SECTION_ORDER: BaseSectionKey[] = ['osnovnye', 'sezonnye']
 
 type PriceTableRow = {
   qty: number
@@ -608,17 +644,50 @@ function shouldShowRoseVarieties(): boolean {
   return store.activeSection === 'osnovnye' && activeFlowerFilter.value === 'rose'
 }
 
-function getRoseVarietyRowCount(table: (typeof ROSE_VARIETY_TABLES)[number]): number {
+function shouldShowChryzaVarieties(): boolean {
+  return store.activeSection === 'osnovnye' && activeFlowerFilter.value === 'chryza'
+}
+
+function shouldShowPeonyVarieties(): boolean {
+  return store.activeSection === 'sezonnye' && activeFlowerFilter.value === 'peony'
+}
+
+function getVarietyRowCount(table: (typeof ROSE_VARIETY_TABLES)[number] | (typeof CHRYZA_VARIETY_TABLES)[number] | (typeof PEONY_VARIETY_TABLES)[number]): number {
   return Math.max(...table.columns.map((column) => column.length))
 }
 
-function isHiddenFlower(item: FlowerItem): boolean {
-  const name = item.flowerName.trim()
-  return name === 'ПИОНЫ по 690' || name === 'ПИОНЫ по 790'
+function getRoseVarietyTable(item: FlowerItem): (typeof ROSE_VARIETY_TABLES)[number] | null {
+  if (getFlowerGroup(item) !== 'rose') {
+    return null
+  }
+  return ROSE_VARIETY_TABLES.find((table) => table.title === item.flowerName.trim()) ?? null
+}
+
+function getChryzaVarietyTable(item: FlowerItem): (typeof CHRYZA_VARIETY_TABLES)[number] | null {
+  if (item.id === CHRYZA_BUSH_220_ID) {
+    return CHRYZA_VARIETY_TABLES[0]
+  }
+  if (item.id === CHRYZA_BUSH_250_ID) {
+    return CHRYZA_VARIETY_TABLES[1]
+  }
+  if (item.id === CHRYZA_BUSH_300_ID) {
+    return CHRYZA_VARIETY_TABLES[2]
+  }
+  if (item.id === CHRYZA_SINGLE_ID) {
+    return CHRYZA_VARIETY_TABLES[3]
+  }
+  return null
+}
+
+function getPeonyVarietyTable(item: FlowerItem): (typeof PEONY_VARIETY_TABLES)[number] | null {
+  return item.flowerName.trim() === PEONY_VARIETY_TABLES[0].title ? PEONY_VARIETY_TABLES[0] : null
+}
+
+function getPriceMatrixVarietyTable(item: FlowerItem): (typeof ROSE_VARIETY_TABLES)[number] | (typeof CHRYZA_VARIETY_TABLES)[number] | (typeof PEONY_VARIETY_TABLES)[number] | null {
+  return getRoseVarietyTable(item) ?? getChryzaVarietyTable(item) ?? getPeonyVarietyTable(item)
 }
 
 const visibleRows = computed(() => [...store.filteredBySection]
-  .filter((item) => !isHiddenFlower(item))
   .filter((item) => matchesFlowerFilter(item, activeFlowerFilter.value))
   .sort(compareFlowers))
 
@@ -632,9 +701,10 @@ const flowerFilterTabs = computed(() => {
 
 const initialPriceMatrixState = loadStoredPriceMatrixState()
 const selectedPriceTableId = ref<string>(initialPriceMatrixState.selectedPriceTableId)
+const priceTableSection = ref<BaseSectionKey>(initialPriceMatrixState.priceTableSection)
 
 const priceTableGroups = computed<PriceTableGroup[]>(() => [...store.flowers]
-  .filter((item) => !isHiddenFlower(item))
+  .filter((item) => item.section === priceTableSection.value)
   .sort(compareFlowers)
   .map((item) => ({
     item,
@@ -649,6 +719,10 @@ const activePriceTableGroup = computed<PriceTableGroup | null>(() => {
   return groups.find((group) => group.item.id === selectedPriceTableId.value) ?? groups[0]
 })
 
+const activePriceMatrixVarietyTable = computed(() => (
+  activePriceTableGroup.value ? getPriceMatrixVarietyTable(activePriceTableGroup.value.item) : null
+))
+
 const MOBILE_PRICE_MATRIX_CATEGORY_ORDER: MobilePriceMatrixCategoryKey[] = [
   'rose',
   'carnation',
@@ -661,13 +735,24 @@ const MOBILE_PRICE_MATRIX_CATEGORY_ORDER: MobilePriceMatrixCategoryKey[] = [
   'peony',
 ]
 
+const mobilePriceMatrixCategoryOrder = computed<MobilePriceMatrixCategoryKey[]>(() => (
+  priceTableSection.value === 'sezonnye'
+    ? ['peony', 'tulip']
+    : ['rose', 'carnation', 'chryza', 'alstroemerii', 'hydrangea', 'gypsophila', 'tanacetum']
+))
+
 const mobilePriceMatrixCategory = ref<MobilePriceMatrixCategoryKey>(initialPriceMatrixState.mobilePriceMatrixCategory)
 
-const PRICE_MATRIX_TAB_ROWS = [
+const PRICE_MATRIX_TAB_ROWS: Record<BaseSectionKey, readonly (readonly (string | null)[])[]> = {
+  osnovnye: [
   ['РОЗЫ по 150', 'РОЗЫ по 200', 'РОЗЫ по 250', 'РОЗЫ по 300', 'РОЗЫ по 400', null, 'ГВОЗДИКИ - обычные', 'ГВОЗДИКИ - лунные', 'ГВОЗДИКИ - микс'],
   ['ХРИЗА - одноголовая', null, 'ХРИЗА - кустовая по 220', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ТАНАЦЕТУМ', null, 'ГОРТЕНЗИИ'],
-  ['АЛЬСТРОМЕРИИ', null, 'ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композ.', null, 'ТЮЛЬПАНЫ по 220', null, 'ПИОНЫ по 590'],
-] as const
+  ['АЛЬСТРОМЕРИИ', null, 'ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композ.'],
+  ],
+  sezonnye: [
+    ['ПИОНЫ по 590', 'ПИОНЫ по 690', 'ПИОНЫ по 790', null, 'ТЮЛЬПАНЫ по 220'],
+  ],
+}
 
 function normalizePriceMatrixTabName(name: string): string {
   const normalized = name.trim()
@@ -679,7 +764,7 @@ function normalizePriceMatrixTabName(name: string): string {
 
 const priceMatrixTabRows = computed<PriceMatrixTabEntry[][]>(() => {
   const groupMap = new Map(priceTableGroups.value.map((group) => [normalizePriceMatrixTabName(group.item.flowerName), group]))
-  return PRICE_MATRIX_TAB_ROWS.map((row) => row
+  return PRICE_MATRIX_TAB_ROWS[priceTableSection.value].map((row) => row
     .map((name) => {
       if (name === null) {
         return { type: 'spacer' } satisfies PriceMatrixTabEntry
@@ -697,7 +782,7 @@ function getPriceMatrixCategoryKey(item: FlowerItem): MobilePriceMatrixCategoryK
     : null
 }
 
-const mobilePriceMatrixCategories = computed(() => MOBILE_PRICE_MATRIX_CATEGORY_ORDER
+const mobilePriceMatrixCategories = computed(() => mobilePriceMatrixCategoryOrder.value
   .map((key) => ({
     key,
     label: FLOWER_FILTER_LABELS[key],
@@ -738,8 +823,40 @@ function selectMobilePriceMatrixCategory(key: MobilePriceMatrixCategoryKey): voi
   mobilePriceMatrixCategory.value = key
   const firstGroup = priceTableGroups.value.find((group) => getFlowerGroup(group.item) === key)
   if (firstGroup) {
-    selectedPriceTableId.value = firstGroup.item.id
+    selectPriceTableGroup(firstGroup)
   }
+}
+
+function getFirstPriceTableGroupByCategory(key: FlowerFilterKey): PriceTableGroup | null {
+  if (key === 'all') {
+    return null
+  }
+  return priceTableGroups.value.find((group) => getFlowerGroup(group.item) === key) ?? null
+}
+
+function selectPriceTableGroup(group: PriceTableGroup): void {
+  selectedPriceTableId.value = group.item.id
+  const category = getPriceMatrixCategoryKey(group.item)
+  if (category) {
+    mobilePriceMatrixCategory.value = category
+  }
+}
+
+function selectLinkedPriceTableGroup(filter: FlowerFilterKey): boolean {
+  const linkedGroup = getFirstPriceTableGroupByCategory(filter)
+  if (!linkedGroup) {
+    return false
+  }
+  selectPriceTableGroup(linkedGroup)
+  return true
+}
+
+function getLinkedFlowerFilterForSection(section: SectionKey): FlowerFilterKey {
+  if (section === 'priceTables') {
+    return 'all'
+  }
+  const group = activePriceTableGroup.value ? getPriceMatrixCategoryKey(activePriceTableGroup.value.item) : null
+  return group && getAllowedFlowerFilters(section).includes(group) ? group : getInitialFlowerFilter(section)
 }
 
 const mobileSectionDefinitions = computed(() => {
@@ -820,6 +937,9 @@ function isGroupStart(item: FlowerItem, index: number): boolean {
   if (!previous) {
     return false
   }
+  if (isChryzaBush300(previous) && isChryzaSingle(item)) {
+    return true
+  }
   return getFlowerGroup(previous) !== getFlowerGroup(item)
 }
 
@@ -869,6 +989,12 @@ function getQty(item: FlowerItem): number {
   }
   qtyMap[item.id] = normalizeQty(item, qtyMap[item.id])
   return qtyMap[item.id]
+}
+
+function hasQtySelection(item: FlowerItem): boolean {
+  return Boolean(qtyInputMap[item.id]?.trim())
+    || Boolean(sizeButtonSelectionMap[item.id])
+    || Boolean(suggestedSelectionMap[item.id])
 }
 
 
@@ -1431,19 +1557,45 @@ function clearActiveRow(): void {
 function handlePageClick(event: MouseEvent): void {
   const target = event.target as HTMLElement | null
   if (!target) return
-  if (target.closest('button, input, select, label, .price-table, .modal, .menu-btn')) return
+  if (target.closest('button, input, select, label, .price-table, .modal, .menu-btn, .sidebar-submenu-btn')) return
   clearActiveRow()
 }
 
 function onSectionChange(section: SectionKey): void {
+  const previousSection = store.activeSection
+  const previousFlowerFilter = activeFlowerFilter.value
+  if (section === 'priceTables' && previousSection !== 'priceTables') {
+    priceTableSection.value = previousSection
+  }
   store.activeSection = section
-  activeFlowerFilter.value = getInitialFlowerFilter(section)
   if (section !== 'priceTables') {
+    activeFlowerFilter.value = previousSection === 'priceTables'
+      ? getLinkedFlowerFilterForSection(section)
+      : getInitialFlowerFilter(section)
     mobileOpenCategory.value = loadStoredMobileOpenCategories()[section] ?? null
     return
   }
+
+  if (previousSection !== 'priceTables' && selectLinkedPriceTableGroup(previousFlowerFilter)) {
+    return
+  }
+
   const storedState = loadStoredPriceMatrixState()
   selectedPriceTableId.value = storedState.selectedPriceTableId || activePriceTableGroup.value?.item.id || priceTableGroups.value[0]?.item.id || ''
+}
+
+function onPriceTablesSectionChange(section: BaseSectionKey): void {
+  const previousSection = store.activeSection
+  const previousFlowerFilter = activeFlowerFilter.value
+  priceTableSection.value = section
+  store.activeSection = 'priceTables'
+  if (previousSection === section && selectLinkedPriceTableGroup(previousFlowerFilter)) {
+    return
+  }
+  const firstGroup = priceTableGroups.value[0]
+  if (firstGroup) {
+    selectPriceTableGroup(firstGroup)
+  }
 }
 
 function openCreate(): void {
@@ -1474,13 +1626,14 @@ watch(activeFlowerFilter, (value) => {
   window.localStorage.setItem(FLOWER_FILTER_STORAGE_KEY, JSON.stringify(stored))
 })
 
-watch([selectedPriceTableId, mobilePriceMatrixCategory], ([selectedId, category]) => {
+watch([selectedPriceTableId, mobilePriceMatrixCategory, priceTableSection], ([selectedId, category, section]) => {
   if (typeof window === 'undefined') {
     return
   }
   window.localStorage.setItem(PRICE_MATRIX_STORAGE_KEY, JSON.stringify({
     selectedPriceTableId: selectedId,
     mobilePriceMatrixCategory: category,
+    priceTableSection: section,
   }))
 }, { immediate: true })
 
@@ -1502,7 +1655,9 @@ watch(() => store.activeSection, (section) => {
     }
     return
   }
-  activeFlowerFilter.value = getInitialFlowerFilter(section)
+  if (!getAllowedFlowerFilters(section).includes(activeFlowerFilter.value)) {
+    activeFlowerFilter.value = getInitialFlowerFilter(section)
+  }
   mobileOpenCategory.value = loadStoredMobileOpenCategories()[section] ?? null
 }, { immediate: true })
 
@@ -1540,7 +1695,12 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="layout" @click="handlePageClick">
-    <SidebarMenu :active="store.activeSection" @change="onSectionChange" />
+    <SidebarMenu
+      :active="store.activeSection"
+      :active-price-tables-section="priceTableSection"
+      @change="onSectionChange"
+      @change-price-tables-section="onPriceTablesSectionChange"
+    />
 
     <main class="content">
       <header class="toolbar">
@@ -1608,7 +1768,11 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <article v-if="activePriceTableGroup" class="price-matrix-card">
+        <div
+          v-if="activePriceTableGroup"
+          class="price-matrix-layout"
+        >
+        <article class="price-matrix-card">
           <div class="price-matrix-card-head">
             <div class="price-matrix-card-title">
               <h3>{{ activePriceTableGroup.item.flowerName }}</h3>
@@ -1619,54 +1783,79 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <div class="table-wrap price-matrix-table-wrap">
-            <table class="price-matrix-table" :class="{ 'without-pistachio': activePriceTableHidesPistachio }">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>{{ uiLabels.withoutPromo }}</th>
-                  <th v-if="!activePriceTableHidesPistachio">{{ uiLabels.pistachio }}</th>
-                  <th>{{ uiLabels.packaging }}</th>
-                  <template v-if="isMobileViewport">
-                    <th>
-                      <select v-model="mobilePriceMatrixPromo" class="price-matrix-promo-select">
-                        <option value="10">Скидка 10%</option>
-                        <option value="15">Скидка 15%</option>
-                      </select>
-                    </th>
-                  </template>
-                  <template v-else>
-                    <th>{{ uiLabels.promo10 }}</th>
-                    <th>{{ uiLabels.promo15 }}</th>
-                  </template>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="row in activePriceTableGroup.rows" :key="`${activePriceTableGroup.item.id}-${row.qty}`">
-                  <td>{{ row.qty }}</td>
-                  <td><span class="price-with-ruble"><span>{{ row.withoutPromo }}</span><span class="price-ruble">&#8381;</span></span></td>
-                  <td v-if="!activePriceTableHidesPistachio">{{ row.pistachio }}</td>
-                  <td>
-                    <template v-if="row.packaging === '-'">-</template>
-                    <span v-else class="price-with-ruble"><span>{{ row.packaging }}</span><span class="price-ruble">&#8381;</span></span>
-                  </td>
-                  <template v-if="isMobileViewport">
+            <div class="table-wrap price-matrix-table-wrap">
+              <table class="price-matrix-table" :class="{ 'without-pistachio': activePriceTableHidesPistachio }">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>{{ uiLabels.withoutPromo }}</th>
+                    <th v-if="!activePriceTableHidesPistachio">{{ uiLabels.pistachio }}</th>
+                    <th>{{ uiLabels.packaging }}</th>
+                    <template v-if="isMobileViewport">
+                      <th>
+                        <select v-model="mobilePriceMatrixPromo" class="price-matrix-promo-select">
+                          <option value="10">Скидка 10%</option>
+                          <option value="15">Скидка 15%</option>
+                        </select>
+                      </th>
+                    </template>
+                    <template v-else>
+                      <th>{{ uiLabels.promo10 }}</th>
+                      <th>{{ uiLabels.promo15 }}</th>
+                    </template>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="row in activePriceTableGroup.rows" :key="`${activePriceTableGroup.item.id}-${row.qty}`">
+                    <td>{{ row.qty }}</td>
+                    <td><span class="price-with-ruble"><span>{{ row.withoutPromo }}</span><span class="price-ruble">&#8381;</span></span></td>
+                    <td v-if="!activePriceTableHidesPistachio">{{ row.pistachio }}</td>
                     <td>
-                      <span class="price-with-ruble">
-                        <span>{{ mobilePriceMatrixPromo === '10' ? row.promo10 : row.promo15 }}</span>
-                        <span class="price-ruble">&#8381;</span>
-                      </span>
+                      <template v-if="row.packaging === '-'">-</template>
+                      <span v-else class="price-with-ruble"><span>{{ row.packaging }}</span><span class="price-ruble">&#8381;</span></span>
                     </td>
-                  </template>
-                  <template v-else>
-                    <td><span class="price-with-ruble"><span>{{ row.promo10 }}</span><span class="price-ruble">&#8381;</span></span></td>
-                    <td><span class="price-with-ruble"><span>{{ row.promo15 }}</span><span class="price-ruble">&#8381;</span></span></td>
-                  </template>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                    <template v-if="isMobileViewport">
+                      <td>
+                        <span class="price-with-ruble">
+                          <span>{{ mobilePriceMatrixPromo === '10' ? row.promo10 : row.promo15 }}</span>
+                          <span class="price-ruble">&#8381;</span>
+                        </span>
+                      </td>
+                    </template>
+                    <template v-else>
+                      <td><span class="price-with-ruble"><span>{{ row.promo10 }}</span><span class="price-ruble">&#8381;</span></span></td>
+                      <td><span class="price-with-ruble"><span>{{ row.promo15 }}</span><span class="price-ruble">&#8381;</span></span></td>
+                    </template>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
         </article>
+        <div v-if="activePriceMatrixVarietyTable" class="price-matrix-variety">
+          <table class="rose-variety-table rose-variety-table-price-matrix">
+            <thead>
+              <tr>
+                <th :colspan="activePriceMatrixVarietyTable.columns.length">
+                  {{ activePriceMatrixVarietyTable.title }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="rowIndex in getVarietyRowCount(activePriceMatrixVarietyTable)"
+                :key="`${activePriceTableGroup.item.id}-variety-${rowIndex}`"
+              >
+                <td
+                  v-for="(column, columnIndex) in activePriceMatrixVarietyTable.columns"
+                  :key="`${activePriceTableGroup.item.id}-variety-${rowIndex}-${columnIndex}`"
+                >
+                  {{ column[rowIndex - 1] || '' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
       </section>
 
       <template v-else>
@@ -1683,7 +1872,10 @@ onBeforeUnmount(() => {
           </button>
         </div>
 
-        <div class="table-wrap desktop-table-wrap">
+        <div
+          class="table-wrap desktop-table-wrap"
+          :class="{ 'desktop-table-wrap-fit': store.activeSection === 'sezonnye' || (store.activeSection === 'osnovnye' && activeFlowerFilter !== 'rose') }"
+        >
         <table class="price-table">
           <colgroup>
             <col style="width: 19%" />
@@ -1795,7 +1987,10 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
               </td>
-              <td class="offer-divider" :class="{ 'price-strong': activeRowId === item.id }"><span class="price-with-ruble"><span>{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></span></td>
+              <td class="offer-divider" :class="{ 'price-strong': activeRowId === item.id }">
+                <span v-if="!hasQtySelection(item)" class="promo-disabled-mark">-</span>
+                <span v-else class="price-with-ruble"><span>{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></span>
+              </td>
               <td class="promo-divider">
                 <div class="promo-col" :class="{ 'promo-col-disabled': isPromoDisabledForQty(item, getQty(item)) }">
                   <template v-if="isPromoDisabledForQty(item, getQty(item))">
@@ -1810,7 +2005,8 @@ onBeforeUnmount(() => {
                       <option :value="10">10</option>
                       <option :value="15">15</option>
                     </select>
-                    <span class="center-cell price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></span>
+                    <span v-if="!hasQtySelection(item)" class="center-cell promo-disabled-mark promo-empty-price">-</span>
+                    <span v-else class="center-cell price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></span>
                   </template>
                 </div>
               </td>
@@ -1861,6 +2057,7 @@ onBeforeUnmount(() => {
                 <template v-if="isPackagingHidden(item)">
                   <span class="promo-disabled-mark">-</span>
                 </template>
+                <span v-else-if="!hasQtySelection(item)" class="promo-disabled-mark">-</span>
                 <div v-else class="currency-input-wrap">
                   <input
                     class="short-input center-input"
@@ -1911,7 +2108,39 @@ onBeforeUnmount(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="rowIndex in getRoseVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
+            <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
+              <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
+                {{ column[rowIndex - 1] || '' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-if="shouldShowChryzaVarieties()" class="rose-variety-grid rose-variety-grid-desktop chryza-variety-grid">
+        <table v-for="table in CHRYZA_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+          <thead>
+            <tr>
+              <th :colspan="table.columns.length">{{ table.title }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
+              <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
+                {{ column[rowIndex - 1] || '' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-if="shouldShowPeonyVarieties()" class="rose-variety-grid rose-variety-grid-desktop">
+        <table v-for="table in PEONY_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+          <thead>
+            <tr>
+              <th :colspan="table.columns.length">{{ table.title }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
               <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
                 {{ column[rowIndex - 1] || '' }}
               </td>
@@ -2040,7 +2269,8 @@ onBeforeUnmount(() => {
                   <div class="mobile-card-row mobile-card-row-metrics mobile-metrics">
                     <div class="mobile-metric">
                       <span class="mobile-label">{{ uiLabels.withoutPromo }}</span>
-                      <strong class="price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></strong>
+                      <strong v-if="!hasQtySelection(item)" class="promo-disabled-mark">-</strong>
+                      <strong v-else class="price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithoutPromoForRow(item, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></strong>
                     </div>
                     <div class="mobile-metric">
                       <span class="mobile-label">{{ uiLabels.promo }}</span>
@@ -2057,7 +2287,8 @@ onBeforeUnmount(() => {
                             <option :value="10">10</option>
                             <option :value="15">15</option>
                           </select>
-                          <strong class="price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></strong>
+                          <strong v-if="!hasQtySelection(item)" class="promo-disabled-mark promo-empty-price">-</strong>
+                          <strong v-else class="price-with-ruble" :class="{ 'price-strong': activeRowId === item.id }"><span>{{ formatPrice(calcWithPromoForRow({ ...item, isPromoEnabled: true }, getQty(item))) }}</span><span class="price-ruble">&#8381;</span></strong>
                         </template>
                       </div>
                     </div>
@@ -2114,6 +2345,7 @@ onBeforeUnmount(() => {
                       <template v-if="isPackagingHidden(item)">
                         <span class="promo-disabled-mark">-</span>
                       </template>
+                      <strong v-else-if="!hasQtySelection(item)" class="promo-disabled-mark">-</strong>
                       <div v-else class="currency-input-wrap currency-input-wrap-mobile">
                         <input
                           class="short-input center-input mobile-input"
@@ -2163,7 +2395,39 @@ onBeforeUnmount(() => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="rowIndex in getRoseVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
+                    <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
+                      <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
+                        {{ column[rowIndex - 1] || '' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-if="section.key === 'chryza'" class="rose-variety-grid rose-variety-grid-mobile chryza-variety-grid">
+                <table v-for="table in CHRYZA_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+                  <thead>
+                    <tr>
+                      <th :colspan="table.columns.length">{{ table.title }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
+                      <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
+                        {{ column[rowIndex - 1] || '' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-if="section.key === 'peony'" class="rose-variety-grid rose-variety-grid-mobile">
+                <table v-for="table in PEONY_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+                  <thead>
+                    <tr>
+                      <th :colspan="table.columns.length">{{ table.title }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
                       <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
                         {{ column[rowIndex - 1] || '' }}
                       </td>
