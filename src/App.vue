@@ -101,6 +101,42 @@ const FLOWER_FILTER_LABELS: Record<FlowerFilterKey, string> = {
   peony: '\u041f\u0438\u043e\u043d\u044b',
   tulip: '\u0422\u044e\u043b\u044c\u043f\u0430\u043d\u044b',
 }
+
+const ROSE_VARIETY_TABLES = [
+  {
+    title: 'РОЗЫ по 150',
+    columns: [
+      ['российская', 'Sophia Loren'],
+    ],
+  },
+  {
+    title: 'РОЗЫ по 200',
+    columns: [
+      ['Mandala'],
+    ],
+  },
+  {
+    title: 'РОЗЫ по 250',
+    columns: [
+      ['Nina', 'Candlelight', 'Sweet for love', 'Faith', 'Priority'],
+      ['Free spirit', 'Pink Mondial', 'Mondial', 'Shimmer'],
+    ],
+  },
+  {
+    title: 'РОЗЫ по 300',
+    columns: [
+      ['Explorer', 'Pink Floyd', 'Candy Expression', 'Pink Expression', 'Mandarin', 'Hermosa', "Pink O'Hara", "White O'Hara", 'Playa Blanca'],
+      ['Quicksand', 'Menta', 'Sweet Menta', "Queen's Crown", 'Country Blues', 'Be Sweet', 'Suave', 'Lilit'],
+    ],
+  },
+  {
+    title: 'РОЗЫ по 400',
+    columns: [
+      ['Veggie'],
+    ],
+  },
+] as const
+
 function getAllowedFlowerFilters(section: SectionKey): FlowerFilterKey[] {
   return section === 'sezonnye' ? SEASONAL_FLOWER_FILTER_ORDER : PRIMARY_FLOWER_FILTER_ORDER
 }
@@ -566,6 +602,14 @@ function compareFlowers(a: FlowerItem, b: FlowerItem): number {
 
 function matchesFlowerFilter(item: FlowerItem, filter: FlowerFilterKey): boolean {
   return filter === 'all' || getFlowerGroup(item) === filter
+}
+
+function shouldShowRoseVarieties(): boolean {
+  return store.activeSection === 'osnovnye' && activeFlowerFilter.value === 'rose'
+}
+
+function getRoseVarietyRowCount(table: (typeof ROSE_VARIETY_TABLES)[number]): number {
+  return Math.max(...table.columns.map((column) => column.length))
 }
 
 function isHiddenFlower(item: FlowerItem): boolean {
@@ -1859,6 +1903,22 @@ onBeforeUnmount(() => {
           </tbody>
         </table>
       </div>
+      <div v-if="shouldShowRoseVarieties()" class="rose-variety-grid rose-variety-grid-desktop">
+        <table v-for="table in ROSE_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+          <thead>
+            <tr>
+              <th :colspan="table.columns.length">{{ table.title }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="rowIndex in getRoseVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
+              <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
+                {{ column[rowIndex - 1] || '' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       </template>
       <div v-if="store.activeSection !== 'priceTables'" class="mobile-cards" :class="{ 'mobile-cards-grouped': mobileCardSections.length > 0 }">
         <template v-if="mobileCardSections.some((section) => section.items.length)">
@@ -2095,6 +2155,22 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
               </article>
+              <div v-if="section.key === 'rose'" class="rose-variety-grid rose-variety-grid-mobile">
+                <table v-for="table in ROSE_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+                  <thead>
+                    <tr>
+                      <th :colspan="table.columns.length">{{ table.title }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="rowIndex in getRoseVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
+                      <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
+                        {{ column[rowIndex - 1] || '' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </section>
         </template>

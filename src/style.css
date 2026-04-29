@@ -672,6 +672,71 @@ select {
   border-top: 14px solid #f7faf7;
 }
 
+.rose-variety-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: 14px 18px;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 36px;
+  padding: 0 0 8px;
+}
+
+.rose-variety-grid-mobile {
+  display: none;
+}
+
+.rose-variety-table {
+  width: max-content;
+  min-width: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+  overflow: hidden;
+  border: 1px solid #dfe6df;
+  border-radius: 10px;
+  background: #fff;
+  color: #1f2a1f;
+  font-size: 15px;
+  line-height: 1.25;
+  box-shadow: 0 10px 24px rgba(15, 58, 43, 0.08);
+}
+
+.rose-variety-table th,
+.rose-variety-table td {
+  border: 0;
+  padding: 7px 10px;
+}
+
+.rose-variety-table th {
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: 0;
+  background: #f0f7f2;
+  color: #1f2a1f;
+}
+
+.rose-variety-table td {
+  min-height: 30px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+  width: 1%;
+  border-top: 1px solid #e8ece8;
+  background: #fff;
+}
+
+.rose-variety-table td + td {
+  border-left: 1px solid #e8ece8;
+}
+
+.rose-variety-table td:empty {
+  background: #fff;
+}
+
 .mix-price-fields {
   display: flex;
   flex-direction: column;
@@ -1109,6 +1174,30 @@ select {
 
   .desktop-table-wrap {
     display: none;
+  }
+
+  .rose-variety-grid-desktop {
+    display: none;
+  }
+
+  .rose-variety-grid-mobile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 4px;
+    padding: 0;
+  }
+
+  .rose-variety-table {
+    font-size: 14px;
+    border-radius: 12px;
+    max-width: 100%;
+  }
+
+  .rose-variety-table th {
+    font-size: 15px;
+    padding: 8px;
   }
 
   .price-matrix-tabs-desktop {

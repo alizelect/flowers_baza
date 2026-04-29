@@ -94,6 +94,40 @@ const FLOWER_FILTER_LABELS = {
     peony: '\u041f\u0438\u043e\u043d\u044b',
     tulip: '\u0422\u044e\u043b\u044c\u043f\u0430\u043d\u044b',
 };
+const ROSE_VARIETY_TABLES = [
+    {
+        title: 'РОЗЫ по 150',
+        columns: [
+            ['российская', 'Sophia Loren'],
+        ],
+    },
+    {
+        title: 'РОЗЫ по 200',
+        columns: [
+            ['Mandala'],
+        ],
+    },
+    {
+        title: 'РОЗЫ по 250',
+        columns: [
+            ['Nina', 'Candlelight', 'Sweet for love', 'Faith', 'Priority'],
+            ['Free spirit', 'Pink Mondial', 'Mondial', 'Shimmer'],
+        ],
+    },
+    {
+        title: 'РОЗЫ по 300',
+        columns: [
+            ['Explorer', 'Pink Floyd', 'Candy Expression', 'Pink Expression', 'Mandarin', 'Hermosa', "Pink O'Hara", "White O'Hara", 'Playa Blanca'],
+            ['Quicksand', 'Menta', 'Sweet Menta', "Queen's Crown", 'Country Blues', 'Be Sweet', 'Suave', 'Lilit'],
+        ],
+    },
+    {
+        title: 'РОЗЫ по 400',
+        columns: [
+            ['Veggie'],
+        ],
+    },
+];
 function getAllowedFlowerFilters(section) {
     return section === 'sezonnye' ? SEASONAL_FLOWER_FILTER_ORDER : PRIMARY_FLOWER_FILTER_ORDER;
 }
@@ -497,6 +531,12 @@ function compareFlowers(a, b) {
 }
 function matchesFlowerFilter(item, filter) {
     return filter === 'all' || getFlowerGroup(item) === filter;
+}
+function shouldShowRoseVarieties() {
+    return store.activeSection === 'osnovnye' && activeFlowerFilter.value === 'rose';
+}
+function getRoseVarietyRowCount(table) {
+    return Math.max(...table.columns.map((column) => column.length));
 }
 function isHiddenFlower(item) {
     const name = item.flowerName.trim();
@@ -2112,6 +2152,35 @@ else {
         });
         (__VLS_ctx.uiLabels.empty);
     }
+    if (__VLS_ctx.shouldShowRoseVarieties()) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "rose-variety-grid rose-variety-grid-desktop" },
+        });
+        for (const [table] of __VLS_getVForSourceType((__VLS_ctx.ROSE_VARIETY_TABLES))) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.table, __VLS_intrinsicElements.table)({
+                key: (table.title),
+                ...{ class: "rose-variety-table" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.thead, __VLS_intrinsicElements.thead)({});
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({});
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
+                colspan: (table.columns.length),
+            });
+            (table.title);
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.tbody, __VLS_intrinsicElements.tbody)({});
+            for (const [rowIndex] of __VLS_getVForSourceType((__VLS_ctx.getRoseVarietyRowCount(table)))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({
+                    key: (`${table.title}-${rowIndex}`),
+                });
+                for (const [column, columnIndex] of __VLS_getVForSourceType((table.columns))) {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
+                        key: (`${table.title}-${rowIndex}-${columnIndex}`),
+                    });
+                    (column[rowIndex - 1] || '');
+                }
+            }
+        }
+    }
 }
 if (__VLS_ctx.store.activeSection !== 'priceTables') {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -2711,6 +2780,35 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                         });
                     }
                 }
+                if (section.key === 'rose') {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                        ...{ class: "rose-variety-grid rose-variety-grid-mobile" },
+                    });
+                    for (const [table] of __VLS_getVForSourceType((__VLS_ctx.ROSE_VARIETY_TABLES))) {
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.table, __VLS_intrinsicElements.table)({
+                            key: (table.title),
+                            ...{ class: "rose-variety-table" },
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.thead, __VLS_intrinsicElements.thead)({});
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({});
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.th, __VLS_intrinsicElements.th)({
+                            colspan: (table.columns.length),
+                        });
+                        (table.title);
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.tbody, __VLS_intrinsicElements.tbody)({});
+                        for (const [rowIndex] of __VLS_getVForSourceType((__VLS_ctx.getRoseVarietyRowCount(table)))) {
+                            __VLS_asFunctionalElement(__VLS_intrinsicElements.tr, __VLS_intrinsicElements.tr)({
+                                key: (`${table.title}-${rowIndex}`),
+                            });
+                            for (const [column, columnIndex] of __VLS_getVForSourceType((table.columns))) {
+                                __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({
+                                    key: (`${table.title}-${rowIndex}-${columnIndex}`),
+                                });
+                                (column[rowIndex - 1] || '');
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -2879,6 +2977,9 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['row-actions']} */ ;
 /** @type {__VLS_StyleScopedClasses['danger']} */ ;
 /** @type {__VLS_StyleScopedClasses['empty']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid-desktop']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-table']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-cards']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-section']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-category-toggle']} */ ;
@@ -3007,6 +3108,9 @@ var __VLS_16;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-grid-mobile']} */ ;
+/** @type {__VLS_StyleScopedClasses['rose-variety-table']} */ ;
 /** @type {__VLS_StyleScopedClasses['empty']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-empty']} */ ;
 var __VLS_dollars;
@@ -3027,7 +3131,10 @@ const __VLS_self = (await import('vue')).defineComponent({
             mobilePriceMatrixPromo: mobilePriceMatrixPromo,
             POPULAR_SIZES_NOTE: POPULAR_SIZES_NOTE,
             uiLabels: uiLabels,
+            ROSE_VARIETY_TABLES: ROSE_VARIETY_TABLES,
             activeFlowerFilter: activeFlowerFilter,
+            shouldShowRoseVarieties: shouldShowRoseVarieties,
+            getRoseVarietyRowCount: getRoseVarietyRowCount,
             visibleRows: visibleRows,
             flowerFilterTabs: flowerFilterTabs,
             selectedPriceTableId: selectedPriceTableId,
