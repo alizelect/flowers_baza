@@ -1252,7 +1252,7 @@ function calcWithoutPromoForRow(item: FlowerItem, qty: number): number {
     {
       ...item,
       packagingPrice: getPackagingPrice(item, qty),
-      hasPistachio: pistachioLocked ? false : item.hasPistachio,
+      hasPistachio: !pistachioLocked,
       pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
       pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
     },
@@ -1269,7 +1269,7 @@ function calcWithPromoForRow(item: FlowerItem, qty: number): number {
     {
       ...item,
       packagingPrice: getPackagingPrice(item, qty),
-      hasPistachio: pistachioLocked ? false : item.hasPistachio,
+      hasPistachio: !pistachioLocked,
       pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
       pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
     },
@@ -1460,7 +1460,7 @@ function getFlowerCostLabel(item: FlowerItem, qty: number): string {
 }
 
 function getPistachioCostValue(item: FlowerItem, qty: number): number {
-  if (isPistachioLocked(item) || !item.hasPistachio) {
+  if (isPistachioLocked(item)) {
     return 0
   }
   return getPistachioQty(item, qty) * PISTACHIO_UNIT_PRICE
@@ -1469,9 +1469,6 @@ function getPistachioCostValue(item: FlowerItem, qty: number): number {
 function getPistachioLabel(item: FlowerItem, qty: number): string {
   if (isPistachioLocked(item)) {
     return '\u2014'
-  }
-  if (!item.hasPistachio) {
-    return '\u0432\u044b\u043a\u043b.'
   }
   const pistachioQty = getPistachioQty(item, qty)
   if (!pistachioQty) {
@@ -1491,7 +1488,7 @@ function getPromoPriceForPercent(item: FlowerItem, qty: number, discountPercent:
       discountPercent,
       isPromoEnabled: true,
       packagingPrice: getPackagingPrice(item, qty),
-      hasPistachio: pistachioLocked ? false : item.hasPistachio,
+      hasPistachio: !pistachioLocked,
       pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
       pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
     },
@@ -2057,7 +2054,9 @@ onBeforeUnmount(() => {
                 <template v-if="isPackagingHidden(item)">
                   <span class="promo-disabled-mark">-</span>
                 </template>
-                <span v-else-if="!hasQtySelection(item)" class="promo-disabled-mark">-</span>
+                <div v-else-if="!hasQtySelection(item)" class="currency-input-wrap">
+                  <input class="short-input center-input" disabled type="text" value="-" />
+                </div>
                 <div v-else class="currency-input-wrap">
                   <input
                     class="short-input center-input"
@@ -2071,12 +2070,10 @@ onBeforeUnmount(() => {
                 </div>
               </td>
               <td>
-                <div v-if="!isPistachioLocked(item)" class="pistachio-cell">
-                  <input
-                    type="checkbox"
-                    :checked="item.hasPistachio"
-                    @change="store.patchFlower(item.id, { hasPistachio: ($event.target as HTMLInputElement).checked })"
-                  />
+                <div v-if="isPistachioLocked(item) || !hasQtySelection(item)" class="currency-input-wrap pistachio-cell">
+                  <input class="short-input center-input" disabled type="text" value="-" />
+                </div>
+                <div v-else class="currency-input-wrap pistachio-cell">
                   <input
                     class="short-input center-input"
                     :disabled="!store.unlocked || usesAutoPistachioQty(item)"
@@ -2345,7 +2342,9 @@ onBeforeUnmount(() => {
                       <template v-if="isPackagingHidden(item)">
                         <span class="promo-disabled-mark">-</span>
                       </template>
-                      <strong v-else-if="!hasQtySelection(item)" class="promo-disabled-mark">-</strong>
+                      <div v-else-if="!hasQtySelection(item)" class="currency-input-wrap currency-input-wrap-mobile">
+                        <input class="short-input center-input mobile-input" disabled type="text" value="-" />
+                      </div>
                       <div v-else class="currency-input-wrap currency-input-wrap-mobile">
                         <input
                           class="short-input center-input mobile-input"
@@ -2364,17 +2363,17 @@ onBeforeUnmount(() => {
                     <div v-else class="mobile-field mobile-field-compact mobile-field-pistachio">
                       <div class="mobile-field-head mobile-field-head-inline">
                         <span class="mobile-label">{{ uiLabels.pistachio }}</span>
-                        <label class="mobile-checkbox mobile-checkbox-inline">
-                          <input
-                            type="checkbox"
-                            :checked="isPistachioLocked(item) ? false : item.hasPistachio"
-                            :disabled="isPistachioLocked(item)"
-                            @change="store.patchFlower(item.id, { hasPistachio: ($event.target as HTMLInputElement).checked })"
-                          />
-                        </label>
                       </div>
-                      <div class="pistachio-cell mobile-pistachio-cell">
+                      <div class="currency-input-wrap currency-input-wrap-mobile pistachio-cell mobile-pistachio-cell">
                         <input
+                          v-if="!hasQtySelection(item)"
+                          class="short-input center-input mobile-input"
+                          disabled
+                          type="text"
+                          value="-"
+                        />
+                        <input
+                          v-else
                           class="short-input center-input mobile-input"
                           :disabled="!store.unlocked || isPistachioLocked(item) || usesAutoPistachioQty(item)"
                           type="number"

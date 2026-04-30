@@ -1076,7 +1076,7 @@ function calcWithoutPromoForRow(item, qty) {
     return calcWithoutPromo({
         ...item,
         packagingPrice: getPackagingPrice(item, qty),
-        hasPistachio: pistachioLocked ? false : item.hasPistachio,
+        hasPistachio: !pistachioLocked,
         pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
         pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
     }, qty);
@@ -1089,7 +1089,7 @@ function calcWithPromoForRow(item, qty) {
     return calcWithPromo({
         ...item,
         packagingPrice: getPackagingPrice(item, qty),
-        hasPistachio: pistachioLocked ? false : item.hasPistachio,
+        hasPistachio: !pistachioLocked,
         pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
         pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
     }, qty);
@@ -1248,7 +1248,7 @@ function getFlowerCostLabel(item, qty) {
     return `${qty} x ${formatPrice(item.unitPrice)} = ${formatPriceWithRuble(getFlowerCostValue(item, qty))}`;
 }
 function getPistachioCostValue(item, qty) {
-    if (isPistachioLocked(item) || !item.hasPistachio) {
+    if (isPistachioLocked(item)) {
         return 0;
     }
     return getPistachioQty(item, qty) * PISTACHIO_UNIT_PRICE;
@@ -1256,9 +1256,6 @@ function getPistachioCostValue(item, qty) {
 function getPistachioLabel(item, qty) {
     if (isPistachioLocked(item)) {
         return '\u2014';
-    }
-    if (!item.hasPistachio) {
-        return '\u0432\u044b\u043a\u043b.';
     }
     const pistachioQty = getPistachioQty(item, qty);
     if (!pistachioQty) {
@@ -1276,7 +1273,7 @@ function getPromoPriceForPercent(item, qty, discountPercent) {
         discountPercent,
         isPromoEnabled: true,
         packagingPrice: getPackagingPrice(item, qty),
-        hasPistachio: pistachioLocked ? false : item.hasPistachio,
+        hasPistachio: !pistachioLocked,
         pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
         pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
     }, qty);
@@ -2248,8 +2245,14 @@ else {
             });
         }
         else if (!__VLS_ctx.hasQtySelection(item)) {
-            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                ...{ class: "promo-disabled-mark" },
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "currency-input-wrap" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                ...{ class: "short-input center-input" },
+                disabled: true,
+                type: "text",
+                value: "-",
             });
         }
         else {
@@ -2277,26 +2280,26 @@ else {
             });
         }
         __VLS_asFunctionalElement(__VLS_intrinsicElements.td, __VLS_intrinsicElements.td)({});
-        if (!__VLS_ctx.isPistachioLocked(item)) {
+        if (__VLS_ctx.isPistachioLocked(item) || !__VLS_ctx.hasQtySelection(item)) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                 ...{ class: "pistachio-cell" },
             });
             __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-                ...{ onChange: (...[$event]) => {
-                        if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
-                            return;
-                        if (!(!__VLS_ctx.isPistachioLocked(item)))
-                            return;
-                        __VLS_ctx.store.patchFlower(item.id, { hasPistachio: $event.target.checked });
-                    } },
-                type: "checkbox",
-                checked: (item.hasPistachio),
+                ...{ class: "short-input center-input" },
+                disabled: true,
+                type: "text",
+                value: "-",
+            });
+        }
+        else {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "pistachio-cell" },
             });
             __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
                 ...{ onInput: (...[$event]) => {
                         if (!!(__VLS_ctx.store.activeSection === 'priceTables'))
                             return;
-                        if (!(!__VLS_ctx.isPistachioLocked(item)))
+                        if (!!(__VLS_ctx.isPistachioLocked(item) || !__VLS_ctx.hasQtySelection(item)))
                             return;
                         __VLS_ctx.store.patchFlower(item.id, { pistachioQty: Number($event.target.value) || 0 });
                     } },
@@ -2962,8 +2965,14 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                         });
                     }
                     else if (!__VLS_ctx.hasQtySelection(item)) {
-                        __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({
-                            ...{ class: "promo-disabled-mark" },
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                            ...{ class: "currency-input-wrap currency-input-wrap-mobile" },
+                        });
+                        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                            ...{ class: "short-input center-input mobile-input" },
+                            disabled: true,
+                            type: "text",
+                            value: "-",
                         });
                     }
                     else {
@@ -3010,46 +3019,39 @@ if (__VLS_ctx.store.activeSection !== 'priceTables') {
                             ...{ class: "mobile-label" },
                         });
                         (__VLS_ctx.uiLabels.pistachio);
-                        __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
-                            ...{ class: "mobile-checkbox mobile-checkbox-inline" },
-                        });
-                        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-                            ...{ onChange: (...[$event]) => {
-                                    if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
-                                        return;
-                                    if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
-                                        return;
-                                    if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
-                                        return;
-                                    if (!!(__VLS_ctx.hidesMobilePistachio(item)))
-                                        return;
-                                    __VLS_ctx.store.patchFlower(item.id, { hasPistachio: $event.target.checked });
-                                } },
-                            type: "checkbox",
-                            checked: (__VLS_ctx.isPistachioLocked(item) ? false : item.hasPistachio),
-                            disabled: (__VLS_ctx.isPistachioLocked(item)),
-                        });
                         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                             ...{ class: "pistachio-cell mobile-pistachio-cell" },
                         });
-                        __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-                            ...{ onInput: (...[$event]) => {
-                                    if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
-                                        return;
-                                    if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
-                                        return;
-                                    if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
-                                        return;
-                                    if (!!(__VLS_ctx.hidesMobilePistachio(item)))
-                                        return;
-                                    __VLS_ctx.store.patchFlower(item.id, { pistachioQty: Number($event.target.value) || 0 });
-                                } },
-                            ...{ class: "short-input center-input mobile-input" },
-                            disabled: (!__VLS_ctx.store.unlocked || __VLS_ctx.isPistachioLocked(item) || __VLS_ctx.usesAutoPistachioQty(item)),
-                            type: "number",
-                            min: "0",
-                            value: (__VLS_ctx.isPistachioLocked(item) ? '' : __VLS_ctx.getPistachioQty(item, __VLS_ctx.getQty(item))),
-                        });
+                        if (!__VLS_ctx.hasQtySelection(item)) {
+                            __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                                ...{ class: "short-input center-input mobile-input" },
+                                disabled: true,
+                                type: "text",
+                                value: "-",
+                            });
+                        }
+                        else {
+                            __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
+                                ...{ onInput: (...[$event]) => {
+                                        if (!(__VLS_ctx.store.activeSection !== 'priceTables'))
+                                            return;
+                                        if (!(__VLS_ctx.mobileCardSections.some((section) => section.items.length)))
+                                            return;
+                                        if (!(!section.collapsible || __VLS_ctx.isMobileCategoryOpen(section.key)))
+                                            return;
+                                        if (!!(__VLS_ctx.hidesMobilePistachio(item)))
+                                            return;
+                                        if (!!(!__VLS_ctx.hasQtySelection(item)))
+                                            return;
+                                        __VLS_ctx.store.patchFlower(item.id, { pistachioQty: Number($event.target.value) || 0 });
+                                    } },
+                                ...{ class: "short-input center-input mobile-input" },
+                                disabled: (!__VLS_ctx.store.unlocked || __VLS_ctx.isPistachioLocked(item) || __VLS_ctx.usesAutoPistachioQty(item)),
+                                type: "number",
+                                min: "0",
+                                value: (__VLS_ctx.isPistachioLocked(item) ? '' : __VLS_ctx.getPistachioQty(item, __VLS_ctx.getQty(item))),
+                            });
+                        }
                     }
                 }
                 if (section.key === 'rose') {
@@ -3305,11 +3307,16 @@ var __VLS_17;
 /** @type {__VLS_StyleScopedClasses['currency-input-sign']} */ ;
 /** @type {__VLS_StyleScopedClasses['mix-price-qty']} */ ;
 /** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
-/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
+/** @type {__VLS_StyleScopedClasses['currency-input-wrap']} */ ;
+/** @type {__VLS_StyleScopedClasses['short-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['currency-input-wrap']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['currency-input-sign']} */ ;
+/** @type {__VLS_StyleScopedClasses['pistachio-cell']} */ ;
+/** @type {__VLS_StyleScopedClasses['short-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['pistachio-cell']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
@@ -3434,7 +3441,11 @@ var __VLS_17;
 /** @type {__VLS_StyleScopedClasses['mobile-field-compact']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
 /** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
-/** @type {__VLS_StyleScopedClasses['promo-disabled-mark']} */ ;
+/** @type {__VLS_StyleScopedClasses['currency-input-wrap']} */ ;
+/** @type {__VLS_StyleScopedClasses['currency-input-wrap-mobile']} */ ;
+/** @type {__VLS_StyleScopedClasses['short-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['currency-input-wrap']} */ ;
 /** @type {__VLS_StyleScopedClasses['currency-input-wrap-mobile']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
@@ -3451,10 +3462,11 @@ var __VLS_17;
 /** @type {__VLS_StyleScopedClasses['mobile-field-head']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-field-head-inline']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-label']} */ ;
-/** @type {__VLS_StyleScopedClasses['mobile-checkbox']} */ ;
-/** @type {__VLS_StyleScopedClasses['mobile-checkbox-inline']} */ ;
 /** @type {__VLS_StyleScopedClasses['pistachio-cell']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-pistachio-cell']} */ ;
+/** @type {__VLS_StyleScopedClasses['short-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['center-input']} */ ;
+/** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['short-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['center-input']} */ ;
 /** @type {__VLS_StyleScopedClasses['mobile-input']} */ ;
