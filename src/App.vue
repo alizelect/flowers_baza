@@ -2386,54 +2386,6 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
               </article>
-              <div v-if="section.key === 'rose'" class="rose-variety-grid rose-variety-grid-mobile">
-                <table v-for="table in ROSE_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
-                  <thead>
-                    <tr>
-                      <th :colspan="table.columns.length">{{ table.title }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
-                      <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
-                        {{ column[rowIndex - 1] || '' }}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div v-if="section.key === 'chryza'" class="rose-variety-grid rose-variety-grid-mobile chryza-variety-grid">
-                <table v-for="table in CHRYZA_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
-                  <thead>
-                    <tr>
-                      <th :colspan="table.columns.length">{{ table.title }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
-                      <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
-                        {{ column[rowIndex - 1] || '' }}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div v-if="section.key === 'peony'" class="rose-variety-grid rose-variety-grid-mobile">
-                <table v-for="table in PEONY_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
-                  <thead>
-                    <tr>
-                      <th :colspan="table.columns.length">{{ table.title }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
-                      <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
-                        {{ column[rowIndex - 1] || '' }}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
             </div>
           </section>
         </template>
