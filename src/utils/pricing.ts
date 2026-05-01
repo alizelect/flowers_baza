@@ -27,25 +27,7 @@ export function applyPromo15Rounding(rawPrice: number): number {
 }
 
 export function applyPromo10Rounding(rawPrice: number): number {
-  const nearestInt = Math.round(rawPrice)
-  const isInteger = Math.abs(rawPrice - nearestInt) < 1e-9
-
-  if (isInteger) {
-    const lastDigit = ((nearestInt % 10) + 10) % 10
-
-    if (lastDigit === 5) {
-      return Math.max(0, nearestInt)
-    }
-
-    if ([2, 3, 4, 6, 7, 8, 9].includes(lastDigit)) {
-      const lower = Math.floor(nearestInt / 5) * 5
-      const upper = lower + 5
-      const nearest = nearestInt - lower <= upper - nearestInt ? lower : upper
-      return Math.max(0, nearest)
-    }
-  }
-
-  return applyPromoRounding(rawPrice - 1)
+  return Math.max(0, rawPrice - 1)
 }
 
 export function calcWithPromo(item: FlowerItem, qty: number): number {
