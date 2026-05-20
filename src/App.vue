@@ -167,7 +167,7 @@ const CHRYZA_VARIETY_TABLES = [
 
 const PEONY_VARIETY_TABLES = [
   {
-    title: 'ПИОНЫ по 590',
+    title: 'ПИОНЫ',
     columns: [
       ['Coral Charm', 'Sarah Bernhardt'],
     ],
@@ -680,7 +680,7 @@ function getChryzaVarietyTable(item: FlowerItem): (typeof CHRYZA_VARIETY_TABLES)
 }
 
 function getPeonyVarietyTable(item: FlowerItem): (typeof PEONY_VARIETY_TABLES)[number] | null {
-  return item.flowerName.trim() === PEONY_VARIETY_TABLES[0].title ? PEONY_VARIETY_TABLES[0] : null
+  return item.flowerName.trim().startsWith('ПИОНЫ по ') ? PEONY_VARIETY_TABLES[0] : null
 }
 
 function getPriceMatrixVarietyTable(item: FlowerItem): (typeof ROSE_VARIETY_TABLES)[number] | (typeof CHRYZA_VARIETY_TABLES)[number] | (typeof PEONY_VARIETY_TABLES)[number] | null {
@@ -750,7 +750,7 @@ const PRICE_MATRIX_TAB_ROWS: Record<BaseSectionKey, readonly (readonly (string |
   ['АЛЬСТРОМЕРИИ', null, 'ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композ.'],
   ],
   sezonnye: [
-    ['ПИОНЫ по 590', 'ПИОНЫ по 690', 'ПИОНЫ по 790', null, 'ТЮЛЬПАНЫ по 220'],
+    ['ПИОНЫ по 490', 'ПИОНЫ по 590', 'ПИОНЫ по 690', 'ПИОНЫ по 790', null, 'ТЮЛЬПАНЫ по 220'],
   ],
 }
 
