@@ -167,9 +167,9 @@ const CHRYZA_VARIETY_TABLES = [
 
 const PEONY_VARIETY_TABLES = [
   {
-    title: 'ПИОНЫ',
+    title: 'ПИОНЫ по 490',
     columns: [
-      ['Coral Charm', 'Sarah Bernhardt'],
+      ['Лимонные'],
     ],
   },
 ] as const
@@ -581,12 +581,12 @@ const GYPSOPHILA_PACKAGING_BY_ODD = [
   1590,
 ]
 const TANACETUM_PACKAGING_BY_ODD = [
-  100, 120, 200, 260, 280, 300, 320, 440, 560, 580,
-  600, 620, 640, 660, 680, 700, 720, 740, 760, 780,
-  800, 820, 840, 860, 880, 900, 920, 940, 960, 980,
-  1000, 1020, 1040, 1060, 1080, 2000, 2020, 2040, 2060, 2080,
-  2100, 2120, 2140, 2160, 2180, 2200, 2220, 2240, 2260, 2280,
-  2300,
+  90, 150, 190, 190, 290, 290, 290, 390, 390, 390,
+  490, 490, 590, 590, 590, 690, 690, 790, 790, 790,
+  890, 890, 890, 990, 990, 990, 990, 990, 1090, 1090,
+  1090, 1090, 1090, 1090, 1190, 1190, 1190, 1190, 1190, 1290,
+  1290, 1290, 1290, 1390, 1390, 1390, 1390, 1490, 1490, 1490,
+  1590,
 ]
 const CHRYZA_BUSH_300_PACKAGING_BY_ODD = [
   190, 190, 290, 290, 290, 390, 390, 490, 490, 590,
@@ -680,7 +680,7 @@ function getChryzaVarietyTable(item: FlowerItem): (typeof CHRYZA_VARIETY_TABLES)
 }
 
 function getPeonyVarietyTable(item: FlowerItem): (typeof PEONY_VARIETY_TABLES)[number] | null {
-  return item.flowerName.trim().startsWith('ПИОНЫ по ') ? PEONY_VARIETY_TABLES[0] : null
+  return item.flowerName.trim() === PEONY_VARIETY_TABLES[0].title ? PEONY_VARIETY_TABLES[0] : null
 }
 
 function getPriceMatrixVarietyTable(item: FlowerItem): (typeof ROSE_VARIETY_TABLES)[number] | (typeof CHRYZA_VARIETY_TABLES)[number] | (typeof PEONY_VARIETY_TABLES)[number] | null {
