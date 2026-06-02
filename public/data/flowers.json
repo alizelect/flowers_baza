@@ -14,11 +14,11 @@
       "discountPercent": 10,
       "isPromoEnabled": true,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -34,11 +34,11 @@
       "discountPercent": 10,
       "isPromoEnabled": false,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -54,11 +54,11 @@
       "discountPercent": 10,
       "isPromoEnabled": false,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -74,11 +74,11 @@
       "discountPercent": 10,
       "isPromoEnabled": false,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -94,11 +94,11 @@
       "discountPercent": 10,
       "isPromoEnabled": false,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -114,11 +114,11 @@
       "discountPercent": 10,
       "isPromoEnabled": false,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -134,11 +134,11 @@
       "discountPercent": 15,
       "isPromoEnabled": true,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -154,11 +154,11 @@
       "discountPercent": 15,
       "isPromoEnabled": true,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -195,11 +195,11 @@
       "discountPercent": 10,
       "isPromoEnabled": false,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -215,11 +215,11 @@
       "discountPercent": 10,
       "isPromoEnabled": false,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -256,11 +256,11 @@
       "discountPercent": 10,
       "isPromoEnabled": false,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -295,7 +295,13 @@
       "pistachioUnitPrice": 80,
       "discountPercent": 10,
       "isPromoEnabled": true,
-      "popularSizes": []
+      "popularSizes": [
+        5,
+        7,
+        9,
+        11,
+        15
+      ]
     },
     {
       "id": "1490b8e1-1b36-4fb9-8e4d-490490490490",
@@ -310,11 +316,11 @@
       "discountPercent": 10,
       "isPromoEnabled": true,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -330,11 +336,11 @@
       "discountPercent": 10,
       "isPromoEnabled": true,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -350,11 +356,11 @@
       "discountPercent": 10,
       "isPromoEnabled": true,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -370,11 +376,11 @@
       "discountPercent": 10,
       "isPromoEnabled": true,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -390,11 +396,11 @@
       "discountPercent": 10,
       "isPromoEnabled": true,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
@@ -410,11 +416,11 @@
       "discountPercent": 10,
       "isPromoEnabled": false,
       "popularSizes": [
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ]
     },
     {
