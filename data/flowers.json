@@ -306,6 +306,20 @@
       ]
     },
     {
+      "id": "350b8e1a-0000-4fb9-8e4d-350350350350",
+      "section": "sezonnye",
+      "flowerName": "ПИОНЫ по 350",
+      "photoUrl": "",
+      "unitPrice": 350,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 80,
+      "discountPercent": 10,
+      "isPromoEnabled": true,
+      "popularSizes": []
+    },
+    {
       "id": "1490b8e1-1b36-4fb9-8e4d-490490490490",
       "section": "sezonnye",
       "flowerName": "ПИОНЫ по 490",
@@ -314,7 +328,7 @@
       "packagingPrice": 0,
       "hasPistachio": true,
       "pistachioQty": 0,
-      "pistachioUnitPrice": 40,
+      "pistachioUnitPrice": 80,
       "discountPercent": 10,
       "isPromoEnabled": true,
       "popularSizes": [

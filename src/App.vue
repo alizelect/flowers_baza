@@ -26,6 +26,7 @@ const isMobileViewport = ref(false)
 const mobilePriceMatrixPromo = ref<'10' | '15'>('10')
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1)
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1)
+const peonyOddOptions = Array.from({ length: 13 }, (_, i) => i * 2 + 1)
 const POPULAR_SIZES_NOTE = '*в столбце "Популярные размеры" указан диаметр коробок'
 const mobileOpenCategory = ref<string | null>(loadStoredMobileOpenCategories()[store.activeSection] ?? null)
 const CHRYZA_BUSH_220_ID = 'b3d0d1d2-4fd5-4a12-9ea8-220220220220'
@@ -167,9 +168,15 @@ const CHRYZA_VARIETY_TABLES = [
 
 const PEONY_VARIETY_TABLES = [
   {
+    title: 'ПИОНЫ по 350',
+    columns: [
+      ['белые', 'розовые'],
+    ],
+  },
+  {
     title: 'ПИОНЫ по 490',
     columns: [
-      ['Лимонные'],
+      ['Сара Бернар'],
     ],
   },
 ] as const
@@ -515,6 +522,25 @@ const HYDRANGEA_PACKAGING_BY_ODD = [
   4920,
 ]
 
+const PEONY_350_ID = '350b8e1a-0000-4fb9-8e4d-350350350350'
+const PEONY_490_ID = '1490b8e1-1b36-4fb9-8e4d-490490490490'
+
+const PEONY_350_PACKAGING_BY_ODD = [
+  140, 240, 240, 260, 360, 360, 480, 580, 580, 680, 700, 800, 800,
+]
+
+const PEONY_350_PISTACHIO_QTY_BY_ODD = [
+  0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3,
+]
+
+const PEONY_490_PISTACHIO_QTY_BY_ODD = [
+  0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3,
+]
+
+const PEONY_490_PACKAGING_BY_ODD = [
+  160, 220, 240, 380, 400, 420, 460, 580, 700, 720, 760, 880, 900,
+]
+
 const PEONY_PACKAGING_BY_ODD = [
   160, 220, 240, 380, 400, 420, 500, 620, 740, 760,
   840, 960, 980, 1000, 1080, 1100, 1120, 1140, 1220, 1340,
@@ -680,7 +706,7 @@ function getChryzaVarietyTable(item: FlowerItem): (typeof CHRYZA_VARIETY_TABLES)
 }
 
 function getPeonyVarietyTable(item: FlowerItem): (typeof PEONY_VARIETY_TABLES)[number] | null {
-  return item.flowerName.trim() === PEONY_VARIETY_TABLES[0].title ? PEONY_VARIETY_TABLES[0] : null
+  return PEONY_VARIETY_TABLES.find((table) => table.title === item.flowerName.trim()) ?? null
 }
 
 function getPriceMatrixVarietyTable(item: FlowerItem): (typeof ROSE_VARIETY_TABLES)[number] | (typeof CHRYZA_VARIETY_TABLES)[number] | (typeof PEONY_VARIETY_TABLES)[number] | null {
@@ -750,7 +776,7 @@ const PRICE_MATRIX_TAB_ROWS: Record<BaseSectionKey, readonly (readonly (string |
   ['АЛЬСТРОМЕРИИ', null, 'ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композ.'],
   ],
   sezonnye: [
-    ['ПИОНЫ по 490', 'ПИОНЫ по 590', 'ПИОНЫ по 690', 'ПИОНЫ по 790', null, 'ТЮЛЬПАНЫ по 220'],
+    ['ПИОНЫ по 350', 'ПИОНЫ по 490', 'ПИОНЫ по 590', 'ПИОНЫ по 690', 'ПИОНЫ по 790', null, 'ТЮЛЬПАНЫ по 220'],
   ],
 }
 
@@ -948,6 +974,7 @@ function getMinQty(item: FlowerItem): number {
 }
 
 function getMaxQty(item: FlowerItem): number {
+  if (isPeonies(item)) return 25
   return 101
 }
 
@@ -980,6 +1007,7 @@ function normalizeQty(item: FlowerItem, value: number): number {
 function getQtyOptions(item: FlowerItem): number[] {
   if (isGypsophilaComposition(item)) return item.popularSizes
   if (isCarnationMix(item)) return oddOptions.slice(1)
+  if (isPeonies(item)) return peonyOddOptions
   return isHydrangea(item) || isChryzaSingle(item) ? hydrangeaOddOptions : oddOptions
 }
 
@@ -1174,6 +1202,12 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
       getArrayValue(CARNATION_MIX_PISTACHIO_QTY_BY_ODD, idx),
     )
   }
+  if (item.id === PEONY_350_ID) {
+    return getArrayValue(PEONY_350_PACKAGING_BY_ODD, idx, item.packagingPrice)
+  }
+  if (item.id === PEONY_490_ID) {
+    return getArrayValue(PEONY_490_PACKAGING_BY_ODD, idx, item.packagingPrice)
+  }
   if (isPeonies(item)) {
     return getAdjustedPackagingPrice(
       getArrayValue(PEONY_PACKAGING_BY_ODD, idx, item.packagingPrice),
@@ -1233,6 +1267,12 @@ function getPistachioQty(item: FlowerItem, qty: number): number {
   }
   if (isAlstroemerii(item)) {
     return getAlstroemeriiPistachioQty(getArrayValue(ALSTROMERII_PISTACHIO_QTY_BY_ODD, idx), qty)
+  }
+  if (item.id === PEONY_350_ID) {
+    return getArrayValue(PEONY_350_PISTACHIO_QTY_BY_ODD, idx)
+  }
+  if (item.id === PEONY_490_ID) {
+    return getArrayValue(PEONY_490_PISTACHIO_QTY_BY_ODD, idx)
   }
   if (isPeonies(item)) {
     return getAdjustedPistachioQty(getArrayValue(PEONY_PISTACHIO_QTY_BY_ODD, idx))
