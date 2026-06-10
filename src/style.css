@@ -1739,7 +1739,7 @@ select {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin: 0 0 4px;
+  margin: 0 0 2px;
 }
 
 .rose-variety-chip {
