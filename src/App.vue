@@ -1648,7 +1648,7 @@ watch(activeFlowerFilter, (value) => {
 
 function onFlowerFilterChange(key: FlowerFilterKey): void {
   activeFlowerFilter.value = key
-  if (isMobileViewport.value && store.activeSection === 'sezonnye' && key !== 'all') {
+  if (isMobileViewport.value && key !== 'all') {
     mobileOpenCategory.value = key
   }
 }
