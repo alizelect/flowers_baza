@@ -26,7 +26,7 @@ const isMobileViewport = ref(false)
 const mobilePriceMatrixPromo = ref<'10' | '15'>('10')
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1)
 const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1)
-const peonyOddOptions = Array.from({ length: 13 }, (_, i) => i * 2 + 1)
+const peonyOddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1)
 const POPULAR_SIZES_NOTE = '*в столбце "Популярные размеры" указан диаметр коробок'
 const mobileOpenCategory = ref<string | null>(loadStoredMobileOpenCategories()[store.activeSection] ?? null)
 const CHRYZA_BUSH_220_ID = 'b3d0d1d2-4fd5-4a12-9ea8-220220220220'
@@ -337,12 +337,12 @@ const CHRYZA_SINGLE_PISTACHIO_QTY_BY_ODD = [
 ]
 
 const PEONY_PISTACHIO_QTY_BY_ODD = [
-  0, 0, 0, 2, 2, 2, 3, 3, 3, 3,
-  4, 4, 4, 4, 5, 5, 5, 5, 6, 6,
-  6, 6, 7, 7, 7, 7, 8, 8, 8, 8,
-  9, 9, 9, 9, 10, 10, 10, 10, 11, 11,
-  11, 11, 12, 12, 12, 12, 13, 13, 13, 13,
-  14,
+  0, 0, 0, 1, 1, 1, 2, 2, 2, 2,
+  3, 3, 3, 3, 4, 4, 4, 4, 5, 5,
+  5, 5, 5, 6, 6, 6, 6, 6, 7, 7,
+  7, 7, 7, 7, 8, 8, 8, 8, 8, 8,
+  8, 9, 9, 9, 9, 9, 9, 10, 10, 10,
+  10,
 ]
 
 const PISTACHIO_UNIT_PRICE = 80
@@ -494,28 +494,42 @@ const PEONY_350_ID = '350b8e1a-0000-4fb9-8e4d-350350350350'
 const PEONY_490_ID = '1490b8e1-1b36-4fb9-8e4d-490490490490'
 
 const PEONY_350_PACKAGING_BY_ODD = [
-  140, 240, 240, 260, 360, 360, 480, 580, 580, 680, 700, 800, 900,
+  140, 240, 240, 260, 360, 360, 480, 580, 580, 680,
+  700, 800, 800, 800, 820, 820, 820, 820, 860, 940,
+  940, 940, 940, 960, 960, 960, 960, 960, 980, 980,
+  980, 980, 980, 980, 1000, 1000, 1000, 1000, 1000, 1000,
+  1000, 1020, 1020, 1020, 1020, 1020, 1020, 1140, 1140, 1140,
+  1140,
 ]
 
 const PEONY_350_PISTACHIO_QTY_BY_ODD = [
-  0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3,
+  0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5,
+  5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8,
+  8, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10,
 ]
 
 const PEONY_490_PISTACHIO_QTY_BY_ODD = [
-  0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3,
+  0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5,
+  5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8,
+  8, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10,
 ]
 
 const PEONY_490_PACKAGING_BY_ODD = [
-  160, 220, 240, 380, 400, 420, 460, 580, 700, 720, 760, 880, 900,
+  100, 220, 240, 380, 400, 420, 460, 580, 700, 720,
+  760, 780, 800, 820, 760, 780, 800, 820, 860, 880,
+  900, 920, 940, 880, 900, 920, 940, 960, 900, 920,
+  940, 960, 980, 1000, 1040, 1060, 1080, 1000, 1020, 1040,
+  1060, 1100, 1120, 1040, 1060, 1080, 1100, 1140, 1160, 1180,
+  1200,
 ]
 
 const PEONY_PACKAGING_BY_ODD = [
-  160, 220, 240, 380, 400, 420, 500, 620, 740, 760,
-  840, 960, 980, 1000, 1080, 1100, 1120, 1140, 1220, 1340,
-  1360, 1380, 1460, 1480, 1500, 1520, 1500, 1520, 1540, 1560,
-  1640, 1660, 1680, 1700, 1780, 1800, 1820, 1840, 1820, 1840,
-  1860, 1880, 1860, 1880, 1900, 1920, 1900, 1920, 1940, 1960,
-  1940,
+  100, 220, 240, 380, 400, 420, 460, 580, 700, 720,
+  760, 780, 800, 820, 760, 780, 800, 820, 860, 880,
+  900, 920, 940, 880, 900, 920, 940, 960, 900, 920,
+  940, 960, 980, 1000, 1040, 1060, 1080, 1000, 1020, 1040,
+  1060, 1100, 1120, 1040, 1060, 1080, 1100, 1140, 1160, 1180,
+  1200,
 ]
 
 const TULIP_PACKAGING_BY_ODD = [
@@ -945,7 +959,7 @@ function getMinQty(item: FlowerItem): number {
 }
 
 function getMaxQty(item: FlowerItem): number {
-  if (isPeonies(item)) return 25
+  if (isPeonies(item)) return 101
   return 101
 }
 
@@ -1180,10 +1194,7 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
     return getArrayValue(PEONY_490_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
   if (isPeonies(item)) {
-    return getAdjustedPackagingPrice(
-      getArrayValue(PEONY_PACKAGING_BY_ODD, idx, item.packagingPrice),
-      getArrayValue(PEONY_PISTACHIO_QTY_BY_ODD, idx),
-    )
+    return getArrayValue(PEONY_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
   if (isHydrangea(item)) {
     return getAdjustedPackagingPrice(
@@ -1246,7 +1257,7 @@ function getPistachioQty(item: FlowerItem, qty: number): number {
     return getArrayValue(PEONY_490_PISTACHIO_QTY_BY_ODD, idx)
   }
   if (isPeonies(item)) {
-    return getAdjustedPistachioQty(getArrayValue(PEONY_PISTACHIO_QTY_BY_ODD, idx))
+    return getArrayValue(PEONY_PISTACHIO_QTY_BY_ODD, idx)
   }
   if (isHydrangea(item)) {
     return getAdjustedPistachioQty(getArrayValue(HYDRANGEA_PISTACHIO_QTY_BY_ODD, idx))
