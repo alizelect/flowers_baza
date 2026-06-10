@@ -732,6 +732,13 @@ const activePriceMatrixVarietyTable = computed(() => (
   activePriceTableGroup.value ? getPriceMatrixVarietyTable(activePriceTableGroup.value.item) : null
 ))
 
+const activePriceMatrixRoseVarieties = computed(() => {
+  if (!activePriceTableGroup.value) return null
+  const table = getRoseVarietyTable(activePriceTableGroup.value.item)
+  if (!table) return null
+  return (table.columns as readonly (readonly string[])[]).flatMap((col) => [...col]).join(', ')
+})
+
 const MOBILE_PRICE_MATRIX_CATEGORY_ORDER: MobilePriceMatrixCategoryKey[] = [
   'rose',
   'carnation',
@@ -1794,6 +1801,8 @@ onBeforeUnmount(() => {
             </button>
           </div>
         </div>
+
+        <p v-if="activePriceMatrixRoseVarieties" class="price-matrix-rose-varieties">{{ activePriceMatrixRoseVarieties }}</p>
 
         <div
           v-if="activePriceTableGroup"
