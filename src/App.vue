@@ -692,8 +692,8 @@ function getPeonyVarietyTable(item: FlowerItem): (typeof PEONY_VARIETY_TABLES)[n
   return PEONY_VARIETY_TABLES.find((table) => table.title === item.flowerName.trim()) ?? null
 }
 
-function getPriceMatrixVarietyTable(item: FlowerItem): (typeof CHRYZA_VARIETY_TABLES)[number] | (typeof PEONY_VARIETY_TABLES)[number] | null {
-  return getChryzaVarietyTable(item) ?? getPeonyVarietyTable(item)
+function getPriceMatrixVarietyTable(item: FlowerItem): (typeof CHRYZA_VARIETY_TABLES)[number] | null {
+  return getChryzaVarietyTable(item)
 }
 
 const visibleRows = computed(() => [...store.filteredBySection]
@@ -734,7 +734,7 @@ const activePriceMatrixVarietyTable = computed(() => (
 
 const activePriceMatrixRoseVarieties = computed(() => {
   if (!activePriceTableGroup.value) return null
-  const table = getRoseVarietyTable(activePriceTableGroup.value.item)
+  const table = getRoseVarietyTable(activePriceTableGroup.value.item) ?? getPeonyVarietyTable(activePriceTableGroup.value.item)
   if (!table) return null
   return (table.columns as readonly (readonly string[])[]).flatMap((col) => [...col])
 })
