@@ -1648,8 +1648,8 @@ watch(activeFlowerFilter, (value) => {
 
 function onFlowerFilterChange(key: FlowerFilterKey): void {
   activeFlowerFilter.value = key
-  if (isMobileViewport.value && key !== 'all') {
-    mobileOpenCategory.value = key
+  if (isMobileViewport.value) {
+    mobileOpenCategory.value = key !== 'all' ? key : null
   }
 }
 
