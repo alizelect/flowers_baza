@@ -1646,6 +1646,13 @@ watch(activeFlowerFilter, (value) => {
   window.localStorage.setItem(FLOWER_FILTER_STORAGE_KEY, JSON.stringify(stored))
 })
 
+function onFlowerFilterChange(key: FlowerFilterKey): void {
+  activeFlowerFilter.value = key
+  if (isMobileViewport.value && store.activeSection === 'sezonnye' && key !== 'all') {
+    mobileOpenCategory.value = key
+  }
+}
+
 watch([selectedPriceTableId, mobilePriceMatrixCategory, priceTableSection], ([selectedId, category, section]) => {
   if (typeof window === 'undefined') {
     return
@@ -1886,7 +1893,7 @@ onBeforeUnmount(() => {
             type="button"
             class="price-matrix-tab"
             :class="{ active: activeFlowerFilter === filterTab.key }"
-            @click="activeFlowerFilter = filterTab.key"
+            @click="onFlowerFilterChange(filterTab.key)"
           >
             {{ filterTab.label }}
           </button>

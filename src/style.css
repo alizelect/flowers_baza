@@ -1162,6 +1162,10 @@ select {
     padding-top: 0;
   }
 
+  .last-updated {
+    display: none;
+  }
+
   .sidebar-menu-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
