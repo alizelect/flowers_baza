@@ -692,8 +692,8 @@ function getPeonyVarietyTable(item: FlowerItem): (typeof PEONY_VARIETY_TABLES)[n
   return PEONY_VARIETY_TABLES.find((table) => table.title === item.flowerName.trim()) ?? null
 }
 
-function getPriceMatrixVarietyTable(item: FlowerItem): (typeof ROSE_VARIETY_TABLES)[number] | (typeof CHRYZA_VARIETY_TABLES)[number] | (typeof PEONY_VARIETY_TABLES)[number] | null {
-  return getRoseVarietyTable(item) ?? getChryzaVarietyTable(item) ?? getPeonyVarietyTable(item)
+function getPriceMatrixVarietyTable(item: FlowerItem): (typeof CHRYZA_VARIETY_TABLES)[number] | (typeof PEONY_VARIETY_TABLES)[number] | null {
+  return getChryzaVarietyTable(item) ?? getPeonyVarietyTable(item)
 }
 
 const visibleRows = computed(() => [...store.filteredBySection]
