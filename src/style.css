@@ -153,6 +153,10 @@ select {
   min-height: 0;
 }
 
+.table-wrap.desktop-table-wrap-fit {
+  overflow-x: hidden;
+}
+
 .mobile-cards {
   display: none;
 }
@@ -1797,6 +1801,10 @@ select {
 .price-matrix-table-wrap {
   width: 820px;
   max-width: 100%;
+}
+
+.table-wrap.price-matrix-table-wrap {
+  overflow-x: hidden;
 }
 
 .price-matrix-table {

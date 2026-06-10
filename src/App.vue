@@ -141,12 +141,6 @@ const ROSE_VARIETY_TABLES = [
 
 const CHRYZA_VARIETY_TABLES = [
   {
-    title: 'КУСТОВЫЕ по 220',
-    columns: [
-      ['Santini'],
-    ],
-  },
-  {
     title: 'КУСТОВЫЕ по 250',
     columns: [
       ['Kalimba', 'Altay'],
@@ -159,9 +153,9 @@ const CHRYZA_VARIETY_TABLES = [
     ],
   },
   {
-    title: 'ОДНОГОЛОВЫЕ по 290',
+    title: 'ОДНОГОЛОВЫЕ по 250',
     columns: [
-      ['Magnum', 'вся одноголовая'],
+      ['вся одноголовая'],
     ],
   },
 ] as const
@@ -170,7 +164,7 @@ const PEONY_VARIETY_TABLES = [
   {
     title: 'ПИОНЫ по 350',
     columns: [
-      ['белые', 'розовые', 'Сара Бернар'],
+      ['все пионы'],
     ],
   },
 ] as const
@@ -245,7 +239,7 @@ const MAIN_ORDER = [
   '\u0413\u0412\u041e\u0417\u0414\u0418\u041a\u0418 - \u043e\u0431\u044b\u0447\u043d\u044b\u0435',
   '\u0413\u0412\u041e\u0417\u0414\u0418\u041a\u0418 - \u043b\u0443\u043d\u043d\u044b\u0435',
   '\u0413\u0412\u041e\u0417\u0414\u0418\u041a\u0418 - \u043c\u0438\u043a\u0441',
-  '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 220',
+  '\u0421\u0410\u041d\u0422\u0418\u041d\u0418 \u043f\u043e 150',
   '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 250',
   '\u0425\u0420\u0418\u0417\u0410 - \u043a\u0443\u0441\u0442\u043e\u0432\u0430\u044f \u043f\u043e 300',
   '\u0425\u0420\u0418\u0417\u0410 - \u043e\u0434\u043d\u043e\u0433\u043e\u043b\u043e\u0432\u0430\u044f',
@@ -334,12 +328,12 @@ const HYDRANGEA_PISTACHIO_QTY_BY_ODD = [
 ]
 
 const CHRYZA_SINGLE_PISTACHIO_QTY_BY_ODD = [
-  0, 1, 2, 3, 3, 4, 4, 5, 5, 5,
-  6, 6, 6, 7, 7, 7, 8, 8, 8, 8,
-  8, 9, 9, 9, 9, 9, 10, 10, 10, 10,
-  10, 11, 11, 11, 11, 11, 12, 12, 12, 12,
-  12, 13, 13, 13, 13, 13, 14, 14, 14, 14,
-  14,
+  0, 1, 1, 1, 2, 2, 2, 2, 2, 3,
+  3, 3, 3, 3, 3, 4, 4, 4, 4, 4,
+  4, 4, 4, 4, 4, 5, 5, 5, 5, 5,
+  5, 5, 5, 5, 5, 5, 6, 6, 6, 6,
+  6, 6, 6, 6, 6, 6, 7, 7, 7, 7,
+  7,
 ]
 
 const PEONY_PISTACHIO_QTY_BY_ODD = [
@@ -427,32 +421,12 @@ function isChryzaSingleSpecialPistachioQty(qty: number): boolean {
   return normalizedQty === 7 || normalizedQty === 9
 }
 
-function getChryzaSinglePistachioQty(oldPistachioQty: number, qty: number): number {
-  if (isChryzaSingleSpecialPistachioQty(qty)) {
-    return 1
-  }
-  return getAdjustedPistachioQty(oldPistachioQty)
+function getChryzaSinglePistachioQty(oldPistachioQty: number, _qty: number): number {
+  return oldPistachioQty
 }
 
-function getChryzaSinglePackagingPrice(packagingPrice: number, oldPistachioQty: number, qty: number): number {
-  const normalizedQty = toOdd(qty)
-  const overridePrice = CHRYZA_SINGLE_PACKAGING_OVERRIDES[normalizedQty]
-  if (overridePrice !== undefined) {
-    return overridePrice
-  }
-  let adjustedPrice = getAdjustedPackagingPrice(packagingPrice, oldPistachioQty)
-  if (normalizedQty >= CHRYZA_SINGLE_PACKAGING_DISCOUNT_START) {
-    adjustedPrice = Math.max(0, adjustedPrice - CHRYZA_SINGLE_PACKAGING_DISCOUNT)
-  }
-  if (normalizedQty >= CHRYZA_SINGLE_EXTRA_PACKAGING_DISCOUNT_START) {
-    adjustedPrice = Math.max(0, adjustedPrice - CHRYZA_SINGLE_EXTRA_PACKAGING_DISCOUNT)
-  }
-  if (!isChryzaSingleSpecialPistachioQty(normalizedQty)) {
-    return adjustedPrice
-  }
-  const currentPistachioCost = getAdjustedPistachioQty(oldPistachioQty) * PISTACHIO_UNIT_PRICE
-  const nextPistachioCost = getChryzaSinglePistachioQty(oldPistachioQty, normalizedQty) * PISTACHIO_UNIT_PRICE
-  return Math.max(0, adjustedPrice + (currentPistachioCost - nextPistachioCost))
+function getChryzaSinglePackagingPrice(packagingPrice: number, _oldPistachioQty: number, _qty: number): number {
+  return packagingPrice
 }
 
 const ROSE_150_PACKAGING_BY_ODD = [
@@ -520,7 +494,7 @@ const PEONY_350_ID = '350b8e1a-0000-4fb9-8e4d-350350350350'
 const PEONY_490_ID = '1490b8e1-1b36-4fb9-8e4d-490490490490'
 
 const PEONY_350_PACKAGING_BY_ODD = [
-  140, 240, 240, 260, 360, 360, 480, 580, 580, 680, 700, 800, 800,
+  140, 240, 240, 260, 360, 360, 480, 580, 580, 680, 700, 800, 900,
 ]
 
 const PEONY_350_PISTACHIO_QTY_BY_ODD = [
@@ -554,12 +528,12 @@ const TULIP_PACKAGING_BY_ODD = [
 ]
 
 const CHRYZA_SINGLE_PACKAGING_BY_ODD = [
-  100, 180, 260, 340, 360, 440, 560, 640, 660, 680,
-  660, 680, 800, 880, 1000, 1020, 1000, 1020, 1040, 1060,
-  1080, 1160, 1180, 1200, 1220, 1240, 1220, 1240, 1260, 1280,
-  1300, 1380, 1300, 1320, 1340, 1360, 1340, 1360, 1380, 1400,
-  1420, 1400, 1420, 1440, 1460, 1480, 1560, 1580, 1600, 1620,
-  1640,
+  140, 160, 160, 160, 280, 280, 280, 380, 380, 400,
+  400, 500, 500, 600, 600, 720, 720, 720, 820, 820,
+  820, 920, 920, 920, 920, 1040, 1040, 1040, 1040, 1040,
+  1040, 1140, 1140, 1140, 1140, 1140, 1260, 1260, 1260, 1260,
+  1260, 1260, 1260, 1260, 1260, 1260, 1380, 1380, 1380, 1380,
+  1380,
 ]
 
 const CHRYZA_BUSH_250_PACKAGING_BY_ODD = [
@@ -571,12 +545,12 @@ const CHRYZA_BUSH_250_PACKAGING_BY_ODD = [
   1640,
 ]
 const CHRYZA_BUSH_220_PACKAGING_BY_ODD = [
-  130, 130, 190, 250, 210, 270, 330, 390, 350, 410,
-  470, 530, 590, 550, 610, 670, 630, 690, 650, 710,
-  670, 730, 790, 850, 910, 870, 930, 990, 950, 1010,
-  980, 1030, 1090, 1050, 1110, 1070, 1130, 1190, 1150, 1210,
-  1170, 1230, 1290, 1250, 1310, 1270, 1330, 1390, 1350, 1410,
-  1370,
+  100, 140, 140, 240, 240, 240, 340, 340, 340, 340,
+  440, 440, 440, 540, 540, 540, 540, 640, 640, 640,
+  640, 740, 740, 740, 740, 840, 840, 840, 840, 940,
+  940, 940, 940, 1040, 1040, 1040, 1040, 1140, 1140, 1140,
+  1140, 1240, 1240, 1240, 1240, 1340, 1340, 1340, 1340, 1440,
+  1440,
 ]
 const GYPSOPHILA_COMPOSITION_PACKAGING_BY_QTY: Record<number, number> = {
   1: 800,
@@ -685,16 +659,16 @@ function getRoseVarietyTable(item: FlowerItem): (typeof ROSE_VARIETY_TABLES)[num
 
 function getChryzaVarietyTable(item: FlowerItem): (typeof CHRYZA_VARIETY_TABLES)[number] | null {
   if (item.id === CHRYZA_BUSH_220_ID) {
-    return CHRYZA_VARIETY_TABLES[0]
+    return null
   }
   if (item.id === CHRYZA_BUSH_250_ID) {
-    return CHRYZA_VARIETY_TABLES[1]
+    return CHRYZA_VARIETY_TABLES[0]
   }
   if (item.id === CHRYZA_BUSH_300_ID) {
-    return CHRYZA_VARIETY_TABLES[2]
+    return CHRYZA_VARIETY_TABLES[1]
   }
   if (item.id === CHRYZA_SINGLE_ID) {
-    return CHRYZA_VARIETY_TABLES[3]
+    return CHRYZA_VARIETY_TABLES[2]
   }
   return null
 }
@@ -766,7 +740,7 @@ const mobilePriceMatrixCategory = ref<MobilePriceMatrixCategoryKey>(initialPrice
 const PRICE_MATRIX_TAB_ROWS: Record<BaseSectionKey, readonly (readonly (string | null)[])[]> = {
   osnovnye: [
   ['РОЗЫ по 150', 'РОЗЫ по 200', 'РОЗЫ по 250', 'РОЗЫ по 300', 'РОЗЫ по 400', null, 'ГВОЗДИКИ - обычные', 'ГВОЗДИКИ - лунные', 'ГВОЗДИКИ - микс'],
-  ['ХРИЗА - одноголовая', null, 'ХРИЗА - кустовая по 220', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ТАНАЦЕТУМ', null, 'ГОРТЕНЗИИ'],
+  ['ХРИЗА - одноголовая', null, 'САНТИНИ по 150', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ТАНАЦЕТУМ', null, 'ГОРТЕНЗИИ'],
   ['АЛЬСТРОМЕРИИ', null, 'ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композ.'],
   ],
   sezonnye: [
@@ -956,6 +930,9 @@ function isGroupStart(item: FlowerItem, index: number): boolean {
   const previous = visibleRows.value[index - 1]
   if (!previous) {
     return false
+  }
+  if (isChryzaBush220(previous) && isChryzaBush250(item)) {
+    return true
   }
   if (isChryzaBush300(previous) && isChryzaSingle(item)) {
     return true

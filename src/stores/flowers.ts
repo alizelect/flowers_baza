@@ -99,9 +99,9 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
     const bush220Item: FlowerItem = {
       id: CHRYZA_BUSH_220_ID,
       section: 'osnovnye',
-      flowerName: 'ХРИЗА - кустовая по 220',
+      flowerName: 'САНТИНИ по 150',
       photoUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
-      unitPrice: 220,
+      unitPrice: 150,
       packagingPrice: 0,
       hasPistachio: false,
       pistachioQty: 0,
