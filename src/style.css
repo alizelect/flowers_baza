@@ -82,9 +82,8 @@ select {
 
 .sidebar-submenu {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 2px;
-  padding: 4px 0 3px 6px;
+  padding: 2px 0 3px 12px;
 }
 
 .sidebar-submenu-btn {
@@ -1167,6 +1166,22 @@ select {
     display: none;
   }
 
+  .sidebar-submenu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 4px 0 3px 6px;
+  }
+
+  .price-matrix-variety {
+    display: none;
+  }
+
+  .price-matrix-rose-varieties {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 2px;
+  }
+
   .sidebar-menu-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1736,10 +1751,7 @@ select {
 }
 
 .price-matrix-rose-varieties {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 0 0 2px;
+  display: none;
 }
 
 .rose-variety-chip {
