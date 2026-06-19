@@ -17,6 +17,7 @@ import { fetchWikimediaImage, getPlaceholderImage } from '../utils/wikimedia'
 
 const LOCAL_STORAGE_KEY = 'flowers-baza-fallback'
 const ACTIVE_SECTION_KEY = 'flowers-baza-active-section'
+const GITHUB_TOKEN_KEY = 'flowers-baza-github-token'
 const PROJECT_JSON_PATH = `${import.meta.env.BASE_URL}data/flowers.json`
 const PROJECT_JSON_REFRESH_MS = 500
 const HYDRANGEA_ID = '49771275-f9ae-4bd3-9fe6-d42bda7b5dfd'
@@ -225,6 +226,39 @@ function buildDb(items: FlowerItem[]): FlowerDatabase {
   }
 }
 
+function loadGithubToken(): string {
+  if (typeof window === 'undefined') return ''
+  return localStorage.getItem(GITHUB_TOKEN_KEY) ?? ''
+}
+
+function toBase64Utf8(str: string): string {
+  const bytes = new TextEncoder().encode(str)
+  let binary = ''
+  bytes.forEach((b) => { binary += String.fromCharCode(b) })
+  return btoa(binary)
+}
+
+async function updateGithubFile(token: string, path: string, content: string, message: string): Promise<void> {
+  const apiUrl = `https://api.github.com/repos/alizelect/flowers_baza/contents/${path}`
+  const headers: Record<string, string> = {
+    Authorization: `token ${token}`,
+    'Content-Type': 'application/json',
+    Accept: 'application/vnd.github.v3+json',
+  }
+  const getRes = await fetch(apiUrl, { headers })
+  if (!getRes.ok) throw new Error(`Ошибка получения файла (${getRes.status})`)
+  const fileData = await getRes.json() as { sha: string }
+  const putRes = await fetch(apiUrl, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify({ message, content, sha: fileData.sha, branch: 'main' }),
+  })
+  if (!putRes.ok) {
+    const err = await putRes.json() as { message?: string }
+    throw new Error(err.message ?? `GitHub error ${putRes.status}`)
+  }
+}
+
 function errorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
     return error.message
@@ -252,6 +286,9 @@ export const useFlowersStore = defineStore('flowers', () => {
   const projectJsonPoller = ref<number>()
   const lastLoadedSignature = ref('')
   const isRefreshing = ref(false)
+  const githubToken = ref<string>(loadGithubToken())
+  const githubSaving = ref(false)
+  const githubSaveError = ref('')
 
   watch(activeSection, (value) => {
     localStorage.setItem(ACTIVE_SECTION_KEY, value)
@@ -261,6 +298,31 @@ export const useFlowersStore = defineStore('flowers', () => {
 
   function setUnlocked(value: boolean): void {
     unlocked.value = value
+  }
+
+  function setGithubToken(token: string): void {
+    githubToken.value = token
+    if (typeof window !== 'undefined') {
+      if (token) {
+        localStorage.setItem(GITHUB_TOKEN_KEY, token)
+      } else {
+        localStorage.removeItem(GITHUB_TOKEN_KEY)
+      }
+    }
+  }
+
+  async function saveToGithub(): Promise<void> {
+    if (!githubToken.value) throw new Error('GitHub token не задан')
+    const db = buildDb(flowers.value)
+    const content = toBase64Utf8(JSON.stringify(db, null, 2))
+    githubSaving.value = true
+    githubSaveError.value = ''
+    try {
+      await updateGithubFile(githubToken.value, 'public/data/flowers.json', content, 'update: edit via UI editor')
+      await updateGithubFile(githubToken.value, 'data/flowers.json', content, 'sync data/flowers.json')
+    } finally {
+      githubSaving.value = false
+    }
   }
 
   function markDirtyAutoSave(): void {
@@ -543,7 +605,12 @@ export const useFlowersStore = defineStore('flowers', () => {
     saveError,
     usingFallbackStorage,
     filteredBySection,
+    githubToken,
+    githubSaving,
+    githubSaveError,
     setUnlocked,
+    setGithubToken,
+    saveToGithub,
     bootstrap,
     chooseFile,
     dispose,

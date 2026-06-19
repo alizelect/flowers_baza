@@ -1601,6 +1601,349 @@ select {
 .desktop-inline-auth .auth-wrap {
   margin: 0;
 }
+
+/* ── GitHub token ── */
+.github-token-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.github-token-input {
+  width: 180px;
+  padding: 5px 8px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.github-token-btn {
+  padding: 5px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  background: #3a6a3a;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.github-token-btn:hover {
+  background: #2d542d;
+}
+
+.github-token-ok {
+  color: #3a6a3a;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* ── Mobile bottom auth ── */
+.mobile-auth-bottom {
+  display: none;
+  margin-top: 24px;
+  padding: 16px;
+  border-top: 1px solid #e0e0d0;
+  background: #fafaf7;
+  border-radius: 0 0 12px 12px;
+}
+
+.mobile-auth-unlocked {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-auth-status {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a6a3a;
+}
+
+@media (max-width: 760px) {
+  .mobile-auth-bottom {
+    display: block;
+  }
+
+  .github-token-input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .github-token-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .github-token-btn {
+    width: 100%;
+  }
+}
+
+/* ── Table editor button ── */
+.table-editor-btn {
+  background: #4a6fa5;
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.table-editor-btn:hover {
+  background: #3a5f95;
+}
+
+/* ── TableEditorModal ── */
+.te-overlay {
+  z-index: 200;
+}
+
+.te-dialog {
+  background: #fff;
+  border-radius: 14px;
+  width: min(96vw, 560px);
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+}
+
+.te-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #e8e8e0;
+  flex-shrink: 0;
+}
+
+.te-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.te-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #666;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.te-close:hover {
+  background: #f0f0ec;
+}
+
+.te-body {
+  flex: 1 1 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.te-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 8px;
+  flex-shrink: 0;
+}
+
+.te-hint {
+  font-size: 12px;
+  color: #888;
+}
+
+.te-btn-reset-all {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #c0b0a0;
+  background: #faf5f0;
+  color: #7a5030;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.te-btn-reset-all:hover {
+  background: #f0e8e0;
+}
+
+.te-scroll {
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.te-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.te-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f5f5f0;
+  text-align: center;
+  padding: 6px 8px;
+  border-bottom: 2px solid #ddd;
+  font-weight: 600;
+  z-index: 1;
+}
+
+.te-th-qty {
+  width: 52px;
+}
+
+.te-th-reset {
+  width: 32px;
+}
+
+.te-table tbody tr {
+  border-bottom: 1px solid #efefea;
+  transition: background 0.1s;
+}
+
+.te-table tbody tr:hover {
+  background: #fafaf5;
+}
+
+.te-row-overridden {
+  background: #fffbe8 !important;
+}
+
+.te-td-qty {
+  text-align: center;
+  font-weight: 600;
+  color: #555;
+  padding: 4px 8px;
+}
+
+.te-td-reset {
+  text-align: center;
+  width: 32px;
+  padding: 0 4px;
+}
+
+.te-input {
+  width: 76px;
+  padding: 4px 6px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 13px;
+  font-family: inherit;
+  text-align: center;
+  display: block;
+  margin: 3px auto;
+}
+
+.te-input:focus {
+  outline: none;
+  border-color: #7aaddd;
+  box-shadow: 0 0 0 2px rgba(100, 160, 220, 0.2);
+}
+
+.te-input-override {
+  border-color: #e0a020;
+  background: #fffbe8;
+  font-weight: 600;
+  color: #6b4400;
+}
+
+.te-row-reset-btn {
+  background: none;
+  border: none;
+  color: #b87040;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.te-row-reset-btn:hover {
+  background: #fff0e0;
+}
+
+.te-save-error {
+  padding: 8px 16px;
+  color: #c0392b;
+  font-size: 13px;
+  border-top: 1px solid #f0e0e0;
+  background: #fff8f7;
+}
+
+.te-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 10px 16px 14px;
+  border-top: 1px solid #e8e8e0;
+  flex-shrink: 0;
+}
+
+.te-btn-cancel {
+  padding: 7px 16px;
+  border-radius: 7px;
+  border: 1px solid #ccc;
+  background: #f5f5f0;
+  color: #444;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.te-btn-cancel:hover {
+  background: #ebebea;
+}
+
+.te-btn-save {
+  padding: 7px 18px;
+  border-radius: 7px;
+  border: none;
+  background: #3a6a3a;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.te-btn-save:hover:not(:disabled) {
+  background: #2d542d;
+}
+
+.te-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .te-overlay {
+    align-items: flex-end;
+    place-items: unset;
+    justify-items: stretch;
+  }
+
+  .te-dialog {
+    width: 100%;
+    max-height: 88dvh;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .te-input {
+    width: 64px;
+  }
+}
 .content > .toolbar {
   margin-bottom: 18px;
   min-height: 40px;

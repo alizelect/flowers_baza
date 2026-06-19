@@ -14,6 +14,8 @@ export interface FlowerItem {
   discountPercent: number
   isPromoEnabled: boolean
   popularSizes: number[]
+  packagingTable?: Record<number, number>
+  pistachioTable?: Record<number, number>
 }
 
 export interface FlowerDatabase {

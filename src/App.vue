@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import AuthGate from './components/AuthGate.vue'
 import FlowerEditorModal from './components/FlowerEditorModal.vue'
+import TableEditorModal from './components/TableEditorModal.vue'
 import SidebarMenu from './components/SidebarMenu.vue'
 import { useFlowersStore } from './stores/flowers'
 import type { FlowerItem, SectionKey } from './types'
@@ -15,6 +16,11 @@ const store = useFlowersStore()
 
 const editorOpen = ref(false)
 const editorItem = ref<FlowerItem>()
+const tableEditorOpen = ref(false)
+const tableEditorItem = ref<FlowerItem>()
+const tableEditorSaving = ref(false)
+const tableEditorSaveError = ref('')
+const githubTokenInput = ref(store.githubToken)
 const activeRowId = ref<string>('')
 
 const qtyMap = reactive<Record<string, number>>({})
@@ -1132,6 +1138,9 @@ function hasAutoPackagingByQty(item: FlowerItem): boolean {
   return isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose400(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isGypsophila(item) || isGypsophilaComposition(item) || isTanacetum(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 function getPackagingPrice(item: FlowerItem, qty: number): number {
+  if (item.packagingTable !== undefined && item.packagingTable[qty] !== undefined) {
+    return item.packagingTable[qty]
+  }
   if (!hasAutoPackagingByQty(item)) {
     return item.packagingPrice
   }
@@ -1248,6 +1257,9 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
 function getPistachioQty(item: FlowerItem, qty: number): number {
   if (isPistachioLocked(item)) {
     return 0
+  }
+  if (item.pistachioTable !== undefined && item.pistachioTable[qty] !== undefined) {
+    return item.pistachioTable[qty]
   }
   const idx = isCarnationMix(item) ? (toOdd(qty) - 3) / 2 : (toOdd(qty) - 1) / 2
   if (isRose150(item)) {
@@ -1662,6 +1674,57 @@ async function saveEditor(item: FlowerItem): Promise<void> {
   editorOpen.value = false
 }
 
+function getBasePackaging(item: FlowerItem, qty: number): number {
+  return getPackagingPrice({ ...item, packagingTable: undefined }, qty)
+}
+
+function getBasePistachio(item: FlowerItem, qty: number): number {
+  return getPistachioQty({ ...item, pistachioTable: undefined }, qty)
+}
+
+function getQtyOptionsForItem(item: FlowerItem): number[] {
+  return item.popularSizes.length
+    ? Array.from({ length: 51 }, (_, i) => i * 2 + 1)
+    : oddOptions
+}
+
+function openTableEditor(item: FlowerItem): void {
+  tableEditorItem.value = item
+  tableEditorSaveError.value = ''
+  tableEditorOpen.value = true
+}
+
+async function handleTableEditorSave(
+  packagingTable: Record<number, number>,
+  pistachioTable: Record<number, number>,
+): Promise<void> {
+  if (!tableEditorItem.value) return
+  const pkgPatch = Object.keys(packagingTable).length ? packagingTable : undefined
+  const pstPatch = Object.keys(pistachioTable).length ? pistachioTable : undefined
+  store.patchFlower(tableEditorItem.value.id, {
+    packagingTable: pkgPatch,
+    pistachioTable: pstPatch,
+  })
+  if (!store.githubToken) {
+    tableEditorSaveError.value = 'GitHub token не введён. Введите токен и повторите.'
+    return
+  }
+  tableEditorSaving.value = true
+  tableEditorSaveError.value = ''
+  try {
+    await store.saveToGithub()
+    tableEditorOpen.value = false
+  } catch (err) {
+    tableEditorSaveError.value = err instanceof Error ? err.message : 'Ошибка сохранения'
+  } finally {
+    tableEditorSaving.value = false
+  }
+}
+
+function saveGithubToken(): void {
+  store.setGithubToken(githubTokenInput.value.trim())
+}
+
 async function onChooseFile(): Promise<void> {
   await store.chooseFile()
 }
@@ -1763,6 +1826,17 @@ onBeforeUnmount(() => {
         <h1 class="toolbar-title">{{ uiLabels.title }}: {{ SECTION_LABELS[store.activeSection] }}</h1>
         <div class="toolbar-side">
           <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
+          <div v-if="store.unlocked" class="github-token-wrap desktop-inline-auth">
+            <input
+              v-model="githubTokenInput"
+              class="github-token-input"
+              type="password"
+              placeholder="GitHub token"
+              autocomplete="new-password"
+            />
+            <button type="button" class="github-token-btn" @click="saveGithubToken">Сохранить токен</button>
+            <span v-if="store.githubToken" class="github-token-ok" title="Токен сохранён">✓</span>
+          </div>
           <div class="toolbar-actions">
             <button v-if="store.unlocked" @click="onChooseFile">{{ uiLabels.chooseJson }}</button>
             <button v-if="store.unlocked && store.activeSection !== 'priceTables'" @click="openCreate">{{ uiLabels.addFlower }}</button>
@@ -2151,6 +2225,7 @@ onBeforeUnmount(() => {
                 <div class="row-actions">
                   <button :disabled="!store.unlocked" @click="openEdit(item)">{{ uiLabels.edit }}</button>
                   <button :disabled="!store.unlocked" class="danger" @click="store.deleteFlower(item.id)">{{ uiLabels.delete }}</button>
+                  <button v-if="hasAutoPackagingByQty(item)" :disabled="!store.unlocked" class="table-editor-btn" @click="openTableEditor(item)">Таблица</button>
                 </div>
               </td>
             </tr>
@@ -2238,6 +2313,7 @@ onBeforeUnmount(() => {
                   <div v-if="store.unlocked" class="mobile-card-actions">
                     <button type="button" @click="openEdit(item)">{{ uiLabels.edit }}</button>
                     <button type="button" class="danger" @click="store.deleteFlower(item.id)">{{ uiLabels.delete }}</button>
+                    <button v-if="hasAutoPackagingByQty(item)" type="button" class="table-editor-btn" @click="openTableEditor(item)">Таблица</button>
                   </div>
                 </div>
 
@@ -2505,6 +2581,24 @@ onBeforeUnmount(() => {
         </template>
 
         <div v-else class="empty mobile-empty">{{ uiLabels.empty }}</div>
+
+        <div class="mobile-auth-bottom">
+          <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
+          <div v-else class="mobile-auth-unlocked">
+            <span class="mobile-auth-status">✓ Редактор активен</span>
+            <div class="github-token-wrap">
+              <input
+                v-model="githubTokenInput"
+                class="github-token-input"
+                type="password"
+                placeholder="GitHub token"
+                autocomplete="new-password"
+              />
+              <button type="button" class="github-token-btn" @click="saveGithubToken">Сохранить</button>
+              <span v-if="store.githubToken" class="github-token-ok" title="Токен сохранён">✓</span>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
 
@@ -2515,6 +2609,19 @@ onBeforeUnmount(() => {
       :section="store.activeSection === 'priceTables' ? 'osnovnye' : store.activeSection"
       @close="editorOpen = false"
       @save="saveEditor"
+    />
+
+    <TableEditorModal
+      v-if="tableEditorItem"
+      v-model="tableEditorOpen"
+      :item="tableEditorItem"
+      :qty-options="oddOptions"
+      :compute-packaging="(qty) => getBasePackaging(tableEditorItem!, qty)"
+      :compute-pistachio="(qty) => getBasePistachio(tableEditorItem!, qty)"
+      :show-pistachio="!isPistachioLocked(tableEditorItem)"
+      :saving="tableEditorSaving"
+      :save-error="tableEditorSaveError"
+      @save="handleTableEditorSave"
     />
   </div>
 </template>
