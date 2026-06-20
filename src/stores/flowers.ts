@@ -355,9 +355,13 @@ export const useFlowersStore = defineStore('flowers', () => {
     lastLoadedSignature.value = getDbSignature(db)
   }
 
+  function projectJsonUrl(): string {
+    return `${PROJECT_JSON_PATH}?_=${Date.now()}`
+  }
+
   async function loadFromProjectJson(): Promise<boolean> {
     try {
-      const response = await fetch(PROJECT_JSON_PATH, { cache: 'no-store' })
+      const response = await fetch(projectJsonUrl(), { cache: 'no-store' })
       if (!response.ok) {
         return false
       }
@@ -377,7 +381,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     isRefreshing.value = true
     try {
       if (usingFallbackStorage.value && !handle.value) {
-        const response = await fetch(PROJECT_JSON_PATH, { cache: 'no-store' })
+        const response = await fetch(projectJsonUrl(), { cache: 'no-store' })
         if (!response.ok) {
           return
         }
