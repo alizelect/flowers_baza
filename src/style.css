@@ -2093,8 +2093,10 @@ select {
   display: none;
 }
 
-.price-matrix-rose-varieties {
-  display: none;
+@media (min-width: 761px) {
+  .price-matrix-rose-varieties {
+    display: none;
+  }
 }
 
 .rose-variety-chip {
