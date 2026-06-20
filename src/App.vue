@@ -756,7 +756,9 @@ const activePriceMatrixVarietyTable = computed(() => (
 
 const activePriceMatrixRoseVarieties = computed(() => {
   if (!activePriceTableGroup.value) return null
-  const table = getRoseVarietyTable(activePriceTableGroup.value.item) ?? getPeonyVarietyTable(activePriceTableGroup.value.item)
+  const table = getRoseVarietyTable(activePriceTableGroup.value.item)
+    ?? getChryzaVarietyTable(activePriceTableGroup.value.item)
+    ?? getPeonyVarietyTable(activePriceTableGroup.value.item)
   if (!table) return null
   return (table.columns as readonly (readonly string[])[]).flatMap((col) => [...col])
 })
