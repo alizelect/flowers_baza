@@ -1669,6 +1669,17 @@ async function onChooseFile(): Promise<void> {
   await store.chooseFile()
 }
 
+function downloadJson(): void {
+  const db = { updatedAt: new Date().toISOString(), items: store.flowers, varieties: store.varieties }
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'flowers.json'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 watch(activeFlowerFilter, (value) => {
   if (store.activeSection === 'priceTables' || typeof window === 'undefined') {
     return
@@ -1767,6 +1778,7 @@ onBeforeUnmount(() => {
         <div class="toolbar-side">
           <AuthGate v-if="editorEnabled && !store.unlocked" @unlocked="store.setUnlocked" />
           <div class="toolbar-actions">
+            <button v-if="store.unlocked" @click="downloadJson">⬇ Скачать JSON</button>
             <button v-if="store.unlocked" @click="onChooseFile">{{ uiLabels.chooseJson }}</button>
             <button v-if="store.unlocked && store.activeSection !== 'priceTables'" @click="openCreate">{{ uiLabels.addFlower }}</button>
           </div>
