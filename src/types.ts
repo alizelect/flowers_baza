@@ -18,9 +18,21 @@ export interface FlowerItem {
   pistachioTable?: Record<number, number>
 }
 
+export interface VarietyTable {
+  title: string
+  columns: string[][]
+}
+
+export interface VarietyData {
+  rose: VarietyTable[]
+  chryza: VarietyTable[]
+  peony: VarietyTable[]
+}
+
 export interface FlowerDatabase {
   updatedAt: string
   items: FlowerItem[]
+  varieties?: VarietyData
 }
 
 export const DEFAULT_SIZES = [7, 9, 11, 15, 25]

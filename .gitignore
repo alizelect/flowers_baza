@@ -7,3 +7,5 @@ dist
 .tools
 node.zip
 *.tsbuildinfo
+.env.local
+.env.*.local

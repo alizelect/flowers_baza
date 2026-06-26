@@ -5,7 +5,7 @@ import FlowerEditorModal from './components/FlowerEditorModal.vue'
 import TableEditorModal from './components/TableEditorModal.vue'
 import SidebarMenu from './components/SidebarMenu.vue'
 import { useFlowersStore } from './stores/flowers'
-import type { FlowerItem, SectionKey } from './types'
+import type { FlowerItem, SectionKey, VarietyTable } from './types'
 import { SECTION_LABELS } from './types'
 import { calcWithPromo, calcWithoutPromo, toOdd } from './utils/pricing'
 import resetIcon from './assets/reset-icon.png'
@@ -14,13 +14,13 @@ import { LAST_UPDATED } from './lastUpdated'
 const store = useFlowersStore()
 
 
+const editorEnabled = import.meta.env.VITE_EDITOR_ENABLED === 'true'
+
 const editorOpen = ref(false)
 const editorItem = ref<FlowerItem>()
 const tableEditorOpen = ref(false)
 const tableEditorItem = ref<FlowerItem>()
-const tableEditorSaving = ref(false)
 const tableEditorSaveError = ref('')
-const githubTokenInput = ref(store.githubToken)
 const activeRowId = ref<string>('')
 
 const qtyMap = reactive<Record<string, number>>({})
@@ -111,70 +111,9 @@ const FLOWER_FILTER_LABELS: Record<FlowerFilterKey, string> = {
   tulip: '\u0422\u044e\u043b\u044c\u043f\u0430\u043d\u044b',
 }
 
-const ROSE_VARIETY_TABLES = [
-  {
-    title: 'РОЗЫ по 150',
-    columns: [
-      ['российская', 'Sophia Loren'],
-    ],
-  },
-  {
-    title: 'РОЗЫ по 200',
-    columns: [
-      ['Mandala'],
-    ],
-  },
-  {
-    title: 'РОЗЫ по 250',
-    columns: [
-      ['Nina', 'Candlelight', 'Sweet for love', 'Faith', 'Priority'],
-      ['Free spirit', 'Pink Mondial', 'Mondial', 'Shimmer'],
-    ],
-  },
-  {
-    title: 'РОЗЫ по 300',
-    columns: [
-      ['Explorer', 'Pink Floyd', 'Candy Expression', 'Pink Expression', 'Mandarin', 'Hermosa', "Pink O'Hara", "White O'Hara", 'Playa Blanca'],
-      ['Quicksand', 'Menta', 'Sweet Menta', "Queen's Crown", 'Country Blues', 'Be Sweet', 'Suave', 'Lilit'],
-    ],
-  },
-  {
-    title: 'РОЗЫ по 400',
-    columns: [
-      ['Veggie'],
-    ],
-  },
-] as const
-
-const CHRYZA_VARIETY_TABLES = [
-  {
-    title: 'КУСТОВЫЕ по 250',
-    columns: [
-      ['Kalimba', 'Altay'],
-    ],
-  },
-  {
-    title: 'КУСТОВЫЕ по 300',
-    columns: [
-      ['Newton', 'Pastella Rose'],
-    ],
-  },
-  {
-    title: 'ОДНОГОЛОВЫЕ по 250',
-    columns: [
-      ['вся одноголовая'],
-    ],
-  },
-] as const
-
-const PEONY_VARIETY_TABLES = [
-  {
-    title: 'ПИОНЫ по 300',
-    columns: [
-      ['все пионы'],
-    ],
-  },
-] as const
+const ROSE_VARIETY_TABLES = computed(() => store.varieties?.rose ?? [])
+const CHRYZA_VARIETY_TABLES = computed(() => store.varieties?.chryza ?? [])
+const PEONY_VARIETY_TABLES = computed(() => store.varieties?.peony ?? [])
 
 function getAllowedFlowerFilters(section: SectionKey): FlowerFilterKey[] {
   return section === 'sezonnye' ? SEASONAL_FLOWER_FILTER_ORDER : PRIMARY_FLOWER_FILTER_ORDER
@@ -259,7 +198,6 @@ const MAIN_ORDER = [
 const MAIN_ORDER_INDEX = new Map(MAIN_ORDER.map((name, index) => [name, index]))
 
 function getMainOrderIndex(item: FlowerItem): number {
-  if (isCarnationMix(item)) return 5.5
   return MAIN_ORDER_INDEX.get(item.flowerName.trim()) ?? Number.MAX_SAFE_INTEGER
 }
 
@@ -683,38 +621,38 @@ function shouldShowPeonyVarieties(): boolean {
   return store.activeSection === 'sezonnye' && activeFlowerFilter.value === 'peony'
 }
 
-function getVarietyRowCount(table: (typeof ROSE_VARIETY_TABLES)[number] | (typeof CHRYZA_VARIETY_TABLES)[number] | (typeof PEONY_VARIETY_TABLES)[number]): number {
+function getVarietyRowCount(table: VarietyTable): number {
   return Math.max(...table.columns.map((column) => column.length))
 }
 
-function getRoseVarietyTable(item: FlowerItem): (typeof ROSE_VARIETY_TABLES)[number] | null {
+function getRoseVarietyTable(item: FlowerItem): VarietyTable | null {
   if (getFlowerGroup(item) !== 'rose') {
     return null
   }
-  return ROSE_VARIETY_TABLES.find((table) => table.title === item.flowerName.trim()) ?? null
+  return ROSE_VARIETY_TABLES.value.find((table) => table.title === item.flowerName.trim()) ?? null
 }
 
-function getChryzaVarietyTable(item: FlowerItem): (typeof CHRYZA_VARIETY_TABLES)[number] | null {
+function getChryzaVarietyTable(item: FlowerItem): VarietyTable | null {
   if (item.id === CHRYZA_BUSH_220_ID) {
     return null
   }
   if (item.id === CHRYZA_BUSH_250_ID) {
-    return CHRYZA_VARIETY_TABLES[0]
+    return CHRYZA_VARIETY_TABLES.value[0]
   }
   if (item.id === CHRYZA_BUSH_300_ID) {
-    return CHRYZA_VARIETY_TABLES[1]
+    return CHRYZA_VARIETY_TABLES.value[1]
   }
   if (item.id === CHRYZA_SINGLE_ID) {
-    return CHRYZA_VARIETY_TABLES[2]
+    return CHRYZA_VARIETY_TABLES.value[2]
   }
   return null
 }
 
-function getPeonyVarietyTable(item: FlowerItem): (typeof PEONY_VARIETY_TABLES)[number] | null {
-  return PEONY_VARIETY_TABLES.find((table) => table.title === item.flowerName.trim()) ?? null
+function getPeonyVarietyTable(item: FlowerItem): VarietyTable | null {
+  return PEONY_VARIETY_TABLES.value.find((table) => table.title === item.flowerName.trim()) ?? null
 }
 
-function getPriceMatrixVarietyTable(item: FlowerItem): (typeof ROSE_VARIETY_TABLES)[number] | (typeof CHRYZA_VARIETY_TABLES)[number] | (typeof PEONY_VARIETY_TABLES)[number] | null {
+function getPriceMatrixVarietyTable(item: FlowerItem): VarietyTable | null {
   return getRoseVarietyTable(item) ?? getChryzaVarietyTable(item) ?? getPeonyVarietyTable(item)
 }
 
@@ -1696,35 +1634,35 @@ function openTableEditor(item: FlowerItem): void {
   tableEditorOpen.value = true
 }
 
-async function handleTableEditorSave(
+const tableEditorSiblings = computed<FlowerItem[]>(() => {
+  if (!tableEditorItem.value) return []
+  const group = getFlowerGroup(tableEditorItem.value)
+  return store.flowers.filter(f => getFlowerGroup(f) === group && hasAutoPackagingByQty(f))
+})
+
+function switchTableEditorItem(item: FlowerItem): void {
+  tableEditorItem.value = item
+  tableEditorSaveError.value = ''
+}
+
+function handleTableEditorSave(
   packagingTable: Record<number, number>,
   pistachioTable: Record<number, number>,
-): Promise<void> {
+  flowerPrice: number,
+  pistachioPrice: number,
+  secondaryFlowerPrice: number | undefined,
+): void {
   if (!tableEditorItem.value) return
   const pkgPatch = Object.keys(packagingTable).length ? packagingTable : undefined
   const pstPatch = Object.keys(pistachioTable).length ? pistachioTable : undefined
   store.patchFlower(tableEditorItem.value.id, {
     packagingTable: pkgPatch,
     pistachioTable: pstPatch,
+    unitPrice: flowerPrice,
+    pistachioUnitPrice: pistachioPrice,
+    ...(secondaryFlowerPrice !== undefined && { secondaryUnitPrice: secondaryFlowerPrice }),
   })
-  if (!store.githubToken) {
-    tableEditorSaveError.value = 'GitHub token не введён. Введите токен и повторите.'
-    return
-  }
-  tableEditorSaving.value = true
-  tableEditorSaveError.value = ''
-  try {
-    await store.saveToGithub()
-    tableEditorOpen.value = false
-  } catch (err) {
-    tableEditorSaveError.value = err instanceof Error ? err.message : 'Ошибка сохранения'
-  } finally {
-    tableEditorSaving.value = false
-  }
-}
-
-function saveGithubToken(): void {
-  store.setGithubToken(githubTokenInput.value.trim())
+  tableEditorOpen.value = false
 }
 
 async function onChooseFile(): Promise<void> {
@@ -1827,18 +1765,7 @@ onBeforeUnmount(() => {
       <header class="toolbar">
         <h1 class="toolbar-title">{{ uiLabels.title }}: {{ SECTION_LABELS[store.activeSection] }}</h1>
         <div class="toolbar-side">
-          <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
-          <div v-if="store.unlocked" class="github-token-wrap desktop-inline-auth">
-            <input
-              v-model="githubTokenInput"
-              class="github-token-input"
-              type="password"
-              placeholder="GitHub token"
-              autocomplete="new-password"
-            />
-            <button type="button" class="github-token-btn" @click="saveGithubToken">Сохранить токен</button>
-            <span v-if="store.githubToken" class="github-token-ok" title="Токен сохранён">✓</span>
-          </div>
+          <AuthGate v-if="editorEnabled && !store.unlocked" @unlocked="store.setUnlocked" />
           <div class="toolbar-actions">
             <button v-if="store.unlocked" @click="onChooseFile">{{ uiLabels.chooseJson }}</button>
             <button v-if="store.unlocked && store.activeSection !== 'priceTables'" @click="openCreate">{{ uiLabels.addFlower }}</button>
@@ -2022,7 +1949,7 @@ onBeforeUnmount(() => {
             <col style="width: 11%" />
             <col style="width: 11%" />
             <col style="width: 11%" />
-            <col v-if="store.unlocked" style="width: 14%" />
+            <col v-if="store.unlocked" style="width: 20%; min-width: 210px" />
           </colgroup>
           <thead>
             <tr>
@@ -2238,7 +2165,7 @@ onBeforeUnmount(() => {
         </table>
       </div>
       <div v-if="shouldShowRoseVarieties()" class="rose-variety-grid rose-variety-grid-desktop">
-        <table v-for="table in ROSE_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+        <table v-for="(table, tableIdx) in ROSE_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
           <thead>
             <tr>
               <th :colspan="table.columns.length">{{ table.title }}</th>
@@ -2247,14 +2174,23 @@ onBeforeUnmount(() => {
           <tbody>
             <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
               <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
-                {{ column[rowIndex - 1] || '' }}
+                <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
+                <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
+                  <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('rose', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
+                  <button class="variety-remove-btn" type="button" @click="store.removeVarietyItem('rose', tableIdx, columnIndex, rowIndex - 1)">×</button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="store.unlocked">
+              <td v-for="(_, columnIndex) in table.columns" :key="`${table.title}-add-${columnIndex}`">
+                <button class="variety-add-btn" type="button" @click="store.addVarietyItem('rose', tableIdx, columnIndex)">+ добавить</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
       <div v-if="shouldShowChryzaVarieties()" class="rose-variety-grid rose-variety-grid-desktop chryza-variety-grid">
-        <table v-for="table in CHRYZA_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+        <table v-for="(table, tableIdx) in CHRYZA_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
           <thead>
             <tr>
               <th :colspan="table.columns.length">{{ table.title }}</th>
@@ -2263,14 +2199,23 @@ onBeforeUnmount(() => {
           <tbody>
             <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
               <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
-                {{ column[rowIndex - 1] || '' }}
+                <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
+                <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
+                  <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('chryza', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
+                  <button class="variety-remove-btn" type="button" @click="store.removeVarietyItem('chryza', tableIdx, columnIndex, rowIndex - 1)">×</button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="store.unlocked">
+              <td v-for="(_, columnIndex) in table.columns" :key="`${table.title}-add-${columnIndex}`">
+                <button class="variety-add-btn" type="button" @click="store.addVarietyItem('chryza', tableIdx, columnIndex)">+ добавить</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
       <div v-if="shouldShowPeonyVarieties()" class="rose-variety-grid rose-variety-grid-desktop">
-        <table v-for="table in PEONY_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+        <table v-for="(table, tableIdx) in PEONY_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
           <thead>
             <tr>
               <th :colspan="table.columns.length">{{ table.title }}</th>
@@ -2279,7 +2224,16 @@ onBeforeUnmount(() => {
           <tbody>
             <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
               <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
-                {{ column[rowIndex - 1] || '' }}
+                <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
+                <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
+                  <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('peony', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
+                  <button class="variety-remove-btn" type="button" @click="store.removeVarietyItem('peony', tableIdx, columnIndex, rowIndex - 1)">×</button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="store.unlocked">
+              <td v-for="(_, columnIndex) in table.columns" :key="`${table.title}-add-${columnIndex}`">
+                <button class="variety-add-btn" type="button" @click="store.addVarietyItem('peony', tableIdx, columnIndex)">+ добавить</button>
               </td>
             </tr>
           </tbody>
@@ -2530,7 +2484,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-if="(!section.collapsible || isMobileCategoryOpen(section.key)) && section.key === 'rose'" class="rose-variety-grid rose-variety-grid-mobile">
-              <table v-for="table in ROSE_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+              <table v-for="(table, tableIdx) in ROSE_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
                 <thead>
                   <tr>
                     <th :colspan="table.columns.length">{{ table.title }}</th>
@@ -2539,7 +2493,16 @@ onBeforeUnmount(() => {
                 <tbody>
                   <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`m-${table.title}-${rowIndex}`">
                     <td v-for="(column, columnIndex) in table.columns" :key="`m-${table.title}-${rowIndex}-${columnIndex}`">
-                      {{ column[rowIndex - 1] || '' }}
+                      <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
+                      <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
+                        <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('rose', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
+                        <button class="variety-remove-btn" type="button" @click="store.removeVarietyItem('rose', tableIdx, columnIndex, rowIndex - 1)">×</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="store.unlocked">
+                    <td v-for="(_, columnIndex) in table.columns" :key="`m-${table.title}-add-${columnIndex}`">
+                      <button class="variety-add-btn" type="button" @click="store.addVarietyItem('rose', tableIdx, columnIndex)">+ добавить</button>
                     </td>
                   </tr>
                 </tbody>
@@ -2547,7 +2510,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-if="(!section.collapsible || isMobileCategoryOpen(section.key)) && section.key === 'chryza'" class="rose-variety-grid rose-variety-grid-mobile chryza-variety-grid">
-              <table v-for="table in CHRYZA_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+              <table v-for="(table, tableIdx) in CHRYZA_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
                 <thead>
                   <tr>
                     <th :colspan="table.columns.length">{{ table.title }}</th>
@@ -2556,7 +2519,16 @@ onBeforeUnmount(() => {
                 <tbody>
                   <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`m-${table.title}-${rowIndex}`">
                     <td v-for="(column, columnIndex) in table.columns" :key="`m-${table.title}-${rowIndex}-${columnIndex}`">
-                      {{ column[rowIndex - 1] || '' }}
+                      <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
+                      <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
+                        <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('chryza', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
+                        <button class="variety-remove-btn" type="button" @click="store.removeVarietyItem('chryza', tableIdx, columnIndex, rowIndex - 1)">×</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="store.unlocked">
+                    <td v-for="(_, columnIndex) in table.columns" :key="`m-${table.title}-add-${columnIndex}`">
+                      <button class="variety-add-btn" type="button" @click="store.addVarietyItem('chryza', tableIdx, columnIndex)">+ добавить</button>
                     </td>
                   </tr>
                 </tbody>
@@ -2564,7 +2536,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-if="(!section.collapsible || isMobileCategoryOpen(section.key)) && section.key === 'peony'" class="rose-variety-grid rose-variety-grid-mobile">
-              <table v-for="table in PEONY_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+              <table v-for="(table, tableIdx) in PEONY_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
                 <thead>
                   <tr>
                     <th :colspan="table.columns.length">{{ table.title }}</th>
@@ -2573,7 +2545,16 @@ onBeforeUnmount(() => {
                 <tbody>
                   <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`m-${table.title}-${rowIndex}`">
                     <td v-for="(column, columnIndex) in table.columns" :key="`m-${table.title}-${rowIndex}-${columnIndex}`">
-                      {{ column[rowIndex - 1] || '' }}
+                      <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
+                      <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
+                        <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('peony', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
+                        <button class="variety-remove-btn" type="button" @click="store.removeVarietyItem('peony', tableIdx, columnIndex, rowIndex - 1)">×</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="store.unlocked">
+                    <td v-for="(_, columnIndex) in table.columns" :key="`m-${table.title}-add-${columnIndex}`">
+                      <button class="variety-add-btn" type="button" @click="store.addVarietyItem('peony', tableIdx, columnIndex)">+ добавить</button>
                     </td>
                   </tr>
                 </tbody>
@@ -2585,20 +2566,9 @@ onBeforeUnmount(() => {
         <div v-else class="empty mobile-empty">{{ uiLabels.empty }}</div>
 
         <div class="mobile-auth-bottom">
-          <AuthGate v-if="!store.unlocked" @unlocked="store.setUnlocked" />
-          <div v-else class="mobile-auth-unlocked">
+          <AuthGate v-if="editorEnabled && !store.unlocked" @unlocked="store.setUnlocked" />
+          <div v-if="store.unlocked" class="mobile-auth-unlocked">
             <span class="mobile-auth-status">✓ Редактор активен</span>
-            <div class="github-token-wrap">
-              <input
-                v-model="githubTokenInput"
-                class="github-token-input"
-                type="password"
-                placeholder="GitHub token"
-                autocomplete="new-password"
-              />
-              <button type="button" class="github-token-btn" @click="saveGithubToken">Сохранить</button>
-              <span v-if="store.githubToken" class="github-token-ok" title="Токен сохранён">✓</span>
-            </div>
           </div>
         </div>
       </div>
@@ -2617,13 +2587,15 @@ onBeforeUnmount(() => {
       v-if="tableEditorItem"
       v-model="tableEditorOpen"
       :item="tableEditorItem"
+      :sibling-items="tableEditorSiblings"
       :qty-options="oddOptions"
       :compute-packaging="(qty) => getBasePackaging(tableEditorItem!, qty)"
       :compute-pistachio="(qty) => getBasePistachio(tableEditorItem!, qty)"
+      :compute-sibling-packaging="(item, qty) => getBasePackaging(item, qty)"
       :show-pistachio="!isPistachioLocked(tableEditorItem)"
-      :saving="tableEditorSaving"
       :save-error="tableEditorSaveError"
       @save="handleTableEditorSave"
+      @switch-item="switchTableEditorItem"
     />
   </div>
 </template>

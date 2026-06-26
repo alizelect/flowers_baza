@@ -1,6 +1,6 @@
-﻿import { defineStore } from 'pinia'
+﻿import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import type { FlowerDatabase, FlowerItem, SectionKey } from '../types'
+import type { FlowerDatabase, FlowerItem, SectionKey, VarietyData, VarietyTable } from '../types'
 import {
   clearStoredHandle,
   ensureReadPermission,
@@ -17,7 +17,6 @@ import { fetchWikimediaImage, getPlaceholderImage } from '../utils/wikimedia'
 
 const LOCAL_STORAGE_KEY = 'flowers-baza-fallback'
 const ACTIVE_SECTION_KEY = 'flowers-baza-active-section'
-const GITHUB_TOKEN_KEY = 'flowers-baza-github-token'
 const PROJECT_JSON_PATH = `${import.meta.env.BASE_URL}data/flowers.json`
 const PROJECT_JSON_REFRESH_MS = 500
 const HYDRANGEA_ID = '49771275-f9ae-4bd3-9fe6-d42bda7b5dfd'
@@ -210,7 +209,7 @@ function normalizeItem(item: FlowerItem): FlowerItem {
     flowerName: normalizedFlowerName,
     popularSizes,
     unitPrice: Number(item.unitPrice) || 0,
-    secondaryUnitPrice: Number(item.secondaryUnitPrice) || 0,
+    secondaryUnitPrice: item.secondaryUnitPrice !== undefined ? Number(item.secondaryUnitPrice) : undefined,
     packagingPrice: Number(item.packagingPrice) || 0,
     pistachioQty: Number(item.pistachioQty) || 0,
     pistachioUnitPrice: 80,
@@ -219,45 +218,14 @@ function normalizeItem(item: FlowerItem): FlowerItem {
   }
 }
 
-function buildDb(items: FlowerItem[]): FlowerDatabase {
+function buildDb(items: FlowerItem[], varieties: VarietyData): FlowerDatabase {
   return {
     updatedAt: new Date().toISOString(),
     items: ensureRequiredItems(items),
+    varieties,
   }
 }
 
-function loadGithubToken(): string {
-  if (typeof window === 'undefined') return ''
-  return localStorage.getItem(GITHUB_TOKEN_KEY) ?? ''
-}
-
-function toBase64Utf8(str: string): string {
-  const bytes = new TextEncoder().encode(str)
-  let binary = ''
-  bytes.forEach((b) => { binary += String.fromCharCode(b) })
-  return btoa(binary)
-}
-
-async function updateGithubFile(token: string, path: string, content: string, message: string): Promise<void> {
-  const apiUrl = `https://api.github.com/repos/alizelect/flowers_baza/contents/${path}`
-  const headers: Record<string, string> = {
-    Authorization: `token ${token}`,
-    'Content-Type': 'application/json',
-    Accept: 'application/vnd.github.v3+json',
-  }
-  const getRes = await fetch(apiUrl, { headers })
-  if (!getRes.ok) throw new Error(`Ошибка получения файла (${getRes.status})`)
-  const fileData = await getRes.json() as { sha: string }
-  const putRes = await fetch(apiUrl, {
-    method: 'PUT',
-    headers,
-    body: JSON.stringify({ message, content, sha: fileData.sha, branch: 'main' }),
-  })
-  if (!putRes.ok) {
-    const err = await putRes.json() as { message?: string }
-    throw new Error(err.message ?? `GitHub error ${putRes.status}`)
-  }
-}
 
 function errorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
@@ -270,11 +238,41 @@ function getDbSignature(db: FlowerDatabase): string {
   return JSON.stringify({
     updatedAt: db.updatedAt ?? null,
     items: db.items ?? [],
+    varieties: db.varieties ?? null,
   })
 }
 
+const DEFAULT_VARIETIES: VarietyData = {
+  rose: [
+    { title: 'РОЗЫ по 150', columns: [['российская', 'Sophia Loren']] },
+    { title: 'РОЗЫ по 200', columns: [['Mandala']] },
+    { title: 'РОЗЫ по 250', columns: [['Nina', 'Candlelight', 'Sweet for love', 'Faith', 'Priority'], ['Free spirit', 'Pink Mondial', 'Mondial', 'Shimmer']] },
+    { title: 'РОЗЫ по 300', columns: [['Explorer', 'Pink Floyd', 'Candy Expression', 'Pink Expression', 'Mandarin', 'Hermosa', "Pink O'Hara", "White O'Hara", 'Playa Blanca'], ['Quicksand', 'Menta', 'Sweet Menta', "Queen's Crown", 'Country Blues', 'Be Sweet', 'Suave', 'Lilit']] },
+    { title: 'РОЗЫ по 400', columns: [['Veggie']] },
+  ],
+  chryza: [
+    { title: 'КУСТОВЫЕ по 250', columns: [['Kalimba', 'Altay']] },
+    { title: 'КУСТОВЫЕ по 300', columns: [['Newton', 'Pastella Rose']] },
+    { title: 'ОДНОГОЛОВЫЕ по 250', columns: [['вся одноголовая']] },
+  ],
+  peony: [
+    { title: 'ПИОНЫ по 300', columns: [['все пионы']] },
+  ],
+}
+
+function cloneVarieties(v: VarietyData): VarietyData {
+  return {
+    rose: v.rose.map((t) => ({ title: t.title, columns: t.columns.map((c) => [...c]) })),
+    chryza: v.chryza.map((t) => ({ title: t.title, columns: t.columns.map((c) => [...c]) })),
+    peony: v.peony.map((t) => ({ title: t.title, columns: t.columns.map((c) => [...c]) })),
+  }
+}
+
+export type { VarietyTable }
+
 export const useFlowersStore = defineStore('flowers', () => {
   const flowers = ref<FlowerItem[]>([])
+  const varieties = ref<VarietyData>(cloneVarieties(DEFAULT_VARIETIES))
   const activeSection = ref<SectionKey>(loadActiveSection())
   const unlocked = ref(false)
   const fileName = ref('')
@@ -286,9 +284,6 @@ export const useFlowersStore = defineStore('flowers', () => {
   const projectJsonPoller = ref<number>()
   const lastLoadedSignature = ref('')
   const isRefreshing = ref(false)
-  const githubToken = ref<string>(loadGithubToken())
-  const githubSaving = ref(false)
-  const githubSaveError = ref('')
 
   watch(activeSection, (value) => {
     localStorage.setItem(ACTIVE_SECTION_KEY, value)
@@ -298,31 +293,6 @@ export const useFlowersStore = defineStore('flowers', () => {
 
   function setUnlocked(value: boolean): void {
     unlocked.value = value
-  }
-
-  function setGithubToken(token: string): void {
-    githubToken.value = token
-    if (typeof window !== 'undefined') {
-      if (token) {
-        localStorage.setItem(GITHUB_TOKEN_KEY, token)
-      } else {
-        localStorage.removeItem(GITHUB_TOKEN_KEY)
-      }
-    }
-  }
-
-  async function saveToGithub(): Promise<void> {
-    if (!githubToken.value) throw new Error('GitHub token не задан')
-    const db = buildDb(flowers.value)
-    const content = toBase64Utf8(JSON.stringify(db, null, 2))
-    githubSaving.value = true
-    githubSaveError.value = ''
-    try {
-      await updateGithubFile(githubToken.value, 'public/data/flowers.json', content, 'update: edit via UI editor')
-      await updateGithubFile(githubToken.value, 'data/flowers.json', content, 'sync data/flowers.json')
-    } finally {
-      githubSaving.value = false
-    }
   }
 
   function markDirtyAutoSave(): void {
@@ -344,12 +314,14 @@ export const useFlowersStore = defineStore('flowers', () => {
     }
     const parsed = JSON.parse(raw) as FlowerDatabase
     flowers.value = ensureRequiredItems(parsed.items || []).map(normalizeItem)
+    varieties.value = parsed.varieties ? cloneVarieties(parsed.varieties) : cloneVarieties(DEFAULT_VARIETIES)
     fileName.value = 'localStorage'
     lastLoadedSignature.value = getDbSignature(parsed)
   }
 
   async function applyDatabase(db: FlowerDatabase, nextFileName: string): Promise<void> {
     flowers.value = ensureRequiredItems(db.items || []).map(normalizeItem)
+    varieties.value = db.varieties ? cloneVarieties(db.varieties) : cloneVarieties(DEFAULT_VARIETIES)
     fileName.value = nextFileName
     saveError.value = ''
     lastLoadedSignature.value = getDbSignature(db)
@@ -450,7 +422,23 @@ export const useFlowersStore = defineStore('flowers', () => {
   }
 
   async function saveToFallback(): Promise<void> {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(buildDb(flowers.value)))
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(buildDb(flowers.value, varieties.value)))
+  }
+
+  async function loadFallbackOrProjectJson(): Promise<void> {
+    if (hasFallbackData()) {
+      await loadFromFallback()
+      // Sync flowers.json signature so the poller doesn't reset user's data
+      try {
+        const resp = await fetch(projectJsonUrl(), { cache: 'no-store' })
+        if (resp.ok) {
+          const db = (await resp.json()) as FlowerDatabase
+          lastLoadedSignature.value = getDbSignature(db)
+        }
+      } catch {}
+    } else {
+      await loadFromProjectJson()
+    }
   }
 
   async function chooseFile(): Promise<void> {
@@ -497,10 +485,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     try {
       if (!isFileSystemApiAvailable()) {
         usingFallbackStorage.value = true
-        const loaded = await loadFromProjectJson()
-        if (!loaded && hasFallbackData()) {
-          await loadFromFallback()
-        }
+        await loadFallbackOrProjectJson()
         startProjectJsonPolling()
         return
       }
@@ -508,10 +493,7 @@ export const useFlowersStore = defineStore('flowers', () => {
       const stored = await loadStoredHandle()
       if (!stored) {
         usingFallbackStorage.value = true
-        const loaded = await loadFromProjectJson()
-        if (!loaded && hasFallbackData()) {
-          await loadFromFallback()
-        }
+        await loadFallbackOrProjectJson()
         startProjectJsonPolling()
         return
       }
@@ -521,10 +503,7 @@ export const useFlowersStore = defineStore('flowers', () => {
       if (!canRead || !canWrite) {
         await clearStoredHandle()
         usingFallbackStorage.value = true
-        const loaded = await loadFromProjectJson()
-        if (!loaded && hasFallbackData()) {
-          await loadFromFallback()
-        }
+        await loadFallbackOrProjectJson()
         startProjectJsonPolling()
         return
       }
@@ -538,10 +517,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     } catch (error) {
       saveError.value = `Ошибка загрузки: ${errorMessage(error)}`
       await clearStoredHandle()
-      const loaded = await loadFromProjectJson()
-      if (!loaded) {
-        await loadFromFallback()
-      }
+      await loadFallbackOrProjectJson()
       startProjectJsonPolling()
     } finally {
       loading.value = false
@@ -552,17 +528,30 @@ export const useFlowersStore = defineStore('flowers', () => {
     saveError.value = ''
     try {
       if (usingFallbackStorage.value || !handle.value) {
-        const db = buildDb(flowers.value)
         await saveToFallback()
-        lastLoadedSignature.value = getDbSignature(db)
         return
       }
-      const db = buildDb(flowers.value)
+      const db = buildDb(flowers.value, varieties.value)
       await writeJsonFile(handle.value, db)
       lastLoadedSignature.value = getDbSignature(db)
     } catch {
       saveError.value = 'Ошибка автосохранения. Выберите JSON-файл заново.'
     }
+  }
+
+  function setVarietyItem(type: keyof VarietyData, tableIdx: number, colIdx: number, rowIdx: number, value: string): void {
+    varieties.value[type][tableIdx].columns[colIdx][rowIdx] = value
+    markDirtyAutoSave()
+  }
+
+  function addVarietyItem(type: keyof VarietyData, tableIdx: number, colIdx: number): void {
+    varieties.value[type][tableIdx].columns[colIdx].push('')
+    markDirtyAutoSave()
+  }
+
+  function removeVarietyItem(type: keyof VarietyData, tableIdx: number, colIdx: number, rowIdx: number): void {
+    varieties.value[type][tableIdx].columns[colIdx].splice(rowIdx, 1)
+    markDirtyAutoSave()
   }
 
   async function upsertFlower(input: FlowerItem): Promise<void> {
@@ -582,11 +571,9 @@ export const useFlowersStore = defineStore('flowers', () => {
   }
 
   function patchFlower(id: string, patch: Partial<FlowerItem>): void {
-    const item = flowers.value.find((f) => f.id === id)
-    if (!item) {
-      return
-    }
-    Object.assign(item, patch)
+    const idx = flowers.value.findIndex((f) => f.id === id)
+    if (idx === -1) return
+    flowers.value[idx] = { ...flowers.value[idx], ...patch }
     markDirtyAutoSave()
   }
 
@@ -602,6 +589,7 @@ export const useFlowersStore = defineStore('flowers', () => {
 
   return {
     flowers,
+    varieties,
     activeSection,
     unlocked,
     fileName,
@@ -609,12 +597,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     saveError,
     usingFallbackStorage,
     filteredBySection,
-    githubToken,
-    githubSaving,
-    githubSaveError,
     setUnlocked,
-    setGithubToken,
-    saveToGithub,
     bootstrap,
     chooseFile,
     dispose,
@@ -624,5 +607,12 @@ export const useFlowersStore = defineStore('flowers', () => {
     deleteFlower,
     patchFlower,
     attachAutoImage,
+    setVarietyItem,
+    addVarietyItem,
+    removeVarietyItem,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useFlowersStore, import.meta.hot))
+}
