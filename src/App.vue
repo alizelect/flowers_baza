@@ -8,6 +8,13 @@ import { useFlowersStore } from './stores/flowers'
 import type { FlowerItem, SectionKey, VarietyTable } from './types'
 import { SECTION_LABELS } from './types'
 import { calcWithPromo, calcWithoutPromo, toOdd } from './utils/pricing'
+import {
+  isFileSystemApiAvailable,
+  loadOutputHandle,
+  storeOutputHandle,
+  ensureReadWritePermission,
+  writeJsonFile,
+} from './utils/fileSystem'
 import resetIcon from './assets/reset-icon.png'
 import { LAST_UPDATED } from './lastUpdated'
 
@@ -1736,8 +1743,30 @@ async function onChooseFile(): Promise<void> {
   await store.chooseFile()
 }
 
-function downloadJson(): void {
+async function downloadJson(): Promise<void> {
   const db = { updatedAt: new Date().toISOString(), items: store.flowers, varieties: store.varieties }
+
+  if (isFileSystemApiAvailable()) {
+    let handle = await loadOutputHandle()
+    if (handle) {
+      const ok = await ensureReadWritePermission(handle)
+      if (!ok) handle = undefined
+    }
+    if (!handle) {
+      try {
+        handle = await window.showSaveFilePicker({
+          suggestedName: 'flowers.json',
+          types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+        })
+        await storeOutputHandle(handle)
+      } catch {
+        return
+      }
+    }
+    await writeJsonFile(handle, db)
+    return
+  }
+
   const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

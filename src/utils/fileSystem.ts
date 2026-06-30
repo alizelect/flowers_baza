@@ -1,6 +1,7 @@
 ﻿const DB_NAME = 'flowers-baza-db'
 const STORE_NAME = 'kv'
 const HANDLE_KEY = 'json-handle'
+const OUTPUT_HANDLE_KEY = 'output-json-handle'
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -77,6 +78,18 @@ export async function loadStoredHandle(): Promise<FileSystemFileHandle | undefin
 
 export async function clearStoredHandle(): Promise<void> {
   await kvDelete(HANDLE_KEY)
+}
+
+export async function storeOutputHandle(handle: FileSystemFileHandle): Promise<void> {
+  await kvSet(OUTPUT_HANDLE_KEY, handle)
+}
+
+export async function loadOutputHandle(): Promise<FileSystemFileHandle | undefined> {
+  return kvGet<FileSystemFileHandle>(OUTPUT_HANDLE_KEY)
+}
+
+export async function clearOutputHandle(): Promise<void> {
+  await kvDelete(OUTPUT_HANDLE_KEY)
 }
 
 export async function ensureReadPermission(handle: FileSystemFileHandle): Promise<boolean> {
