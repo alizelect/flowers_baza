@@ -14,6 +14,7 @@ import {
   storeOutputHandle,
   ensureReadWritePermission,
   writeJsonFile,
+  pickSaveJsonFile,
 } from './utils/fileSystem'
 import resetIcon from './assets/reset-icon.png'
 import { LAST_UPDATED } from './lastUpdated'
@@ -1754,10 +1755,7 @@ async function downloadJson(): Promise<void> {
     }
     if (!handle) {
       try {
-        handle = await window.showSaveFilePicker({
-          suggestedName: 'flowers.json',
-          types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
-        })
+        handle = await pickSaveJsonFile()
         await storeOutputHandle(handle)
       } catch {
         return

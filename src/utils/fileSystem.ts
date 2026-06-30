@@ -92,6 +92,14 @@ export async function clearOutputHandle(): Promise<void> {
   await kvDelete(OUTPUT_HANDLE_KEY)
 }
 
+export async function pickSaveJsonFile(): Promise<FileSystemFileHandle> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (window as any).showSaveFilePicker({
+    suggestedName: 'flowers.json',
+    types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+  }) as Promise<FileSystemFileHandle>
+}
+
 export async function ensureReadPermission(handle: FileSystemFileHandle): Promise<boolean> {
   const result = await handle.queryPermission({ mode: 'read' })
   if (result === 'granted') {
