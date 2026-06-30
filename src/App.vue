@@ -23,6 +23,77 @@ const tableEditorItem = ref<FlowerItem>()
 const tableEditorSaveError = ref('')
 const activeRowId = ref<string>('')
 
+const dragId = ref<string | null>(null)
+const dragOverId = ref<string | null>(null)
+const dragAbove = ref(false)
+
+function onDragStart(e: DragEvent, itemId: string): void {
+  dragId.value = itemId
+  if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+}
+
+function onDragOver(e: DragEvent, itemId: string): void {
+  if (!dragId.value) return
+  e.preventDefault()
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  dragAbove.value = e.clientY < rect.top + rect.height / 2
+  dragOverId.value = itemId
+}
+
+function onDragLeave(e: DragEvent): void {
+  if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+    dragOverId.value = null
+  }
+}
+
+function onDrop(e: DragEvent, targetId: string): void {
+  e.preventDefault()
+  const sourceId = dragId.value
+  dragId.value = null
+  dragOverId.value = null
+  if (!sourceId || sourceId === targetId) return
+  const rows = [...visibleRows.value]
+  const fromIdx = rows.findIndex((r) => r.id === sourceId)
+  const item = rows[fromIdx]
+  if (fromIdx === -1) return
+  rows.splice(fromIdx, 1)
+  const newToIdx = rows.findIndex((r) => r.id === targetId)
+  if (newToIdx === -1) return
+  rows.splice(dragAbove.value ? newToIdx : newToIdx + 1, 0, item)
+  store.reorderFlowers(rows.map((r) => r.id))
+}
+
+function onDragEnd(): void {
+  dragId.value = null
+  dragOverId.value = null
+}
+
+function onPtDragOver(e: DragEvent, itemId: string): void {
+  if (!dragId.value) return
+  e.preventDefault()
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  dragAbove.value = e.clientX < rect.left + rect.width / 2
+  dragOverId.value = itemId
+}
+
+function onPtDrop(e: DragEvent, targetId: string): void {
+  e.preventDefault()
+  const sourceId = dragId.value
+  dragId.value = null
+  dragOverId.value = null
+  if (!sourceId || sourceId === targetId) return
+  const groups = [...priceTableGroups.value]
+  const fromIdx = groups.findIndex((g) => g.item.id === sourceId)
+  if (fromIdx === -1) return
+  const [item] = groups.splice(fromIdx, 1)
+  const newToIdx = groups.findIndex((g) => g.item.id === targetId)
+  if (newToIdx === -1) return
+  groups.splice(dragAbove.value ? newToIdx : newToIdx + 1, 0, item)
+  store.reorderFlowers(groups.map((g) => g.item.id))
+}
+
 const qtyMap = reactive<Record<string, number>>({})
 const qtyInputMap = reactive<Record<string, string>>({})
 const targetPriceMap = reactive<Record<string, string>>({})
@@ -582,16 +653,16 @@ type PriceTableGroup = {
   rows: PriceTableRow[]
 }
 
-type PriceMatrixTabEntry =
-  | { type: 'item'; group: PriceTableGroup }
-  | { type: 'spacer' }
-
 type MobilePriceMatrixCategoryKey = Exclude<FlowerFilterKey, 'all'>
 
 function compareFlowers(a: FlowerItem, b: FlowerItem): number {
   if (a.section !== b.section) {
     return SECTION_ORDER.indexOf(a.section as BaseSectionKey) - SECTION_ORDER.indexOf(b.section as BaseSectionKey)
   }
+
+  if (a.sortOrder !== undefined && b.sortOrder !== undefined) return a.sortOrder - b.sortOrder
+  if (a.sortOrder !== undefined) return -1
+  if (b.sortOrder !== undefined) return 1
 
   if (a.section === 'osnovnye' && b.section === 'osnovnye') {
     if (isTanacetum(a) !== isTanacetum(b)) {
@@ -720,38 +791,6 @@ const mobilePriceMatrixCategoryOrder = computed<MobilePriceMatrixCategoryKey[]>(
 ))
 
 const mobilePriceMatrixCategory = ref<MobilePriceMatrixCategoryKey>(initialPriceMatrixState.mobilePriceMatrixCategory)
-
-const PRICE_MATRIX_TAB_ROWS: Record<BaseSectionKey, readonly (readonly (string | null)[])[]> = {
-  osnovnye: [
-  ['РОЗЫ по 150', 'РОЗЫ по 200', 'РОЗЫ по 250', 'РОЗЫ по 300', 'РОЗЫ по 400', null, 'ГВОЗДИКИ - обычные', 'ГВОЗДИКИ - лунные', 'ГВОЗДИКИ - микс'],
-  ['ХРИЗА - одноголовая', null, 'САНТИНИ по 150', 'ХРИЗА - кустовая по 250', 'ХРИЗА - кустовая по 300', null, 'ТАНАЦЕТУМ', null, 'ГОРТЕНЗИИ'],
-  ['АЛЬСТРОМЕРИИ', null, 'ГИПСОФИЛА - букеты', 'ГИПСОФИЛА - композ.'],
-  ],
-  sezonnye: [
-    ['ПИОНЫ по 300', 'ПИОНЫ по 350', 'ПИОНЫ по 490', 'ПИОНЫ по 590', 'ПИОНЫ по 690', 'ПИОНЫ по 790', null, 'ТЮЛЬПАНЫ по 220'],
-  ],
-}
-
-function normalizePriceMatrixTabName(name: string): string {
-  const normalized = name.trim()
-  if (normalized === 'ГИПСОФИЛА - композ.') {
-    return 'ГИПСОФИЛА - композиции'
-  }
-  return normalized
-}
-
-const priceMatrixTabRows = computed<PriceMatrixTabEntry[][]>(() => {
-  const groupMap = new Map(priceTableGroups.value.map((group) => [normalizePriceMatrixTabName(group.item.flowerName), group]))
-  return PRICE_MATRIX_TAB_ROWS[priceTableSection.value].map((row) => row
-    .map((name) => {
-      if (name === null) {
-        return { type: 'spacer' } satisfies PriceMatrixTabEntry
-      }
-      const group = groupMap.get(normalizePriceMatrixTabName(name))
-      return group ? ({ type: 'item', group } satisfies PriceMatrixTabEntry) : null
-    })
-    .filter((entry): entry is PriceMatrixTabEntry => entry !== null))
-})
 
 function getPriceMatrixCategoryKey(item: FlowerItem): MobilePriceMatrixCategoryKey | null {
   const group = getFlowerGroup(item)
@@ -895,8 +934,9 @@ function selectMobileCategory(key: string): void {
 }
 
 function getFlowerGroup(item: FlowerItem): string {
+  if (item.flowerGroup) return item.flowerGroup
   if (isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)) return 'chryza'
-  if (isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose400(item)) return 'rose'
+  if (isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose350(item) || isRose400(item)) return 'rose'
   if (isAlstroemerii(item)) return 'alstroemerii'
   if (isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item)) return 'carnation'
   if (isTanacetum(item)) return 'tanacetum'
@@ -1001,6 +1041,11 @@ function isRose300(item: FlowerItem): boolean {
   return name.includes('розы') && name.includes('300')
 }
 
+function isRose350(item: FlowerItem): boolean {
+  const name = item.flowerName.trim().toLowerCase()
+  return name.includes('розы') && name.includes('350')
+}
+
 function isRose400(item: FlowerItem): boolean {
   const name = item.flowerName.trim().toLowerCase()
   return name.includes('400')
@@ -1075,7 +1120,10 @@ function isChryzaBush300(item: FlowerItem): boolean {
 
 
 function hasAutoPackagingByQty(item: FlowerItem): boolean {
-  return isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose400(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isGypsophila(item) || isGypsophilaComposition(item) || isTanacetum(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
+  if (item.flowerGroup) {
+    return ['rose', 'chryza', 'carnation', 'alstroemerii', 'hydrangea', 'gypsophila', 'tanacetum', 'peony', 'tulip'].includes(item.flowerGroup)
+  }
+  return isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose350(item) || isRose400(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isGypsophila(item) || isGypsophilaComposition(item) || isTanacetum(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 function getPackagingPrice(item: FlowerItem, qty: number): number {
   if (item.packagingTable !== undefined && item.packagingTable[qty] !== undefined) {
@@ -1108,6 +1156,13 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
     )
   }
   if (isRose400(item)) {
+    return getRosePackagingPrice(
+      getArrayValue(ROSE_300_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx),
+      qty,
+    )
+  }
+  if (isRose350(item)) {
     return getRosePackagingPrice(
       getArrayValue(ROSE_300_PACKAGING_BY_ODD, idx, item.packagingPrice),
       getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx),
@@ -1191,6 +1246,13 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
       qty,
     )
   }
+  if (getFlowerGroup(item) === 'rose') {
+    return getRosePackagingPrice(
+      getArrayValue(ROSE_300_PACKAGING_BY_ODD, idx, item.packagingPrice),
+      getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx),
+      qty,
+    )
+  }
   return item.packagingPrice
 }
 
@@ -1212,6 +1274,9 @@ function getPistachioQty(item: FlowerItem, qty: number): number {
     return getRosePistachioQty(getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx), qty)
   }
   if (isRose400(item)) {
+    return getRosePistachioQty(getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx), qty)
+  }
+  if (isRose350(item)) {
     return getRosePistachioQty(getArrayValue(ROSE_300_PISTACHIO_QTY_BY_ODD, idx), qty)
   }
   if (isRose200(item)) {
@@ -1530,7 +1595,7 @@ function hidesMobilePistachio(item: FlowerItem): boolean {
 }
 
 function usesAutoPistachioQty(item: FlowerItem): boolean {
-  return isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose400(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item)
+  return isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose350(item) || isRose400(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isAlstroemerii(item) || isHydrangea(item) || isPeonies(item) || isChryzaSingle(item)
 }
 
 function isQtyInputLocked(item: FlowerItem): boolean {
@@ -1637,7 +1702,9 @@ function openTableEditor(item: FlowerItem): void {
 const tableEditorSiblings = computed<FlowerItem[]>(() => {
   if (!tableEditorItem.value) return []
   const group = getFlowerGroup(tableEditorItem.value)
-  return store.flowers.filter(f => getFlowerGroup(f) === group && hasAutoPackagingByQty(f))
+  return store.flowers
+    .filter(f => getFlowerGroup(f) === group && hasAutoPackagingByQty(f))
+    .sort(compareFlowers)
 })
 
 function switchTableEditorItem(item: FlowerItem): void {
@@ -1795,17 +1862,31 @@ onBeforeUnmount(() => {
       <section v-if="store.activeSection === 'priceTables'" class="price-matrix-page">
 
         <div class="price-matrix-tabs price-matrix-tabs-desktop">
-          <div v-for="(row, rowIndex) in priceMatrixTabRows" :key="`price-matrix-row-${rowIndex}`" class="price-matrix-tabs-row">
-            <template v-for="(entry, entryIndex) in row" :key="entry.type === 'item' ? entry.group.item.id : `spacer-${rowIndex}-${entryIndex}`">
-              <div v-if="entry.type === 'spacer'" class="price-matrix-tab-spacer" aria-hidden="true"></div>
+          <div class="price-matrix-tabs-row">
+            <template v-for="(group, idx) in priceTableGroups" :key="group.item.id">
+              <div
+                v-if="idx > 0 && getFlowerGroup(priceTableGroups[idx - 1].item) !== getFlowerGroup(group.item)"
+                class="price-matrix-tab-spacer"
+                aria-hidden="true"
+              ></div>
               <button
-                v-else
                 type="button"
                 class="price-matrix-tab"
-                :class="{ active: activePriceTableGroup?.item.id === entry.group.item.id }"
-                @click="selectedPriceTableId = entry.group.item.id"
+                :class="{
+                  active: activePriceTableGroup?.item.id === group.item.id,
+                  'row-dragging': dragId === group.item.id,
+                  'pt-drag-before': dragOverId === group.item.id && dragAbove,
+                  'pt-drag-after': dragOverId === group.item.id && !dragAbove,
+                }"
+                :draggable="store.unlocked ? 'true' : undefined"
+                @click="selectedPriceTableId = group.item.id"
+                @dragstart="onDragStart($event, group.item.id)"
+                @dragover="onPtDragOver($event, group.item.id)"
+                @dragleave="onDragLeave($event)"
+                @drop="onPtDrop($event, group.item.id)"
+                @dragend="onDragEnd"
               >
-                {{ entry.group.item.flowerName }}
+                {{ group.item.flowerName }}
               </button>
             </template>
           </div>
@@ -1953,6 +2034,7 @@ onBeforeUnmount(() => {
         >
         <table class="price-table">
           <colgroup>
+            <col v-if="store.unlocked" style="width: 24px" />
             <col style="width: 19%" />
             <col style="width: 11%" />
             <col style="width: 18%" />
@@ -1965,6 +2047,7 @@ onBeforeUnmount(() => {
           </colgroup>
           <thead>
             <tr>
+              <th v-if="store.unlocked" class="drag-handle-th"></th>
               <th>{{ uiLabels.flowerKind }}</th>
               <th>{{ uiLabels.qty }}</th>
               <th>
@@ -1979,7 +2062,25 @@ onBeforeUnmount(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(item, index) in visibleRows" :key="item.id" :class="{ 'is-active': activeRowId === item.id, 'group-start': isGroupStart(item, index) }" @click="activeRowId = item.id">
+            <tr
+              v-for="(item, index) in visibleRows"
+              :key="item.id"
+              :class="{
+                'is-active': activeRowId === item.id,
+                'group-start': isGroupStart(item, index),
+                'row-dragging': dragId === item.id,
+                'row-drag-above': dragOverId === item.id && dragAbove,
+                'row-drag-below': dragOverId === item.id && !dragAbove,
+              }"
+              :draggable="store.unlocked ? 'true' : 'false'"
+              @click="activeRowId = item.id"
+              @dragstart="onDragStart($event, item.id)"
+              @dragover="onDragOver($event, item.id)"
+              @dragleave="onDragLeave($event)"
+              @drop="onDrop($event, item.id)"
+              @dragend="onDragEnd"
+            >
+              <td v-if="store.unlocked" class="drag-handle-cell">⠿</td>
               <td class="flower-name-cell" @click="activeRowId = item.id">
                 <span>{{ item.flowerName }}</span>
                 <span v-if="isGypsophilaComposition(item)" class="popular-sizes-note">{{ POPULAR_SIZES_NOTE }}</span>
@@ -2177,15 +2278,25 @@ onBeforeUnmount(() => {
         </table>
       </div>
       <div v-if="shouldShowRoseVarieties()" class="rose-variety-grid rose-variety-grid-desktop">
-        <table v-for="(table, tableIdx) in ROSE_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+        <table v-for="(table, tableIdx) in ROSE_VARIETY_TABLES" :key="tableIdx" class="rose-variety-table">
           <thead>
             <tr>
-              <th :colspan="table.columns.length">{{ table.title }}</th>
+              <th :colspan="table.columns.length">
+                <template v-if="!store.unlocked">{{ table.title }}</template>
+                <div v-else class="variety-header-edit">
+                  <input class="variety-title-input" :value="table.title" @input="store.setVarietyTableTitle('rose', tableIdx, ($event.target as HTMLInputElement).value)" />
+                  <span class="variety-table-btns">
+                    <button v-if="tableIdx > 0" type="button" class="variety-move-btn" title="Переместить влево" @click="store.moveVarietyTable('rose', tableIdx, tableIdx - 1)">←</button>
+                    <button v-if="tableIdx < ROSE_VARIETY_TABLES.length - 1" type="button" class="variety-move-btn" title="Переместить вправо" @click="store.moveVarietyTable('rose', tableIdx, tableIdx + 1)">→</button>
+                    <button type="button" class="variety-delete-table-btn" title="Удалить таблицу" @click="store.removeVarietyTable('rose', tableIdx)">×</button>
+                  </span>
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
-              <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
+            <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`rose-d-${tableIdx}-${rowIndex}`">
+              <td v-for="(column, columnIndex) in table.columns" :key="`rose-d-${tableIdx}-${rowIndex}-${columnIndex}`">
                 <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
                 <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
                   <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('rose', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
@@ -2194,23 +2305,36 @@ onBeforeUnmount(() => {
               </td>
             </tr>
             <tr v-if="store.unlocked">
-              <td v-for="(_, columnIndex) in table.columns" :key="`${table.title}-add-${columnIndex}`">
+              <td v-for="(_, columnIndex) in table.columns" :key="`rose-d-${tableIdx}-add-${columnIndex}`">
                 <button class="variety-add-btn" type="button" @click="store.addVarietyItem('rose', tableIdx, columnIndex)">+ добавить</button>
               </td>
             </tr>
           </tbody>
         </table>
+        <div v-if="store.unlocked" class="variety-add-table-wrap">
+          <button type="button" class="variety-add-table-btn" @click="store.addVarietyTable('rose', 'Новая таблица')">+ таблица</button>
+        </div>
       </div>
       <div v-if="shouldShowChryzaVarieties()" class="rose-variety-grid rose-variety-grid-desktop chryza-variety-grid">
-        <table v-for="(table, tableIdx) in CHRYZA_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+        <table v-for="(table, tableIdx) in CHRYZA_VARIETY_TABLES" :key="tableIdx" class="rose-variety-table">
           <thead>
             <tr>
-              <th :colspan="table.columns.length">{{ table.title }}</th>
+              <th :colspan="table.columns.length">
+                <template v-if="!store.unlocked">{{ table.title }}</template>
+                <div v-else class="variety-header-edit">
+                  <input class="variety-title-input" :value="table.title" @input="store.setVarietyTableTitle('chryza', tableIdx, ($event.target as HTMLInputElement).value)" />
+                  <span class="variety-table-btns">
+                    <button v-if="tableIdx > 0" type="button" class="variety-move-btn" title="Переместить влево" @click="store.moveVarietyTable('chryza', tableIdx, tableIdx - 1)">←</button>
+                    <button v-if="tableIdx < CHRYZA_VARIETY_TABLES.length - 1" type="button" class="variety-move-btn" title="Переместить вправо" @click="store.moveVarietyTable('chryza', tableIdx, tableIdx + 1)">→</button>
+                    <button type="button" class="variety-delete-table-btn" title="Удалить таблицу" @click="store.removeVarietyTable('chryza', tableIdx)">×</button>
+                  </span>
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
-              <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
+            <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`chryza-d-${tableIdx}-${rowIndex}`">
+              <td v-for="(column, columnIndex) in table.columns" :key="`chryza-d-${tableIdx}-${rowIndex}-${columnIndex}`">
                 <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
                 <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
                   <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('chryza', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
@@ -2219,23 +2343,36 @@ onBeforeUnmount(() => {
               </td>
             </tr>
             <tr v-if="store.unlocked">
-              <td v-for="(_, columnIndex) in table.columns" :key="`${table.title}-add-${columnIndex}`">
+              <td v-for="(_, columnIndex) in table.columns" :key="`chryza-d-${tableIdx}-add-${columnIndex}`">
                 <button class="variety-add-btn" type="button" @click="store.addVarietyItem('chryza', tableIdx, columnIndex)">+ добавить</button>
               </td>
             </tr>
           </tbody>
         </table>
+        <div v-if="store.unlocked" class="variety-add-table-wrap">
+          <button type="button" class="variety-add-table-btn" @click="store.addVarietyTable('chryza', 'Новая таблица')">+ таблица</button>
+        </div>
       </div>
       <div v-if="shouldShowPeonyVarieties()" class="rose-variety-grid rose-variety-grid-desktop">
-        <table v-for="(table, tableIdx) in PEONY_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+        <table v-for="(table, tableIdx) in PEONY_VARIETY_TABLES" :key="tableIdx" class="rose-variety-table">
           <thead>
             <tr>
-              <th :colspan="table.columns.length">{{ table.title }}</th>
+              <th :colspan="table.columns.length">
+                <template v-if="!store.unlocked">{{ table.title }}</template>
+                <div v-else class="variety-header-edit">
+                  <input class="variety-title-input" :value="table.title" @input="store.setVarietyTableTitle('peony', tableIdx, ($event.target as HTMLInputElement).value)" />
+                  <span class="variety-table-btns">
+                    <button v-if="tableIdx > 0" type="button" class="variety-move-btn" title="Переместить влево" @click="store.moveVarietyTable('peony', tableIdx, tableIdx - 1)">←</button>
+                    <button v-if="tableIdx < PEONY_VARIETY_TABLES.length - 1" type="button" class="variety-move-btn" title="Переместить вправо" @click="store.moveVarietyTable('peony', tableIdx, tableIdx + 1)">→</button>
+                    <button type="button" class="variety-delete-table-btn" title="Удалить таблицу" @click="store.removeVarietyTable('peony', tableIdx)">×</button>
+                  </span>
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`${table.title}-${rowIndex}`">
-              <td v-for="(column, columnIndex) in table.columns" :key="`${table.title}-${rowIndex}-${columnIndex}`">
+            <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`peony-d-${tableIdx}-${rowIndex}`">
+              <td v-for="(column, columnIndex) in table.columns" :key="`peony-d-${tableIdx}-${rowIndex}-${columnIndex}`">
                 <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
                 <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
                   <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('peony', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
@@ -2244,12 +2381,15 @@ onBeforeUnmount(() => {
               </td>
             </tr>
             <tr v-if="store.unlocked">
-              <td v-for="(_, columnIndex) in table.columns" :key="`${table.title}-add-${columnIndex}`">
+              <td v-for="(_, columnIndex) in table.columns" :key="`peony-d-${tableIdx}-add-${columnIndex}`">
                 <button class="variety-add-btn" type="button" @click="store.addVarietyItem('peony', tableIdx, columnIndex)">+ добавить</button>
               </td>
             </tr>
           </tbody>
         </table>
+        <div v-if="store.unlocked" class="variety-add-table-wrap">
+          <button type="button" class="variety-add-table-btn" @click="store.addVarietyTable('peony', 'Новая таблица')">+ таблица</button>
+        </div>
       </div>
       </template>
       <div v-if="store.activeSection !== 'priceTables'" class="mobile-cards" :class="{ 'mobile-cards-grouped': mobileCardSections.length > 0 }">
@@ -2496,15 +2636,25 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-if="(!section.collapsible || isMobileCategoryOpen(section.key)) && section.key === 'rose'" class="rose-variety-grid rose-variety-grid-mobile">
-              <table v-for="(table, tableIdx) in ROSE_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+              <table v-for="(table, tableIdx) in ROSE_VARIETY_TABLES" :key="tableIdx" class="rose-variety-table">
                 <thead>
                   <tr>
-                    <th :colspan="table.columns.length">{{ table.title }}</th>
+                    <th :colspan="table.columns.length">
+                      <template v-if="!store.unlocked">{{ table.title }}</template>
+                      <div v-else class="variety-header-edit">
+                        <input class="variety-title-input" :value="table.title" @input="store.setVarietyTableTitle('rose', tableIdx, ($event.target as HTMLInputElement).value)" />
+                        <span class="variety-table-btns">
+                          <button v-if="tableIdx > 0" type="button" class="variety-move-btn" @click="store.moveVarietyTable('rose', tableIdx, tableIdx - 1)">←</button>
+                          <button v-if="tableIdx < ROSE_VARIETY_TABLES.length - 1" type="button" class="variety-move-btn" @click="store.moveVarietyTable('rose', tableIdx, tableIdx + 1)">→</button>
+                          <button type="button" class="variety-delete-table-btn" @click="store.removeVarietyTable('rose', tableIdx)">×</button>
+                        </span>
+                      </div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`m-${table.title}-${rowIndex}`">
-                    <td v-for="(column, columnIndex) in table.columns" :key="`m-${table.title}-${rowIndex}-${columnIndex}`">
+                  <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`rose-m-${tableIdx}-${rowIndex}`">
+                    <td v-for="(column, columnIndex) in table.columns" :key="`rose-m-${tableIdx}-${rowIndex}-${columnIndex}`">
                       <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
                       <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
                         <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('rose', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
@@ -2513,24 +2663,37 @@ onBeforeUnmount(() => {
                     </td>
                   </tr>
                   <tr v-if="store.unlocked">
-                    <td v-for="(_, columnIndex) in table.columns" :key="`m-${table.title}-add-${columnIndex}`">
+                    <td v-for="(_, columnIndex) in table.columns" :key="`rose-m-${tableIdx}-add-${columnIndex}`">
                       <button class="variety-add-btn" type="button" @click="store.addVarietyItem('rose', tableIdx, columnIndex)">+ добавить</button>
                     </td>
                   </tr>
                 </tbody>
               </table>
+              <div v-if="store.unlocked" class="variety-add-table-wrap">
+                <button type="button" class="variety-add-table-btn" @click="store.addVarietyTable('rose', 'Новая таблица')">+ таблица</button>
+              </div>
             </div>
 
             <div v-if="(!section.collapsible || isMobileCategoryOpen(section.key)) && section.key === 'chryza'" class="rose-variety-grid rose-variety-grid-mobile chryza-variety-grid">
-              <table v-for="(table, tableIdx) in CHRYZA_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+              <table v-for="(table, tableIdx) in CHRYZA_VARIETY_TABLES" :key="tableIdx" class="rose-variety-table">
                 <thead>
                   <tr>
-                    <th :colspan="table.columns.length">{{ table.title }}</th>
+                    <th :colspan="table.columns.length">
+                      <template v-if="!store.unlocked">{{ table.title }}</template>
+                      <div v-else class="variety-header-edit">
+                        <input class="variety-title-input" :value="table.title" @input="store.setVarietyTableTitle('chryza', tableIdx, ($event.target as HTMLInputElement).value)" />
+                        <span class="variety-table-btns">
+                          <button v-if="tableIdx > 0" type="button" class="variety-move-btn" @click="store.moveVarietyTable('chryza', tableIdx, tableIdx - 1)">←</button>
+                          <button v-if="tableIdx < CHRYZA_VARIETY_TABLES.length - 1" type="button" class="variety-move-btn" @click="store.moveVarietyTable('chryza', tableIdx, tableIdx + 1)">→</button>
+                          <button type="button" class="variety-delete-table-btn" @click="store.removeVarietyTable('chryza', tableIdx)">×</button>
+                        </span>
+                      </div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`m-${table.title}-${rowIndex}`">
-                    <td v-for="(column, columnIndex) in table.columns" :key="`m-${table.title}-${rowIndex}-${columnIndex}`">
+                  <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`chryza-m-${tableIdx}-${rowIndex}`">
+                    <td v-for="(column, columnIndex) in table.columns" :key="`chryza-m-${tableIdx}-${rowIndex}-${columnIndex}`">
                       <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
                       <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
                         <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('chryza', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
@@ -2539,24 +2702,37 @@ onBeforeUnmount(() => {
                     </td>
                   </tr>
                   <tr v-if="store.unlocked">
-                    <td v-for="(_, columnIndex) in table.columns" :key="`m-${table.title}-add-${columnIndex}`">
+                    <td v-for="(_, columnIndex) in table.columns" :key="`chryza-m-${tableIdx}-add-${columnIndex}`">
                       <button class="variety-add-btn" type="button" @click="store.addVarietyItem('chryza', tableIdx, columnIndex)">+ добавить</button>
                     </td>
                   </tr>
                 </tbody>
               </table>
+              <div v-if="store.unlocked" class="variety-add-table-wrap">
+                <button type="button" class="variety-add-table-btn" @click="store.addVarietyTable('chryza', 'Новая таблица')">+ таблица</button>
+              </div>
             </div>
 
             <div v-if="(!section.collapsible || isMobileCategoryOpen(section.key)) && section.key === 'peony'" class="rose-variety-grid rose-variety-grid-mobile">
-              <table v-for="(table, tableIdx) in PEONY_VARIETY_TABLES" :key="table.title" class="rose-variety-table">
+              <table v-for="(table, tableIdx) in PEONY_VARIETY_TABLES" :key="tableIdx" class="rose-variety-table">
                 <thead>
                   <tr>
-                    <th :colspan="table.columns.length">{{ table.title }}</th>
+                    <th :colspan="table.columns.length">
+                      <template v-if="!store.unlocked">{{ table.title }}</template>
+                      <div v-else class="variety-header-edit">
+                        <input class="variety-title-input" :value="table.title" @input="store.setVarietyTableTitle('peony', tableIdx, ($event.target as HTMLInputElement).value)" />
+                        <span class="variety-table-btns">
+                          <button v-if="tableIdx > 0" type="button" class="variety-move-btn" @click="store.moveVarietyTable('peony', tableIdx, tableIdx - 1)">←</button>
+                          <button v-if="tableIdx < PEONY_VARIETY_TABLES.length - 1" type="button" class="variety-move-btn" @click="store.moveVarietyTable('peony', tableIdx, tableIdx + 1)">→</button>
+                          <button type="button" class="variety-delete-table-btn" @click="store.removeVarietyTable('peony', tableIdx)">×</button>
+                        </span>
+                      </div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`m-${table.title}-${rowIndex}`">
-                    <td v-for="(column, columnIndex) in table.columns" :key="`m-${table.title}-${rowIndex}-${columnIndex}`">
+                  <tr v-for="rowIndex in getVarietyRowCount(table)" :key="`peony-m-${tableIdx}-${rowIndex}`">
+                    <td v-for="(column, columnIndex) in table.columns" :key="`peony-m-${tableIdx}-${rowIndex}-${columnIndex}`">
                       <template v-if="!store.unlocked">{{ column[rowIndex - 1] || '' }}</template>
                       <div v-else-if="column[rowIndex - 1] !== undefined" class="variety-edit-cell">
                         <input class="variety-input" :value="column[rowIndex - 1]" @input="store.setVarietyItem('peony', tableIdx, columnIndex, rowIndex - 1, ($event.target as HTMLInputElement).value)" />
@@ -2565,12 +2741,15 @@ onBeforeUnmount(() => {
                     </td>
                   </tr>
                   <tr v-if="store.unlocked">
-                    <td v-for="(_, columnIndex) in table.columns" :key="`m-${table.title}-add-${columnIndex}`">
+                    <td v-for="(_, columnIndex) in table.columns" :key="`peony-m-${tableIdx}-add-${columnIndex}`">
                       <button class="variety-add-btn" type="button" @click="store.addVarietyItem('peony', tableIdx, columnIndex)">+ добавить</button>
                     </td>
                   </tr>
                 </tbody>
               </table>
+              <div v-if="store.unlocked" class="variety-add-table-wrap">
+                <button type="button" class="variety-add-table-btn" @click="store.addVarietyTable('peony', 'Новая таблица')">+ таблица</button>
+              </div>
             </div>
           </section>
         </template>

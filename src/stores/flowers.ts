@@ -554,6 +554,28 @@ export const useFlowersStore = defineStore('flowers', () => {
     markDirtyAutoSave()
   }
 
+  function addVarietyTable(type: keyof VarietyData, title: string): void {
+    varieties.value[type].push({ title, columns: [[]] })
+    markDirtyAutoSave()
+  }
+
+  function removeVarietyTable(type: keyof VarietyData, tableIdx: number): void {
+    varieties.value[type].splice(tableIdx, 1)
+    markDirtyAutoSave()
+  }
+
+  function setVarietyTableTitle(type: keyof VarietyData, tableIdx: number, title: string): void {
+    varieties.value[type][tableIdx].title = title
+    markDirtyAutoSave()
+  }
+
+  function moveVarietyTable(type: keyof VarietyData, fromIdx: number, toIdx: number): void {
+    const list = varieties.value[type]
+    const [table] = list.splice(fromIdx, 1)
+    list.splice(toIdx, 0, table)
+    markDirtyAutoSave()
+  }
+
   async function upsertFlower(input: FlowerItem): Promise<void> {
     const item = normalizeItem(input)
     const idx = flowers.value.findIndex((f) => f.id === item.id)
@@ -567,6 +589,14 @@ export const useFlowersStore = defineStore('flowers', () => {
 
   function deleteFlower(id: string): void {
     flowers.value = flowers.value.filter((item) => item.id !== id)
+    markDirtyAutoSave()
+  }
+
+  function reorderFlowers(orderedIds: string[]): void {
+    orderedIds.forEach((id, idx) => {
+      const i = flowers.value.findIndex((f) => f.id === id)
+      if (i !== -1) flowers.value[i] = { ...flowers.value[i], sortOrder: idx * 10 }
+    })
     markDirtyAutoSave()
   }
 
@@ -606,10 +636,15 @@ export const useFlowersStore = defineStore('flowers', () => {
     upsertFlower,
     deleteFlower,
     patchFlower,
+    reorderFlowers,
     attachAutoImage,
     setVarietyItem,
     addVarietyItem,
     removeVarietyItem,
+    addVarietyTable,
+    removeVarietyTable,
+    setVarietyTableTitle,
+    moveVarietyTable,
   }
 })
 

@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { computed, reactive, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import type { FlowerItem, SectionKey } from '../types'
 import { DEFAULT_SIZES } from '../types'
 
@@ -11,7 +11,20 @@ const props = defineProps<{
 
 const emit = defineEmits<{ close: []; save: [FlowerItem] }>()
 
-const form = reactive<FlowerItem>({
+const FLOWER_GROUP_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: 'Авто (по названию)' },
+  { value: 'rose', label: 'Розы' },
+  { value: 'chryza', label: 'Хризантема' },
+  { value: 'carnation', label: 'Гвоздики' },
+  { value: 'alstroemerii', label: 'Альстромерия' },
+  { value: 'hydrangea', label: 'Гортензия' },
+  { value: 'gypsophila', label: 'Гипсофила' },
+  { value: 'tanacetum', label: 'Танацетум' },
+  { value: 'peony', label: 'Пионы' },
+  { value: 'tulip', label: 'Тюльпаны' },
+]
+
+const form = reactive<FlowerItem & { flowerGroup: string }>({
   id: '',
   section: props.section,
   flowerName: '',
@@ -25,6 +38,7 @@ const form = reactive<FlowerItem>({
   discountPercent: 10,
   isPromoEnabled: false,
   popularSizes: [...DEFAULT_SIZES],
+  flowerGroup: '',
 })
 
 watch(
@@ -47,6 +61,7 @@ watch(
       discountPercent: props.initial?.discountPercent ?? 10,
       isPromoEnabled: props.initial?.isPromoEnabled ?? false,
       popularSizes: props.initial?.popularSizes?.length ? [...props.initial.popularSizes] : [...DEFAULT_SIZES],
+      flowerGroup: props.initial?.flowerGroup || '',
     })
   },
   { immediate: true },
@@ -54,8 +69,33 @@ watch(
 
 const title = computed(() => (props.initial ? 'Редактирование' : 'Новый цветок'))
 
+const newSizeInput = ref('')
+
+const canAddSize = computed(() => {
+  const n = parseInt(newSizeInput.value, 10)
+  return Number.isInteger(n) && n > 0 && !form.popularSizes.includes(n)
+})
+
+function addSize(): void {
+  if (!canAddSize.value) return
+  const n = parseInt(newSizeInput.value, 10)
+  form.popularSizes = [...form.popularSizes, n].sort((a, b) => a - b)
+  newSizeInput.value = ''
+}
+
+function removeSize(size: number): void {
+  form.popularSizes = form.popularSizes.filter((s) => s !== size)
+}
+
 function submit(): void {
-  emit('save', { ...form, popularSizes: [...form.popularSizes] })
+  const item: FlowerItem = {
+    ...props.initial,
+    ...form,
+    popularSizes: [...form.popularSizes],
+    flowerGroup: form.flowerGroup || undefined,
+    secondaryUnitPrice: form.secondaryUnitPrice || undefined,
+  }
+  emit('save', item)
 }
 </script>
 
@@ -67,6 +107,12 @@ function submit(): void {
         <label>
           Вид цветка
           <input v-model="form.flowerName" />
+        </label>
+        <label>
+          Категория (группа)
+          <select v-model="form.flowerGroup">
+            <option v-for="opt in FLOWER_GROUP_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
         </label>
         <label>
           Стоимость цветка (за 1 шт)
@@ -100,6 +146,26 @@ function submit(): void {
           <input v-model="form.hasPistachio" type="checkbox" />
           Использовать фисташку
         </label>
+      </div>
+      <div class="ps-editor">
+        <span class="ps-editor-label">Популярные размеры</span>
+        <div class="ps-chips">
+          <span v-for="size in form.popularSizes" :key="size" class="ps-chip">
+            {{ size }}
+            <button type="button" class="ps-chip-remove" @click="removeSize(size)">×</button>
+          </span>
+          <span class="ps-add">
+            <input
+              v-model="newSizeInput"
+              class="ps-add-input"
+              type="number"
+              min="1"
+              placeholder="Размер"
+              @keydown.enter.prevent="addSize"
+            />
+            <button type="button" class="ps-add-btn" :disabled="!canAddSize" @click="addSize">+</button>
+          </span>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="primary" @click="submit">Сохранить</button>

@@ -16,6 +16,8 @@ export interface FlowerItem {
   popularSizes: number[]
   packagingTable?: Record<number, number>
   pistachioTable?: Record<number, number>
+  flowerGroup?: string
+  sortOrder?: number
 }
 
 export interface VarietyTable {

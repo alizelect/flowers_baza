@@ -1,1 +1,1 @@
-export const LAST_UPDATED = '26.06.2026 18:36'
+export const LAST_UPDATED = '30.06.2026 15:05'

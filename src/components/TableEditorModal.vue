@@ -46,11 +46,15 @@ function initOverrides(): void {
     for (const [qty, val] of Object.entries(props.item.packagingTable)) {
       pkg[Number(qty)] = String(val)
     }
+  } else {
+    for (const qty of props.qtyOptions) pkg[qty] = '0'
   }
   if (props.item.pistachioTable) {
     for (const [qty, val] of Object.entries(props.item.pistachioTable)) {
       pst[Number(qty)] = String(val)
     }
+  } else if (props.showPistachio) {
+    for (const qty of props.qtyOptions) pst[qty] = '0'
   }
   packagingOverrides.value = pkg
   pistachioQtyOverrides.value = pst
