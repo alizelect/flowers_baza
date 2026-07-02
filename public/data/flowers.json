@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-30T09:58:21.583Z",
+  "updatedAt": "2026-07-02T03:45:52.379Z",
   "items": [
     {
       "id": "d0dc5c2b-3db1-4da0-bf0b-42e2fdf154f4",
@@ -381,7 +381,13 @@
         11
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 130
+      "sortOrder": 130,
+      "packagingTable": {
+        "7": 260
+      },
+      "pistachioTable": {
+        "7": 1
+      }
     },
     {
       "id": "49771275-f9ae-4bd3-9fe6-d42bda7b5dfd",
