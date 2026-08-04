@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-02T03:45:52.379Z",
+  "updatedAt": "2026-08-04T11:02:25.328Z",
   "items": [
     {
       "id": "d0dc5c2b-3db1-4da0-bf0b-42e2fdf154f4",
@@ -67,7 +67,7 @@
         11,
         15
       ],
-      "sortOrder": 20
+      "sortOrder": 15
     },
     {
       "id": "409c4663-69f2-40a6-a24b-c9c7b82c0248",
@@ -90,7 +90,7 @@
         15
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 30
+      "sortOrder": 17.5
     },
     {
       "id": "4d6c4000-1111-4222-8333-400400400400",
@@ -113,7 +113,7 @@
         15
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 50
+      "sortOrder": 20
     },
     {
       "id": "d9821a47-a022-4147-a88e-4857ed43deb9",
@@ -134,8 +134,7 @@
         11,
         15
       ],
-      "secondaryUnitPrice": 0,
-      "sortOrder": 60
+      "sortOrder": 70
     },
     {
       "id": "e44cee36-55f1-4532-8ab3-9d60ea7175dc",
@@ -184,7 +183,7 @@
         "49": 570,
         "51": 570,
         "53": 570,
-        "55": 530,
+        "55": 570,
         "57": 670,
         "59": 670,
         "61": 670,
@@ -209,7 +208,7 @@
         "99": 830,
         "101": 830
       },
-      "sortOrder": 70
+      "sortOrder": 108.125
     },
     {
       "id": "ff7772fb-f770-4702-8963-f717440d617c",
@@ -283,7 +282,7 @@
         "99": 860,
         "101": 900
       },
-      "sortOrder": 80
+      "sortOrder": 111.25
     },
     {
       "id": "9f340ce7-5f4a-4f3d-8e8f-1e165566aa01",
@@ -313,7 +312,7 @@
       "pistachioTable": {
         "1": 0
       },
-      "sortOrder": 90
+      "sortOrder": 117.5
     },
     {
       "id": "b3d0d1d2-4fd5-4a12-9ea8-220220220220",
@@ -336,7 +335,7 @@
         15
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 100
+      "sortOrder": 132.5
     },
     {
       "id": "72e51316-081c-46c8-8be2-86871bd63ec1",
@@ -359,7 +358,7 @@
         15
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 110
+      "sortOrder": 135
     },
     {
       "id": "d30dc4f7-bba6-4ca5-88bf-11bb46dca6de",
@@ -381,7 +380,7 @@
         11
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 130,
+      "sortOrder": 150,
       "packagingTable": {
         "7": 260
       },
@@ -410,7 +409,7 @@
         11
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 140
+      "sortOrder": 180
     },
     {
       "id": "5d8d5e68-cbd2-4e9a-a2ea-9fd6b7f9c201",
@@ -433,7 +432,7 @@
         15
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 150
+      "sortOrder": 200
     },
     {
       "id": "0f3b0a0d-6b0c-4cf0-8d32-7e5f49d0b902",
@@ -455,7 +454,7 @@
         25
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 160
+      "sortOrder": 210
     },
     {
       "id": "300b8e1a-0000-4fb9-8e4d-300300300300",
@@ -632,7 +631,7 @@
         15
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 120
+      "sortOrder": 140
     },
     {
       "id": "c2dcf0a6-f7fb-4c48-b2a4-290290290290",
@@ -655,7 +654,7 @@
         25
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 170
+      "sortOrder": 230
     },
     {
       "id": "1c6c846a-fbde-4ce9-a5df-27fbf5bad341",
@@ -678,7 +677,7 @@
         15
       ],
       "flowerGroup": "rose",
-      "sortOrder": 40,
+      "sortOrder": 18.75,
       "packagingTable": {
         "1": 140,
         "3": 140,
@@ -877,7 +876,8 @@
         "columns": [
           [
             "Kalimba",
-            "Altay"
+            "Altay",
+            "Pastella Rose"
           ]
         ]
       },
@@ -885,8 +885,7 @@
         "title": "КУСТОВЫЕ по 300",
         "columns": [
           [
-            "Newton",
-            "Pastella Rose"
+            "Newton"
           ]
         ]
       },
