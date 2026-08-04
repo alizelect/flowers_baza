@@ -3,9 +3,10 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import AuthGate from './components/AuthGate.vue'
 import FlowerEditorModal from './components/FlowerEditorModal.vue'
 import TableEditorModal from './components/TableEditorModal.vue'
+import DividerRow from './components/DividerRow.vue'
 import SidebarMenu from './components/SidebarMenu.vue'
 import { useFlowersStore } from './stores/flowers'
-import type { FlowerItem, SectionKey, VarietyTable } from './types'
+import type { Divider, FlowerItem, SectionKey, VarietyTable } from './types'
 import { SECTION_LABELS } from './types'
 import { calcWithPromo, calcWithoutPromo, toOdd } from './utils/pricing'
 import resetIcon from './assets/reset-icon.png'
@@ -53,6 +54,15 @@ function onDrop(e: DragEvent, targetId: string): void {
   dragId.value = null
   dragOverId.value = null
   if (!sourceId || sourceId === targetId) return
+  if (dividersVisible.value) {
+    const order = currentEntryOrder()
+    if (!order.includes(sourceId) || !order.includes(targetId)) return
+    const newSort = dragAbove.value
+      ? sortOrderBeforeAnchor(targetId, sourceId)
+      : sortOrderAfterAnchor(targetId, sourceId)
+    store.setEntrySortOrder(sourceId, newSort)
+    return
+  }
   const rows = [...visibleRows.value]
   const fromIdx = rows.findIndex((r) => r.id === sourceId)
   const item = rows[fromIdx]
@@ -730,6 +740,92 @@ function getPriceMatrixVarietyTable(item: FlowerItem): VarietyTable | null {
 const visibleRows = computed(() => [...store.filteredBySection]
   .filter((item) => matchesFlowerFilter(item, activeFlowerFilter.value))
   .sort(compareFlowers))
+
+const dividersVisible = computed(
+  () => store.activeSection !== 'priceTables',
+)
+
+const sortedSectionDividers = computed<Divider[]>(() =>
+  [...store.dividers]
+    .filter((d) => d.section === store.activeSection && (d.flowerFilter ?? 'all') === activeFlowerFilter.value)
+    .sort((a, b) => a.sortOrder - b.sortOrder),
+)
+
+function flowerSort(item: FlowerItem, index: number): number {
+  return item.sortOrder ?? index * 10
+}
+
+function dividersBeforeFlower(item: FlowerItem, index: number): Divider[] {
+  if (!dividersVisible.value) return []
+  const secDividers = sortedSectionDividers.value
+  if (!secDividers.length) return []
+  const curSort = flowerSort(item, index)
+  const prev = visibleRows.value[index - 1]
+  const prevSort = prev ? flowerSort(prev, index - 1) : Number.NEGATIVE_INFINITY
+  return secDividers.filter((d) => d.sortOrder > prevSort && d.sortOrder < curSort)
+}
+
+const trailingDividers = computed<Divider[]>(() => {
+  if (!dividersVisible.value) return []
+  const secDividers = sortedSectionDividers.value
+  if (!secDividers.length) return []
+  const rows = visibleRows.value
+  if (!rows.length) return secDividers
+  const lastSort = flowerSort(rows[rows.length - 1], rows.length - 1)
+  return secDividers.filter((d) => d.sortOrder > lastSort)
+})
+
+function currentEntryOrder(): string[] {
+  const out: string[] = []
+  visibleRows.value.forEach((item, index) => {
+    for (const d of dividersBeforeFlower(item, index)) out.push(d.id)
+    out.push(item.id)
+  })
+  for (const d of trailingDividers.value) out.push(d.id)
+  return out
+}
+
+// Full section order (every flower type, not just the active filter) plus dividers
+// scoped to the active filter. Used to interpolate a new sortOrder for a single
+// moved/added entry without ever renumbering unrelated entries, so editing one
+// flower-filter tab can't shuffle rows belonging to other tabs.
+const fullOrderEntries = computed(() => {
+  const flowerEntries = store.filteredBySection.map((f) => ({ id: f.id, sortOrder: f.sortOrder ?? 0 }))
+  const dividerEntries = sortedSectionDividers.value.map((d) => ({ id: d.id, sortOrder: d.sortOrder }))
+  return [...flowerEntries, ...dividerEntries].sort((a, b) => a.sortOrder - b.sortOrder)
+})
+
+function entrySortOrder(id: string): number {
+  const f = store.flowers.find((x) => x.id === id)
+  if (f) return f.sortOrder ?? 0
+  const d = store.dividers.find((x) => x.id === id)
+  return d ? d.sortOrder : 0
+}
+
+function sortOrderAfterAnchor(anchorId: string, excludeId?: string): number {
+  const entries = fullOrderEntries.value.filter((e) => e.id !== excludeId)
+  const idx = entries.findIndex((e) => e.id === anchorId)
+  if (idx === -1) return entrySortOrder(anchorId)
+  const anchorSort = entries[idx].sortOrder
+  const next = entries[idx + 1]
+  return next ? (anchorSort + next.sortOrder) / 2 : anchorSort + 1000
+}
+
+function sortOrderBeforeAnchor(anchorId: string, excludeId?: string): number {
+  const entries = fullOrderEntries.value.filter((e) => e.id !== excludeId)
+  const idx = entries.findIndex((e) => e.id === anchorId)
+  if (idx === -1) return entrySortOrder(anchorId)
+  const anchorSort = entries[idx].sortOrder
+  const prev = entries[idx - 1]
+  return prev ? (prev.sortOrder + anchorSort) / 2 : anchorSort - 10
+}
+
+function addDivider(): void {
+  const newId = store.addDivider(store.activeSection, activeFlowerFilter.value)
+  const rows = visibleRows.value
+  if (!rows.length) return
+  store.setEntrySortOrder(newId, sortOrderAfterAnchor(rows[rows.length - 1].id))
+}
 
 const flowerFilterTabs = computed(() => {
   const order = getAllowedFlowerFilters(store.activeSection)
@@ -1815,10 +1911,37 @@ function updateViewportMode(): void {
   isMobileViewport.value = window.innerWidth <= MOBILE_BREAKPOINT
 }
 
+const undoToast = ref<{ name: string } | null>(null)
+let undoTimer: number | undefined
+
+function onDeleteFlower(item: FlowerItem): void {
+  store.deleteFlower(item.id)
+  undoToast.value = { name: item.flowerName }
+  if (undoTimer) clearTimeout(undoTimer)
+  undoTimer = window.setTimeout(() => { undoToast.value = null }, 8000)
+}
+
+function undoDelete(): void {
+  store.restoreLastDeleted()
+  undoToast.value = null
+  if (undoTimer) clearTimeout(undoTimer)
+}
+
+function onUndoKeydown(e: KeyboardEvent): void {
+  if (!store.unlocked) return
+  if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return
+  const target = e.target as HTMLElement | null
+  if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
+  if (!store.recentlyDeleted.length) return
+  e.preventDefault()
+  undoDelete()
+}
+
 onMounted(async () => {
   await store.bootstrap()
   updateViewportMode()
   window.addEventListener('resize', updateViewportMode)
+  window.addEventListener('keydown', onUndoKeydown)
 })
 
 onBeforeUnmount(() => {
@@ -1826,6 +1949,8 @@ onBeforeUnmount(() => {
     return
   }
   window.removeEventListener('resize', updateViewportMode)
+  window.removeEventListener('keydown', onUndoKeydown)
+  if (undoTimer) clearTimeout(undoTimer)
   store.dispose()
 })
 </script>
@@ -1839,7 +1964,7 @@ onBeforeUnmount(() => {
       @change-price-tables-section="onPriceTablesSectionChange"
     ><span class="last-updated">&#1044;&#1072;&#1085;&#1085;&#1099;&#1077; &#1086;&#1073;&#1085;&#1086;&#1074;&#1083;&#1077;&#1085;&#1099;<br>{{ LAST_UPDATED }}</span></SidebarMenu>
 
-    <main class="content">
+    <main class="content" :class="{ 'content-fixed': store.activeSection !== 'priceTables' }">
       <header class="toolbar">
         <h1 class="toolbar-title">{{ uiLabels.title }}: {{ SECTION_LABELS[store.activeSection] }}</h1>
         <div class="toolbar-side">
@@ -1848,6 +1973,7 @@ onBeforeUnmount(() => {
             <button v-if="store.unlocked" @click="downloadJson">⬇ Скачать JSON</button>
             <button v-if="store.unlocked" @click="onChooseFile">{{ uiLabels.chooseJson }}</button>
             <button v-if="store.unlocked && store.activeSection !== 'priceTables'" @click="openCreate">{{ uiLabels.addFlower }}</button>
+            <button v-if="store.unlocked && dividersVisible" @click="addDivider()">+ Разделитель</button>
           </div>
         </div>
       </header>
@@ -2028,6 +2154,7 @@ onBeforeUnmount(() => {
           </button>
         </div>
 
+        <div class="desktop-scroll-area">
         <div
           class="table-wrap desktop-table-wrap"
           :class="{ 'desktop-table-wrap-fit': store.activeSection === 'sezonnye' || (store.activeSection === 'osnovnye' && activeFlowerFilter !== 'rose') }"
@@ -2062,9 +2189,27 @@ onBeforeUnmount(() => {
             </tr>
           </thead>
           <tbody>
+            <template v-for="(item, index) in visibleRows" :key="item.id">
+            <DividerRow
+              v-for="divider in dividersBeforeFlower(item, index)"
+              :key="'divider-' + divider.id"
+              :divider="divider"
+              :unlocked="store.unlocked"
+              :class="{
+                'row-dragging': dragId === divider.id,
+                'row-drag-above': dragOverId === divider.id && dragAbove,
+                'row-drag-below': dragOverId === divider.id && !dragAbove,
+              }"
+              :draggable="store.unlocked ? 'true' : 'false'"
+              @dragstart="onDragStart($event, divider.id)"
+              @dragover="onDragOver($event, divider.id)"
+              @dragleave="onDragLeave($event)"
+              @drop="onDrop($event, divider.id)"
+              @dragend="onDragEnd"
+              @remove="store.removeDivider"
+              @label-input="store.setDividerLabel"
+            />
             <tr
-              v-for="(item, index) in visibleRows"
-              :key="item.id"
               :class="{
                 'is-active': activeRowId === item.id,
                 'group-start': isGroupStart(item, index),
@@ -2266,12 +2411,32 @@ onBeforeUnmount(() => {
               <td v-if="store.unlocked">
                 <div class="row-actions">
                   <button :disabled="!store.unlocked" @click="openEdit(item)">{{ uiLabels.edit }}</button>
-                  <button :disabled="!store.unlocked" class="danger" @click="store.deleteFlower(item.id)">{{ uiLabels.delete }}</button>
+                  <button :disabled="!store.unlocked" class="danger" @click="onDeleteFlower(item)">{{ uiLabels.delete }}</button>
                   <button v-if="hasAutoPackagingByQty(item)" :disabled="!store.unlocked" class="table-editor-btn" @click="openTableEditor(item)">Таблица</button>
                 </div>
               </td>
             </tr>
-            <tr v-if="!visibleRows.length">
+            </template>
+            <DividerRow
+              v-for="divider in trailingDividers"
+              :key="'divider-tail-' + divider.id"
+              :divider="divider"
+              :unlocked="store.unlocked"
+              :class="{
+                'row-dragging': dragId === divider.id,
+                'row-drag-above': dragOverId === divider.id && dragAbove,
+                'row-drag-below': dragOverId === divider.id && !dragAbove,
+              }"
+              :draggable="store.unlocked ? 'true' : 'false'"
+              @dragstart="onDragStart($event, divider.id)"
+              @dragover="onDragOver($event, divider.id)"
+              @dragleave="onDragLeave($event)"
+              @drop="onDrop($event, divider.id)"
+              @dragend="onDragEnd"
+              @remove="store.removeDivider"
+              @label-input="store.setDividerLabel"
+            />
+            <tr v-if="!visibleRows.length && !trailingDividers.length">
               <td :colspan="store.unlocked ? 9 : 8" class="empty">{{ uiLabels.empty }}</td>
             </tr>
           </tbody>
@@ -2390,6 +2555,7 @@ onBeforeUnmount(() => {
         <div v-if="store.unlocked" class="variety-add-table-wrap">
           <button type="button" class="variety-add-table-btn" @click="store.addVarietyTable('peony', 'Новая таблица')">+ таблица</button>
         </div>
+      </div>
       </div>
       </template>
       <div v-if="store.activeSection !== 'priceTables'" class="mobile-cards" :class="{ 'mobile-cards-grouped': mobileCardSections.length > 0 }">
@@ -2788,6 +2954,11 @@ onBeforeUnmount(() => {
       @save="handleTableEditorSave"
       @switch-item="switchTableEditorItem"
     />
+
+    <div v-if="undoToast" class="undo-toast">
+      <span class="undo-toast-text">Удалено: «{{ undoToast.name }}»</span>
+      <button type="button" class="undo-toast-btn" @click="undoDelete">Вернуть</button>
+    </div>
   </div>
 </template>
 

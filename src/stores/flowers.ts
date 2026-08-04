@@ -1,6 +1,6 @@
 ﻿import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import type { FlowerDatabase, FlowerItem, SectionKey, VarietyData, VarietyTable } from '../types'
+import type { Divider, FlowerDatabase, FlowerItem, SectionKey, VarietyData, VarietyTable } from '../types'
 import {
   clearStoredHandle,
   ensureReadPermission,
@@ -63,6 +63,7 @@ function normalizeLoadedDiscountPercent(item: Pick<FlowerItem, 'id' | 'discountP
 function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
   const next = [...items]
   const hasMix = next.some((item) => item.id === CARNATION_MIX_ID)
+  const hasAlstroemerii = next.some((item) => item.id === ALSTROMERII_ID)
   const hasChryzaBush220 = next.some((item) => item.id === CHRYZA_BUSH_220_ID)
   const hasGypsophila = next.some((item) => item.id === GYPSOPHILA_ID)
   const hasGypsophilaComposition = next.some((item) => item.id === GYPSOPHILA_COMPOSITION_ID)
@@ -93,6 +94,34 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
     }
   }
 
+
+  if (!hasAlstroemerii) {
+    const carnationIndex = next.findIndex((item) => item.id === CARNATION_COMMON_ID)
+    const anchorSortOrder = carnationIndex >= 0 ? next[carnationIndex].sortOrder : undefined
+    const alstroemeriiItem: FlowerItem = {
+      id: ALSTROMERII_ID,
+      section: 'osnovnye',
+      flowerName: 'АЛЬСТРОМЕРИИ',
+      photoUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
+      unitPrice: 200,
+      packagingPrice: 0,
+      hasPistachio: true,
+      pistachioQty: 0,
+      pistachioUnitPrice: 80,
+      discountPercent: 10,
+      isPromoEnabled: false,
+      popularSizes: [5, 7, 9, 11, 15],
+      // Place just before the carnations when other items already carry sortOrder,
+      // otherwise leave undefined so natural group ordering applies.
+      ...(anchorSortOrder !== undefined ? { sortOrder: anchorSortOrder - 1 } : {}),
+    }
+
+    if (carnationIndex >= 0) {
+      next.splice(carnationIndex, 0, alstroemeriiItem)
+    } else {
+      next.push(alstroemeriiItem)
+    }
+  }
 
   if (!hasChryzaBush220) {
     const bush250Index = next.findIndex((item) => item.id === CHRYZA_BUSH_250_ID)
@@ -218,11 +247,12 @@ function normalizeItem(item: FlowerItem): FlowerItem {
   }
 }
 
-function buildDb(items: FlowerItem[], varieties: VarietyData): FlowerDatabase {
+function buildDb(items: FlowerItem[], varieties: VarietyData, dividers: Divider[]): FlowerDatabase {
   return {
     updatedAt: new Date().toISOString(),
     items: ensureRequiredItems(items),
     varieties,
+    dividers,
   }
 }
 
@@ -239,6 +269,7 @@ function getDbSignature(db: FlowerDatabase): string {
     updatedAt: db.updatedAt ?? null,
     items: db.items ?? [],
     varieties: db.varieties ?? null,
+    dividers: db.dividers ?? [],
   })
 }
 
@@ -272,6 +303,8 @@ export type { VarietyTable }
 
 export const useFlowersStore = defineStore('flowers', () => {
   const flowers = ref<FlowerItem[]>([])
+  const recentlyDeleted = ref<FlowerItem[]>([])
+  const dividers = ref<Divider[]>([])
   const varieties = ref<VarietyData>(cloneVarieties(DEFAULT_VARIETIES))
   const activeSection = ref<SectionKey>(loadActiveSection())
   const unlocked = ref(false)
@@ -314,6 +347,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     }
     const parsed = JSON.parse(raw) as FlowerDatabase
     flowers.value = ensureRequiredItems(parsed.items || []).map(normalizeItem)
+    dividers.value = parsed.dividers ? parsed.dividers.map((d) => ({ ...d })) : []
     varieties.value = parsed.varieties ? cloneVarieties(parsed.varieties) : cloneVarieties(DEFAULT_VARIETIES)
     fileName.value = 'localStorage'
     lastLoadedSignature.value = getDbSignature(parsed)
@@ -321,6 +355,7 @@ export const useFlowersStore = defineStore('flowers', () => {
 
   async function applyDatabase(db: FlowerDatabase, nextFileName: string): Promise<void> {
     flowers.value = ensureRequiredItems(db.items || []).map(normalizeItem)
+    dividers.value = db.dividers ? db.dividers.map((d) => ({ ...d })) : []
     varieties.value = db.varieties ? cloneVarieties(db.varieties) : cloneVarieties(DEFAULT_VARIETIES)
     fileName.value = nextFileName
     saveError.value = ''
@@ -422,7 +457,7 @@ export const useFlowersStore = defineStore('flowers', () => {
   }
 
   async function saveToFallback(): Promise<void> {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(buildDb(flowers.value, varieties.value)))
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(buildDb(flowers.value, varieties.value, dividers.value)))
   }
 
   async function loadFallbackOrProjectJson(): Promise<void> {
@@ -531,7 +566,7 @@ export const useFlowersStore = defineStore('flowers', () => {
         await saveToFallback()
         return
       }
-      const db = buildDb(flowers.value, varieties.value)
+      const db = buildDb(flowers.value, varieties.value, dividers.value)
       await writeJsonFile(handle.value, db)
       lastLoadedSignature.value = getDbSignature(db)
     } catch {
@@ -588,8 +623,22 @@ export const useFlowersStore = defineStore('flowers', () => {
   }
 
   function deleteFlower(id: string): void {
+    const removed = flowers.value.find((item) => item.id === id)
+    if (removed) {
+      recentlyDeleted.value.push({ ...removed })
+    }
     flowers.value = flowers.value.filter((item) => item.id !== id)
     markDirtyAutoSave()
+  }
+
+  function restoreLastDeleted(): FlowerItem | null {
+    const item = recentlyDeleted.value.pop()
+    if (!item) return null
+    if (!flowers.value.some((f) => f.id === item.id)) {
+      flowers.value.push({ ...item })
+    }
+    markDirtyAutoSave()
+    return item
   }
 
   function reorderFlowers(orderedIds: string[]): void {
@@ -597,6 +646,40 @@ export const useFlowersStore = defineStore('flowers', () => {
       const i = flowers.value.findIndex((f) => f.id === id)
       if (i !== -1) flowers.value[i] = { ...flowers.value[i], sortOrder: idx * 10 }
     })
+    markDirtyAutoSave()
+  }
+
+  function setEntrySortOrder(id: string, sortOrder: number): void {
+    const fi = flowers.value.findIndex((f) => f.id === id)
+    if (fi !== -1) {
+      flowers.value[fi] = { ...flowers.value[fi], sortOrder }
+      markDirtyAutoSave()
+      return
+    }
+    const di = dividers.value.findIndex((d) => d.id === id)
+    if (di !== -1) {
+      dividers.value[di] = { ...dividers.value[di], sortOrder }
+      markDirtyAutoSave()
+    }
+  }
+
+  function addDivider(section: SectionKey, flowerFilter: string): string {
+    const id = crypto?.randomUUID?.() ?? `divider-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const maxSort = Math.max(0, ...dividers.value.map((d) => d.sortOrder), ...flowers.value.map((f) => f.sortOrder ?? 0))
+    dividers.value.push({ id, section, sortOrder: maxSort + 1000, label: '', flowerFilter })
+    markDirtyAutoSave()
+    return id
+  }
+
+  function removeDivider(id: string): void {
+    dividers.value = dividers.value.filter((d) => d.id !== id)
+    markDirtyAutoSave()
+  }
+
+  function setDividerLabel(id: string, label: string): void {
+    const idx = dividers.value.findIndex((d) => d.id === id)
+    if (idx === -1) return
+    dividers.value[idx] = { ...dividers.value[idx], label }
     markDirtyAutoSave()
   }
 
@@ -619,6 +702,7 @@ export const useFlowersStore = defineStore('flowers', () => {
 
   return {
     flowers,
+    dividers,
     varieties,
     activeSection,
     unlocked,
@@ -635,8 +719,14 @@ export const useFlowersStore = defineStore('flowers', () => {
     saveNow,
     upsertFlower,
     deleteFlower,
+    restoreLastDeleted,
+    recentlyDeleted,
     patchFlower,
     reorderFlowers,
+    setEntrySortOrder,
+    addDivider,
+    removeDivider,
+    setDividerLabel,
     attachAutoImage,
     setVarietyItem,
     addVarietyItem,

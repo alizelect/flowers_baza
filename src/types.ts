@@ -20,6 +20,14 @@ export interface FlowerItem {
   sortOrder?: number
 }
 
+export interface Divider {
+  id: string
+  section: SectionKey
+  sortOrder: number
+  label?: string
+  flowerFilter?: string
+}
+
 export interface VarietyTable {
   title: string
   columns: string[][]
@@ -35,6 +43,7 @@ export interface FlowerDatabase {
   updatedAt: string
   items: FlowerItem[]
   varieties?: VarietyData
+  dividers?: Divider[]
 }
 
 export const DEFAULT_SIZES = [7, 9, 11, 15, 25]
