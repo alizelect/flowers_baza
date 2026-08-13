@@ -113,8 +113,6 @@ const MOBILE_BREAKPOINT = 760
 const isMobileViewport = ref(false)
 const mobilePriceMatrixPromo = ref<'10' | '15'>('10')
 const oddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1)
-const hydrangeaOddOptions = Array.from({ length: 18 }, (_, i) => i * 2 + 1)
-const peonyOddOptions = Array.from({ length: 51 }, (_, i) => i * 2 + 1)
 const POPULAR_SIZES_NOTE = '*в столбце "Популярные размеры" указан диаметр коробок'
 const mobileOpenCategory = ref<string | null>(loadStoredMobileOpenCategories()[store.activeSection] ?? null)
 const CHRYZA_BUSH_220_ID = 'b3d0d1d2-4fd5-4a12-9ea8-220220220220'
@@ -127,10 +125,13 @@ const CARNATION_MIX_ID = '9f340ce7-5f4a-4f3d-8e8f-1e165566aa01'
 const TANACETUM_ID = 'c2dcf0a6-f7fb-4c48-b2a4-290290290290'
 const MOBILE_PRIMARY_CATEGORY_ORDER = ['rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila', 'tanacetum'] as const
 const MOBILE_SEASONAL_CATEGORY_ORDER = ['peony', 'tulip'] as const
-type FlowerFilterKey = 'all' | 'rose' | 'alstroemerii' | 'carnation' | 'chryza' | 'tanacetum' | 'hydrangea' | 'gypsophila' | 'peony' | 'tulip'
+type BuiltInFlowerFilterKey = 'all' | 'rose' | 'alstroemerii' | 'carnation' | 'chryza' | 'tanacetum' | 'hydrangea' | 'gypsophila' | 'peony' | 'tulip'
+// Custom, user-added categories widen this to any string at runtime; the built-in literal
+// type above is kept separately where exhaustiveness (e.g. FLOWER_FILTER_LABELS) still matters.
+type FlowerFilterKey = string
 type BaseSectionKey = Exclude<SectionKey, 'priceTables'>
-const PRIMARY_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila', 'tanacetum']
-const SEASONAL_FLOWER_FILTER_ORDER: FlowerFilterKey[] = ['all', 'peony', 'tulip']
+const PRIMARY_FLOWER_FILTER_ORDER: BuiltInFlowerFilterKey[] = ['all', 'rose', 'alstroemerii', 'carnation', 'chryza', 'hydrangea', 'gypsophila', 'tanacetum']
+const SEASONAL_FLOWER_FILTER_ORDER: BuiltInFlowerFilterKey[] = ['all', 'peony', 'tulip']
 const FLOWER_FILTER_STORAGE_KEY = 'flowers-baza-active-flower-filters'
 const PRICE_MATRIX_STORAGE_KEY = 'flowers-baza-price-matrix-state'
 const MOBILE_OPEN_CATEGORY_STORAGE_KEY = 'flowers-baza-mobile-open-categories'
@@ -179,7 +180,7 @@ const MOBILE_PRIMARY_CATEGORY_LABELS: Record<(typeof MOBILE_PRIMARY_CATEGORY_ORD
   hydrangea: '\u0413\u043e\u0440\u0442\u0435\u043d\u0437\u0438\u0438',
   gypsophila: '\u0413\u0438\u043f\u0441\u043e\u0444\u0438\u043b\u0430',
 }
-const FLOWER_FILTER_LABELS: Record<FlowerFilterKey, string> = {
+const FLOWER_FILTER_LABELS: Record<BuiltInFlowerFilterKey, string> = {
   all: '\u0412\u0441\u0435 \u0446\u0432\u0435\u0442\u044b',
   rose: '\u0420\u043e\u0437\u044b',
   alstroemerii: '\u0410\u043b\u044c\u0441\u0442\u0440\u043e\u043c\u0435\u0440\u0438\u0438',
@@ -197,7 +198,17 @@ const CHRYZA_VARIETY_TABLES = computed(() => store.varieties?.chryza ?? [])
 const PEONY_VARIETY_TABLES = computed(() => store.varieties?.peony ?? [])
 
 function getAllowedFlowerFilters(section: SectionKey): FlowerFilterKey[] {
-  return section === 'sezonnye' ? SEASONAL_FLOWER_FILTER_ORDER : PRIMARY_FLOWER_FILTER_ORDER
+  const base = section === 'sezonnye' ? SEASONAL_FLOWER_FILTER_ORDER : PRIMARY_FLOWER_FILTER_ORDER
+  const custom = store.categories
+    .filter((c) => c.section === section)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((c) => c.key)
+  return [...base, ...custom]
+}
+
+function flowerFilterLabel(key: FlowerFilterKey): string {
+  if (key in FLOWER_FILTER_LABELS) return FLOWER_FILTER_LABELS[key as BuiltInFlowerFilterKey]
+  return store.categories.find((c) => c.key === key)?.label ?? key
 }
 
 function loadStoredFlowerFilters(): Partial<Record<SectionKey, FlowerFilterKey>> {
@@ -790,7 +801,8 @@ function currentEntryOrder(): string[] {
 // moved/added entry without ever renumbering unrelated entries, so editing one
 // flower-filter tab can't shuffle rows belonging to other tabs.
 const fullOrderEntries = computed(() => {
-  const flowerEntries = store.filteredBySection.map((f) => ({ id: f.id, sortOrder: f.sortOrder ?? 0 }))
+  const sortedFlowers = [...store.filteredBySection].sort(compareFlowers)
+  const flowerEntries = sortedFlowers.map((f, index) => ({ id: f.id, sortOrder: f.sortOrder ?? index * 10 }))
   const dividerEntries = sortedSectionDividers.value.map((d) => ({ id: d.id, sortOrder: d.sortOrder }))
   return [...flowerEntries, ...dividerEntries].sort((a, b) => a.sortOrder - b.sortOrder)
 })
@@ -827,11 +839,46 @@ function addDivider(): void {
   store.setEntrySortOrder(newId, sortOrderAfterAnchor(rows[rows.length - 1].id))
 }
 
+const newCategoryName = ref('')
+const addingCategory = ref(false)
+
+function startAddCategory(): void {
+  addingCategory.value = true
+  newCategoryName.value = ''
+}
+
+function cancelAddCategory(): void {
+  addingCategory.value = false
+  newCategoryName.value = ''
+}
+
+function confirmAddCategory(): void {
+  const label = newCategoryName.value.trim()
+  addingCategory.value = false
+  if (!label) return
+  activeFlowerFilter.value = store.addCategory(store.activeSection, label)
+}
+
+function isCustomCategory(key: FlowerFilterKey): boolean {
+  return store.categories.some((c) => c.section === store.activeSection && c.key === key)
+}
+
+function removeCategory(key: FlowerFilterKey): void {
+  const cat = store.categories.find((c) => c.section === store.activeSection && c.key === key)
+  if (!cat) return
+  if (activeFlowerFilter.value === key) activeFlowerFilter.value = 'all'
+  store.removeCategory(cat.id)
+}
+
+const editorCategoryOptions = computed(() => store.categories
+  .filter((c) => c.section === (store.activeSection === 'priceTables' ? 'osnovnye' : store.activeSection))
+  .map((c) => ({ value: c.key, label: c.label })))
+
 const flowerFilterTabs = computed(() => {
   const order = getAllowedFlowerFilters(store.activeSection)
   return order.map((key) => ({
     key,
-    label: FLOWER_FILTER_LABELS[key],
+    label: flowerFilterLabel(key),
   }))
 })
 
@@ -898,7 +945,7 @@ function getPriceMatrixCategoryKey(item: FlowerItem): MobilePriceMatrixCategoryK
 const mobilePriceMatrixCategories = computed(() => mobilePriceMatrixCategoryOrder.value
   .map((key) => ({
     key,
-    label: FLOWER_FILTER_LABELS[key],
+    label: flowerFilterLabel(key),
     items: priceTableGroups.value.filter((group) => getFlowerGroup(group.item) === key),
   }))
   .filter((category) => category.items.length > 0))
@@ -973,19 +1020,28 @@ function getLinkedFlowerFilterForSection(section: SectionKey): FlowerFilterKey {
 }
 
 const mobileSectionDefinitions = computed(() => {
-  if (store.activeSection === 'osnovnye') {
-    return MOBILE_PRIMARY_CATEGORY_ORDER.map((key) => ({
-      key,
-      label: MOBILE_PRIMARY_CATEGORY_LABELS[key],
-      matcher: (item: FlowerItem) => getFlowerGroup(item) === key,
-    }))
-  }
+  const base = store.activeSection === 'osnovnye'
+    ? MOBILE_PRIMARY_CATEGORY_ORDER.map((key) => ({
+        key,
+        label: MOBILE_PRIMARY_CATEGORY_LABELS[key],
+        matcher: (item: FlowerItem) => getFlowerGroup(item) === key,
+      }))
+    : MOBILE_SEASONAL_CATEGORY_ORDER.map((key) => ({
+        key,
+        label: key === 'peony' ? uiLabels.peonies : uiLabels.tulips,
+        matcher: (item: FlowerItem) => getFlowerGroup(item) === key,
+      }))
 
-  return MOBILE_SEASONAL_CATEGORY_ORDER.map((key) => ({
-    key,
-    label: key === 'peony' ? uiLabels.peonies : uiLabels.tulips,
-    matcher: (item: FlowerItem) => getFlowerGroup(item) === key,
-  }))
+  const custom = store.categories
+    .filter((c) => c.section === store.activeSection)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((c) => ({
+      key: c.key,
+      label: c.label,
+      matcher: (item: FlowerItem) => getFlowerGroup(item) === c.key,
+    }))
+
+  return [...base, ...custom]
 })
 
 const mobileCardSections = computed(() => mobileSectionDefinitions.value
@@ -1065,8 +1121,7 @@ function getMinQty(item: FlowerItem): number {
 }
 
 function getMaxQty(item: FlowerItem): number {
-  if (isPeonies(item)) return 101
-  return 101
+  return Math.min(101, Math.max(getMinQty(item), toOdd(item.maxQty ?? 101)))
 }
 
 function normalizeQty(item: FlowerItem, value: number): number {
@@ -1097,9 +1152,9 @@ function normalizeQty(item: FlowerItem, value: number): number {
 
 function getQtyOptions(item: FlowerItem): number[] {
   if (isGypsophilaComposition(item)) return item.popularSizes
-  if (isCarnationMix(item)) return oddOptions.slice(1)
-  if (isPeonies(item)) return peonyOddOptions
-  return isHydrangea(item) || isChryzaSingle(item) ? hydrangeaOddOptions : oddOptions
+  const count = (getMaxQty(item) - 1) / 2 + 1
+  const options = oddOptions.slice(0, count)
+  return isCarnationMix(item) ? options.slice(1) : options
 }
 
 function getQty(item: FlowerItem): number {
@@ -1217,7 +1272,10 @@ function isChryzaBush300(item: FlowerItem): boolean {
 
 function hasAutoPackagingByQty(item: FlowerItem): boolean {
   if (item.flowerGroup) {
-    return ['rose', 'chryza', 'carnation', 'alstroemerii', 'hydrangea', 'gypsophila', 'tanacetum', 'peony', 'tulip'].includes(item.flowerGroup)
+    if (['rose', 'chryza', 'carnation', 'alstroemerii', 'hydrangea', 'gypsophila', 'tanacetum', 'peony', 'tulip'].includes(item.flowerGroup)) {
+      return true
+    }
+    return store.categories.some((c) => c.key === item.flowerGroup)
   }
   return isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose350(item) || isRose400(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isGypsophila(item) || isGypsophilaComposition(item) || isTanacetum(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
@@ -1833,7 +1891,7 @@ async function onChooseFile(): Promise<void> {
 }
 
 function downloadJson(): void {
-  const db = { updatedAt: new Date().toISOString(), items: store.flowers, varieties: store.varieties, dividers: store.dividers }
+  const db = { updatedAt: new Date().toISOString(), items: store.flowers, varieties: store.varieties, dividers: store.dividers, categories: store.categories }
   const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -2142,16 +2200,35 @@ onBeforeUnmount(() => {
 
       <template v-else>
         <div class="price-matrix-tabs flower-filter-tabs">
-          <button
-            v-for="filterTab in flowerFilterTabs"
-            :key="filterTab.key"
-            type="button"
-            class="price-matrix-tab"
-            :class="{ active: activeFlowerFilter === filterTab.key }"
-            @click="onFlowerFilterChange(filterTab.key)"
-          >
-            {{ filterTab.label }}
-          </button>
+          <span v-for="filterTab in flowerFilterTabs" :key="filterTab.key" class="filter-tab-wrap">
+            <button
+              type="button"
+              class="price-matrix-tab"
+              :class="{ active: activeFlowerFilter === filterTab.key }"
+              @click="onFlowerFilterChange(filterTab.key)"
+            >
+              {{ filterTab.label }}
+            </button>
+            <button
+              v-if="store.unlocked && isCustomCategory(filterTab.key)"
+              type="button"
+              class="category-remove-btn"
+              title="Удалить категорию"
+              @click="removeCategory(filterTab.key)"
+            >×</button>
+          </span>
+          <span v-if="store.unlocked" class="filter-tab-wrap category-add-wrap">
+            <input
+              v-if="addingCategory"
+              v-model="newCategoryName"
+              class="category-add-input"
+              placeholder="Название категории"
+              @keydown.enter="confirmAddCategory"
+              @keydown.esc="cancelAddCategory"
+              @blur="confirmAddCategory"
+            />
+            <button v-else type="button" class="price-matrix-tab category-add-btn" @click="startAddCategory">+ Категория</button>
+          </span>
         </div>
 
         <div class="desktop-scroll-area">
@@ -2244,7 +2321,7 @@ onBeforeUnmount(() => {
                         class="center-input qty-select"
                         type="number"
                         :min="getMinQty(item)"
-                        max="101"
+                        :max="getMaxQty(item)"
                         step="2"
                         :value="getQtyInputValue(item)"
                         :placeholder="uiLabels.qtyPlaceholder"
@@ -2608,7 +2685,7 @@ onBeforeUnmount(() => {
                               class="center-input qty-select"
                               type="number"
                               :min="getMinQty(item)"
-                              max="101"
+                              :max="getMaxQty(item)"
                               step="2"
                               :value="getQtyInputValue(item)"
                               :placeholder="uiLabels.qtyPlaceholder"
@@ -2936,6 +3013,7 @@ onBeforeUnmount(() => {
       :model-value="editorOpen"
       :initial="editorItem"
       :section="store.activeSection === 'priceTables' ? 'osnovnye' : store.activeSection"
+      :categories="editorCategoryOptions"
       @close="editorOpen = false"
       @save="saveEditor"
     />
@@ -2945,7 +3023,7 @@ onBeforeUnmount(() => {
       v-model="tableEditorOpen"
       :item="tableEditorItem"
       :sibling-items="tableEditorSiblings"
-      :qty-options="oddOptions"
+      :qty-options="getQtyOptions(tableEditorItem!)"
       :compute-packaging="(qty) => getBasePackaging(tableEditorItem!, qty)"
       :compute-pistachio="(qty) => getBasePistachio(tableEditorItem!, qty)"
       :compute-sibling-packaging="(item, qty) => getBasePackaging(item, qty)"

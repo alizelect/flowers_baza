@@ -2989,6 +2989,45 @@ button.pt-drag-after {
   margin-bottom: 24px;
 }
 
+.filter-tab-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.category-remove-btn {
+  border: none;
+  background: transparent;
+  color: #b04a4a;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.category-remove-btn:hover {
+  color: #7a2a2a;
+}
+
+.category-add-btn {
+  border-style: dashed;
+  color: #6b8a6b;
+  cursor: pointer;
+}
+
+.category-add-input {
+  padding: 8px 12px;
+  border: 1px solid #cfd8cf;
+  border-radius: 999px;
+  min-width: 140px;
+  font: inherit;
+}
+
+.category-add-input:focus {
+  outline: none;
+  border-color: #4a7a4a;
+}
+
 
 .popular-sizes-note {
   display: block;

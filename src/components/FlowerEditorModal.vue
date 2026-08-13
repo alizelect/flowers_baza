@@ -7,6 +7,7 @@ const props = defineProps<{
   modelValue: boolean
   initial?: FlowerItem
   section: SectionKey
+  categories?: { value: string; label: string }[]
 }>()
 
 const emit = defineEmits<{ close: []; save: [FlowerItem] }>()
@@ -24,6 +25,8 @@ const FLOWER_GROUP_OPTIONS: { value: string; label: string }[] = [
   { value: 'tulip', label: 'Тюльпаны' },
 ]
 
+const groupOptions = computed(() => [...FLOWER_GROUP_OPTIONS, ...(props.categories ?? [])])
+
 const form = reactive<FlowerItem & { flowerGroup: string }>({
   id: '',
   section: props.section,
@@ -39,6 +42,7 @@ const form = reactive<FlowerItem & { flowerGroup: string }>({
   isPromoEnabled: false,
   popularSizes: [...DEFAULT_SIZES],
   flowerGroup: '',
+  maxQty: 101,
 })
 
 watch(
@@ -62,6 +66,7 @@ watch(
       isPromoEnabled: props.initial?.isPromoEnabled ?? false,
       popularSizes: props.initial?.popularSizes?.length ? [...props.initial.popularSizes] : [...DEFAULT_SIZES],
       flowerGroup: props.initial?.flowerGroup || '',
+      maxQty: props.initial?.maxQty ?? 101,
     })
   },
   { immediate: true },
@@ -111,7 +116,7 @@ function submit(): void {
         <label>
           Категория (группа)
           <select v-model="form.flowerGroup">
-            <option v-for="opt in FLOWER_GROUP_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+            <option v-for="opt in groupOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
           </select>
         </label>
         <label>
@@ -133,6 +138,10 @@ function submit(): void {
         <label>
           Скидка %
           <input v-model.number="form.discountPercent" type="number" min="0" max="99" />
+        </label>
+        <label>
+          До какого количества (шт)
+          <input v-model.number="form.maxQty" type="number" min="1" max="101" step="2" />
         </label>
         <label>
           Кол-во фисташки

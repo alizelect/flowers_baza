@@ -1,6 +1,6 @@
 ﻿import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import type { Divider, FlowerDatabase, FlowerItem, SectionKey, VarietyData, VarietyTable } from '../types'
+import type { Category, Divider, FlowerDatabase, FlowerItem, SectionKey, VarietyData, VarietyTable } from '../types'
 import {
   clearStoredHandle,
   ensureReadPermission,
@@ -247,12 +247,13 @@ function normalizeItem(item: FlowerItem): FlowerItem {
   }
 }
 
-function buildDb(items: FlowerItem[], varieties: VarietyData, dividers: Divider[]): FlowerDatabase {
+function buildDb(items: FlowerItem[], varieties: VarietyData, dividers: Divider[], categories: Category[]): FlowerDatabase {
   return {
     updatedAt: new Date().toISOString(),
     items: ensureRequiredItems(items),
     varieties,
     dividers,
+    categories,
   }
 }
 
@@ -270,6 +271,7 @@ function getDbSignature(db: FlowerDatabase): string {
     items: db.items ?? [],
     varieties: db.varieties ?? null,
     dividers: db.dividers ?? [],
+    categories: db.categories ?? [],
   })
 }
 
@@ -305,6 +307,7 @@ export const useFlowersStore = defineStore('flowers', () => {
   const flowers = ref<FlowerItem[]>([])
   const recentlyDeleted = ref<FlowerItem[]>([])
   const dividers = ref<Divider[]>([])
+  const categories = ref<Category[]>([])
   const varieties = ref<VarietyData>(cloneVarieties(DEFAULT_VARIETIES))
   const activeSection = ref<SectionKey>(loadActiveSection())
   const unlocked = ref(false)
@@ -348,6 +351,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     const parsed = JSON.parse(raw) as FlowerDatabase
     flowers.value = ensureRequiredItems(parsed.items || []).map(normalizeItem)
     dividers.value = parsed.dividers ? parsed.dividers.map((d) => ({ ...d })) : []
+    categories.value = parsed.categories ? parsed.categories.map((c) => ({ ...c })) : []
     varieties.value = parsed.varieties ? cloneVarieties(parsed.varieties) : cloneVarieties(DEFAULT_VARIETIES)
     fileName.value = 'localStorage'
     lastLoadedSignature.value = getDbSignature(parsed)
@@ -356,6 +360,7 @@ export const useFlowersStore = defineStore('flowers', () => {
   async function applyDatabase(db: FlowerDatabase, nextFileName: string): Promise<void> {
     flowers.value = ensureRequiredItems(db.items || []).map(normalizeItem)
     dividers.value = db.dividers ? db.dividers.map((d) => ({ ...d })) : []
+    categories.value = db.categories ? db.categories.map((c) => ({ ...c })) : []
     varieties.value = db.varieties ? cloneVarieties(db.varieties) : cloneVarieties(DEFAULT_VARIETIES)
     fileName.value = nextFileName
     saveError.value = ''
@@ -457,7 +462,7 @@ export const useFlowersStore = defineStore('flowers', () => {
   }
 
   async function saveToFallback(): Promise<void> {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(buildDb(flowers.value, varieties.value, dividers.value)))
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(buildDb(flowers.value, varieties.value, dividers.value, categories.value)))
   }
 
   async function loadFallbackOrProjectJson(): Promise<void> {
@@ -566,7 +571,7 @@ export const useFlowersStore = defineStore('flowers', () => {
         await saveToFallback()
         return
       }
-      const db = buildDb(flowers.value, varieties.value, dividers.value)
+      const db = buildDb(flowers.value, varieties.value, dividers.value, categories.value)
       await writeJsonFile(handle.value, db)
       lastLoadedSignature.value = getDbSignature(db)
     } catch {
@@ -683,6 +688,39 @@ export const useFlowersStore = defineStore('flowers', () => {
     markDirtyAutoSave()
   }
 
+  function slugifyCategoryKey(label: string, section: SectionKey): string {
+    const base = label.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9а-яё-]/gi, '') || 'category'
+    const existing = new Set(categories.value.filter((c) => c.section === section).map((c) => c.key))
+    let key = base
+    let n = 2
+    while (existing.has(key)) {
+      key = `${base}-${n}`
+      n += 1
+    }
+    return key
+  }
+
+  function addCategory(section: SectionKey, label: string): string {
+    const id = crypto?.randomUUID?.() ?? `category-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const key = slugifyCategoryKey(label, section)
+    const maxSort = Math.max(0, ...categories.value.filter((c) => c.section === section).map((c) => c.sortOrder))
+    categories.value.push({ id, section, key, label: label.trim(), sortOrder: maxSort + 10 })
+    markDirtyAutoSave()
+    return key
+  }
+
+  function removeCategory(id: string): void {
+    categories.value = categories.value.filter((c) => c.id !== id)
+    markDirtyAutoSave()
+  }
+
+  function renameCategory(id: string, label: string): void {
+    const idx = categories.value.findIndex((c) => c.id === id)
+    if (idx === -1) return
+    categories.value[idx] = { ...categories.value[idx], label }
+    markDirtyAutoSave()
+  }
+
   function patchFlower(id: string, patch: Partial<FlowerItem>): void {
     const idx = flowers.value.findIndex((f) => f.id === id)
     if (idx === -1) return
@@ -703,6 +741,7 @@ export const useFlowersStore = defineStore('flowers', () => {
   return {
     flowers,
     dividers,
+    categories,
     varieties,
     activeSection,
     unlocked,
@@ -727,6 +766,9 @@ export const useFlowersStore = defineStore('flowers', () => {
     addDivider,
     removeDivider,
     setDividerLabel,
+    addCategory,
+    removeCategory,
+    renameCategory,
     attachAutoImage,
     setVarietyItem,
     addVarietyItem,

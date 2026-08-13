@@ -18,6 +18,7 @@ export interface FlowerItem {
   pistachioTable?: Record<number, number>
   flowerGroup?: string
   sortOrder?: number
+  maxQty?: number
 }
 
 export interface Divider {
@@ -26,6 +27,14 @@ export interface Divider {
   sortOrder: number
   label?: string
   flowerFilter?: string
+}
+
+export interface Category {
+  id: string
+  section: SectionKey
+  key: string
+  label: string
+  sortOrder: number
 }
 
 export interface VarietyTable {
@@ -44,6 +53,7 @@ export interface FlowerDatabase {
   items: FlowerItem[]
   varieties?: VarietyData
   dividers?: Divider[]
+  categories?: Category[]
 }
 
 export const DEFAULT_SIZES = [7, 9, 11, 15, 25]
