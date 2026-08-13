@@ -1833,7 +1833,7 @@ async function onChooseFile(): Promise<void> {
 }
 
 function downloadJson(): void {
-  const db = { updatedAt: new Date().toISOString(), items: store.flowers, varieties: store.varieties }
+  const db = { updatedAt: new Date().toISOString(), items: store.flowers, varieties: store.varieties, dividers: store.dividers }
   const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
