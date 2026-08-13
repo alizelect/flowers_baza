@@ -230,7 +230,6 @@ function getInitialFlowerFilter(section: SectionKey): FlowerFilterKey {
 }
 
 function loadStoredPriceMatrixState(): { selectedPriceTableId: string, mobilePriceMatrixCategory: MobilePriceMatrixCategoryKey, priceTableSection: BaseSectionKey } {
-  const allowedCategories: MobilePriceMatrixCategoryKey[] = ['rose', 'carnation', 'chryza', 'alstroemerii', 'hydrangea', 'gypsophila', 'tanacetum', 'tulip', 'peony']
   if (typeof window === 'undefined') {
     return { selectedPriceTableId: '', mobilePriceMatrixCategory: 'rose', priceTableSection: 'osnovnye' }
   }
@@ -243,9 +242,7 @@ function loadStoredPriceMatrixState(): { selectedPriceTableId: string, mobilePri
     const mobileCategory = parsed.mobilePriceMatrixCategory
     return {
       selectedPriceTableId: typeof parsed.selectedPriceTableId === 'string' ? parsed.selectedPriceTableId : '',
-      mobilePriceMatrixCategory: allowedCategories.includes(mobileCategory as MobilePriceMatrixCategoryKey)
-        ? mobileCategory as MobilePriceMatrixCategoryKey
-        : 'rose',
+      mobilePriceMatrixCategory: typeof mobileCategory === 'string' && mobileCategory ? mobileCategory : 'rose',
       priceTableSection: parsed.priceTableSection === 'sezonnye' ? 'sezonnye' : 'osnovnye',
     }
   } catch {
@@ -927,19 +924,25 @@ const MOBILE_PRICE_MATRIX_CATEGORY_ORDER: MobilePriceMatrixCategoryKey[] = [
   'peony',
 ]
 
-const mobilePriceMatrixCategoryOrder = computed<MobilePriceMatrixCategoryKey[]>(() => (
-  priceTableSection.value === 'sezonnye'
+const mobilePriceMatrixCategoryOrder = computed<MobilePriceMatrixCategoryKey[]>(() => {
+  const base: MobilePriceMatrixCategoryKey[] = priceTableSection.value === 'sezonnye'
     ? ['peony', 'tulip']
     : ['rose', 'carnation', 'chryza', 'alstroemerii', 'hydrangea', 'gypsophila', 'tanacetum']
-))
+  const custom = store.categories
+    .filter((c) => c.section === priceTableSection.value)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((c) => c.key)
+  return [...base, ...custom]
+})
 
 const mobilePriceMatrixCategory = ref<MobilePriceMatrixCategoryKey>(initialPriceMatrixState.mobilePriceMatrixCategory)
 
 function getPriceMatrixCategoryKey(item: FlowerItem): MobilePriceMatrixCategoryKey | null {
   const group = getFlowerGroup(item)
-  return MOBILE_PRICE_MATRIX_CATEGORY_ORDER.includes(group as MobilePriceMatrixCategoryKey)
-    ? group as MobilePriceMatrixCategoryKey
-    : null
+  if (MOBILE_PRICE_MATRIX_CATEGORY_ORDER.includes(group as MobilePriceMatrixCategoryKey)) {
+    return group as MobilePriceMatrixCategoryKey
+  }
+  return store.categories.some((c) => c.key === group) ? group : null
 }
 
 const mobilePriceMatrixCategories = computed(() => mobilePriceMatrixCategoryOrder.value

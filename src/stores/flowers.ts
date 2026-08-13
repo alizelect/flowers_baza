@@ -467,15 +467,31 @@ export const useFlowersStore = defineStore('flowers', () => {
 
   async function loadFallbackOrProjectJson(): Promise<void> {
     if (hasFallbackData()) {
-      await loadFromFallback()
-      // Sync flowers.json signature so the poller doesn't reset user's data
+      let projectDb: FlowerDatabase | null = null
       try {
         const resp = await fetch(projectJsonUrl(), { cache: 'no-store' })
         if (resp.ok) {
-          const db = (await resp.json()) as FlowerDatabase
-          lastLoadedSignature.value = getDbSignature(db)
+          projectDb = (await resp.json()) as FlowerDatabase
         }
       } catch {}
+
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY)
+      const fallbackDb = raw ? (JSON.parse(raw) as FlowerDatabase) : null
+      const fallbackTime = fallbackDb?.updatedAt ? Date.parse(fallbackDb.updatedAt) : NaN
+      const projectTime = projectDb?.updatedAt ? Date.parse(projectDb.updatedAt) : NaN
+
+      // Prefer whichever copy is actually newer, so a fresher file on disk
+      // (e.g. a fix pushed after this browser last saved) isn't silently
+      // shadowed forever by an older local snapshot.
+      if (projectDb && (Number.isNaN(fallbackTime) || (!Number.isNaN(projectTime) && projectTime > fallbackTime))) {
+        await applyDatabase(projectDb, 'data/flowers.json')
+        return
+      }
+
+      await loadFromFallback()
+      if (projectDb) {
+        lastLoadedSignature.value = getDbSignature(projectDb)
+      }
     } else {
       await loadFromProjectJson()
     }
