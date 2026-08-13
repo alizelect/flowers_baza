@@ -1683,7 +1683,7 @@ function getPriceTableRows(item: FlowerItem): PriceTableRow[] {
 }
 
 function isPistachioLocked(item: FlowerItem): boolean {
-  return isTulips(item) || isGypsophila(item) || isGypsophilaComposition(item) || isTanacetum(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
+  return !item.hasPistachio || isTulips(item) || isGypsophila(item) || isGypsophilaComposition(item) || isTanacetum(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
 
 function hidesMobilePistachio(item: FlowerItem): boolean {
