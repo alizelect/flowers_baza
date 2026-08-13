@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-13T10:42:48.542Z",
+  "updatedAt": "2026-08-13T11:35:08.104Z",
   "items": [
     {
       "id": "d0dc5c2b-3db1-4da0-bf0b-42e2fdf154f4",
@@ -1080,5 +1080,68 @@
         ]
       }
     ]
-  }
+  },
+  "dividers": [
+    {
+      "id": "d9420ac0-48b8-473a-a8d6-adc0b8334581",
+      "section": "osnovnye",
+      "sortOrder": 60,
+      "label": ""
+    },
+    {
+      "id": "59f87332-6887-4d60-b2dd-bc40f8f02094",
+      "section": "osnovnye",
+      "sortOrder": 80,
+      "label": ""
+    },
+    {
+      "id": "7ac7b740-2eed-4489-8a2e-82271e1780ba",
+      "section": "osnovnye",
+      "sortOrder": 130,
+      "label": "",
+      "flowerFilter": "all"
+    },
+    {
+      "id": "d5a11c32-9403-4edf-9b84-8857fe78913a",
+      "section": "osnovnye",
+      "sortOrder": 170,
+      "label": "",
+      "flowerFilter": "all"
+    },
+    {
+      "id": "447d70be-1781-4ea0-8160-13c49cd736bd",
+      "section": "osnovnye",
+      "sortOrder": 190,
+      "label": "",
+      "flowerFilter": "all"
+    },
+    {
+      "id": "f5fac79c-d40b-47f9-ae37-a1c54e60dd16",
+      "section": "osnovnye",
+      "sortOrder": 220,
+      "label": "",
+      "flowerFilter": "all"
+    },
+    {
+      "id": "2f313ba5-b930-462a-a07e-ea2a7996eee1",
+      "section": "osnovnye",
+      "sortOrder": 145,
+      "label": "",
+      "flowerFilter": "chryza"
+    },
+    {
+      "id": "479952ad-1c6a-4ff2-af87-311dc1f7a8fa",
+      "section": "osnovnye",
+      "sortOrder": 133.75,
+      "label": "",
+      "flowerFilter": "chryza"
+    },
+    {
+      "id": "d7d4fef6-8d51-487e-9d9f-fd8c4031095c",
+      "section": "osnovnye",
+      "sortOrder": 147.5,
+      "label": "",
+      "flowerFilter": "chryza"
+    }
+  ]
 }
