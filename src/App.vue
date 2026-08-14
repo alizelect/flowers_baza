@@ -156,6 +156,11 @@ const uiLabels = {
   qtyResetOne: '\u0441\u0431\u0440\u043e\u0441 \u043d\u0430 1',
   pieces: '\u0448\u0442.',
   edit: '\u0420\u0435\u0434.',
+  duplicate: '\u041a\u043e\u043f\u0438\u044f',
+  duplicateHint: '\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u043a\u043e\u043f\u0438\u044e \u043f\u043e\u0437\u0438\u0446\u0438\u0438 \u0441\u043e \u0432\u0441\u0435\u043c\u0438 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430\u043c\u0438',
+  hide: '\u0421\u043a\u0440\u044b\u0442\u044c',
+  show: '\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c',
+  hideHint: '\u0421\u043a\u0440\u044b\u0442\u0430\u044f \u043f\u043e\u0437\u0438\u0446\u0438\u044f \u043d\u0435 \u0432\u0438\u0434\u043d\u0430 \u043f\u043e\u0441\u0435\u0442\u0438\u0442\u0435\u043b\u044f\u043c, \u043d\u043e \u043e\u0441\u0442\u0430\u0451\u0442\u0441\u044f \u0432 \u0431\u0430\u0437\u0435',
   delete: '\u0423\u0434\u0430\u043b\u0438\u0442\u044c',
   enable: '\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u044c',
   empty: '\u0417\u0430\u043f\u0438\u0441\u0435\u0439 \u043d\u0435\u0442 \u0432 \u044d\u0442\u043e\u0439 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438',
@@ -722,16 +727,16 @@ function getRoseVarietyTable(item: FlowerItem): VarietyTable | null {
 }
 
 function getChryzaVarietyTable(item: FlowerItem): VarietyTable | null {
-  if (item.id === CHRYZA_BUSH_220_ID) {
+  if (behaviorId(item) === CHRYZA_BUSH_220_ID) {
     return null
   }
-  if (item.id === CHRYZA_BUSH_250_ID) {
+  if (behaviorId(item) === CHRYZA_BUSH_250_ID) {
     return CHRYZA_VARIETY_TABLES.value[0]
   }
-  if (item.id === CHRYZA_BUSH_300_ID) {
+  if (behaviorId(item) === CHRYZA_BUSH_300_ID) {
     return CHRYZA_VARIETY_TABLES.value[1]
   }
-  if (item.id === CHRYZA_SINGLE_ID) {
+  if (behaviorId(item) === CHRYZA_SINGLE_ID) {
     return CHRYZA_VARIETY_TABLES.value[2]
   }
   return null
@@ -883,7 +888,7 @@ const initialPriceMatrixState = loadStoredPriceMatrixState()
 const selectedPriceTableId = ref<string>(initialPriceMatrixState.selectedPriceTableId)
 const priceTableSection = ref<BaseSectionKey>(initialPriceMatrixState.priceTableSection)
 
-const priceTableGroups = computed<PriceTableGroup[]>(() => [...store.flowers]
+const priceTableGroups = computed<PriceTableGroup[]>(() => [...store.visibleFlowers]
   .filter((item) => item.section === priceTableSection.value)
   .sort(compareFlowers)
   .map((item) => ({
@@ -1220,8 +1225,14 @@ function isCarnationMoon(item: FlowerItem): boolean {
   return name.includes('\u0433\u0432\u043e\u0437\u0434\u0438\u043a\u0438 - \u043b\u0443\u043d\u043d\u044b\u0435')
 }
 
+// Копия позиции должна считаться "тем же цветком" для всей логики, завязанной
+// на конкретные id: таблицы упаковки, фисташка, популярные размеры.
+function behaviorId(item: FlowerItem): string {
+  return item.copyOfId ?? item.id
+}
+
 function isCarnationMix(item: FlowerItem): boolean {
-  return item.id === CARNATION_MIX_ID
+  return behaviorId(item) === CARNATION_MIX_ID
 }
 
 function isPeonies(item: FlowerItem): boolean {
@@ -1230,7 +1241,7 @@ function isPeonies(item: FlowerItem): boolean {
 }
 
 function isTulips(item: FlowerItem): boolean {
-  return item.id === '327eb882-6a93-45c5-bb20-8a53b19bc27e'
+  return behaviorId(item) === '327eb882-6a93-45c5-bb20-8a53b19bc27e'
 }
 
 function isHydrangea(item: FlowerItem): boolean {
@@ -1239,15 +1250,15 @@ function isHydrangea(item: FlowerItem): boolean {
 }
 
 function isGypsophila(item: FlowerItem): boolean {
-  return item.id === GYPSOPHILA_ID
+  return behaviorId(item) === GYPSOPHILA_ID
 }
 
 function isGypsophilaComposition(item: FlowerItem): boolean {
-  return item.id === GYPSOPHILA_COMPOSITION_ID
+  return behaviorId(item) === GYPSOPHILA_COMPOSITION_ID
 }
 
 function isTanacetum(item: FlowerItem): boolean {
-  return item.id === TANACETUM_ID || item.flowerName.trim().toLowerCase().includes('\u0442\u0430\u043d\u0430\u0446\u0435\u0442\u0443\u043c')
+  return behaviorId(item) === TANACETUM_ID || item.flowerName.trim().toLowerCase().includes('\u0442\u0430\u043d\u0430\u0446\u0435\u0442\u0443\u043c')
 }
 function isPromoDisabledForQty(item: FlowerItem, qty: number): boolean {
   return isGypsophilaComposition(item) && [1, 3, 5].includes(qty)
@@ -1257,19 +1268,19 @@ function isPackagingHidden(item: FlowerItem): boolean {
 }
 
 function isChryzaSingle(item: FlowerItem): boolean {
-  return item.id === CHRYZA_SINGLE_ID
+  return behaviorId(item) === CHRYZA_SINGLE_ID
 }
 
 function isChryzaBush220(item: FlowerItem): boolean {
-  return item.id === CHRYZA_BUSH_220_ID
+  return behaviorId(item) === CHRYZA_BUSH_220_ID
 }
 
 function isChryzaBush250(item: FlowerItem): boolean {
-  return item.id === CHRYZA_BUSH_250_ID
+  return behaviorId(item) === CHRYZA_BUSH_250_ID
 }
 
 function isChryzaBush300(item: FlowerItem): boolean {
-  return item.id === CHRYZA_BUSH_300_ID
+  return behaviorId(item) === CHRYZA_BUSH_300_ID
 }
 
 
@@ -1372,13 +1383,13 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
       getArrayValue(CARNATION_MIX_PISTACHIO_QTY_BY_ODD, idx),
     )
   }
-  if (item.id === PEONY_300_ID) {
+  if (behaviorId(item) === PEONY_300_ID) {
     return getArrayValue(PEONY_300_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
-  if (item.id === PEONY_350_ID) {
+  if (behaviorId(item) === PEONY_350_ID) {
     return getArrayValue(PEONY_350_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
-  if (item.id === PEONY_490_ID) {
+  if (behaviorId(item) === PEONY_490_ID) {
     return getArrayValue(PEONY_490_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
   if (isPeonies(item)) {
@@ -1451,13 +1462,13 @@ function getPistachioQty(item: FlowerItem, qty: number): number {
   if (isAlstroemerii(item)) {
     return getAlstroemeriiPistachioQty(getArrayValue(ALSTROMERII_PISTACHIO_QTY_BY_ODD, idx), qty)
   }
-  if (item.id === PEONY_300_ID) {
+  if (behaviorId(item) === PEONY_300_ID) {
     return getArrayValue(PEONY_300_PISTACHIO_QTY_BY_ODD, idx)
   }
-  if (item.id === PEONY_350_ID) {
+  if (behaviorId(item) === PEONY_350_ID) {
     return getArrayValue(PEONY_350_PISTACHIO_QTY_BY_ODD, idx)
   }
-  if (item.id === PEONY_490_ID) {
+  if (behaviorId(item) === PEONY_490_ID) {
     return getArrayValue(PEONY_490_PISTACHIO_QTY_BY_ODD, idx)
   }
   if (isPeonies(item)) {
@@ -1982,6 +1993,21 @@ function onDeleteFlower(item: FlowerItem): void {
   undoTimer = window.setTimeout(() => { undoToast.value = null }, 8000)
 }
 
+function onDuplicateFlower(item: FlowerItem): void {
+  const newId = store.duplicateFlower(item.id)
+  if (!newId) return
+  // Ставим копию сразу под оригиналом, не перенумеровывая остальные строки.
+  store.setEntrySortOrder(newId, sortOrderAfterAnchor(item.id, newId))
+  const copy = store.flowers.find((f) => f.id === newId)
+  if (copy) {
+    openEdit(copy)
+  }
+}
+
+function toggleFlowerHidden(item: FlowerItem): void {
+  store.setFlowerHidden(item.id, !item.isHidden)
+}
+
 function undoDelete(): void {
   store.restoreLastDeleted()
   undoToast.value = null
@@ -2293,6 +2319,7 @@ onBeforeUnmount(() => {
               :class="{
                 'is-active': activeRowId === item.id,
                 'group-start': isGroupStart(item, index),
+                'row-hidden-entry': item.isHidden,
                 'row-dragging': dragId === item.id,
                 'row-drag-above': dragOverId === item.id && dragAbove,
                 'row-drag-below': dragOverId === item.id && !dragAbove,
@@ -2308,6 +2335,7 @@ onBeforeUnmount(() => {
               <td v-if="store.unlocked" class="drag-handle-cell">⠿</td>
               <td class="flower-name-cell" @click="activeRowId = item.id">
                 <span>{{ item.flowerName }}</span>
+                <span v-if="item.isHidden" class="hidden-badge">скрыто</span>
                 <span v-if="isGypsophilaComposition(item)" class="popular-sizes-note">{{ POPULAR_SIZES_NOTE }}</span>
               </td>
 <td>
@@ -2491,6 +2519,8 @@ onBeforeUnmount(() => {
               <td v-if="store.unlocked">
                 <div class="row-actions">
                   <button :disabled="!store.unlocked" @click="openEdit(item)">{{ uiLabels.edit }}</button>
+                  <button :disabled="!store.unlocked" :title="uiLabels.duplicateHint" @click="onDuplicateFlower(item)">{{ uiLabels.duplicate }}</button>
+                  <button :disabled="!store.unlocked" :title="uiLabels.hideHint" @click="toggleFlowerHidden(item)">{{ item.isHidden ? uiLabels.show : uiLabels.hide }}</button>
                   <button :disabled="!store.unlocked" class="danger" @click="onDeleteFlower(item)">{{ uiLabels.delete }}</button>
                   <button v-if="hasAutoPackagingByQty(item)" :disabled="!store.unlocked" class="table-editor-btn" @click="openTableEditor(item)">Таблица</button>
                 </div>
@@ -2657,7 +2687,7 @@ onBeforeUnmount(() => {
                 v-for="item in section.items"
                 :key="item.id"
                 class="mobile-card"
-                :class="{ 'is-active': activeRowId === item.id }"
+                :class="{ 'is-active': activeRowId === item.id, 'row-hidden-entry': item.isHidden }"
               >
                 <div class="mobile-card-header">
                   <button class="mobile-flower-name" type="button" @click="activeRowId = item.id">
@@ -2666,6 +2696,8 @@ onBeforeUnmount(() => {
                   <span v-if="isGypsophilaComposition(item)" class="mobile-helper-note">{{ POPULAR_SIZES_NOTE }}</span>
                   <div v-if="store.unlocked" class="mobile-card-actions">
                     <button type="button" @click="openEdit(item)">{{ uiLabels.edit }}</button>
+                    <button type="button" @click="onDuplicateFlower(item)">{{ uiLabels.duplicate }}</button>
+                    <button type="button" @click="toggleFlowerHidden(item)">{{ item.isHidden ? uiLabels.show : uiLabels.hide }}</button>
                     <button type="button" class="danger" @click="store.deleteFlower(item.id)">{{ uiLabels.delete }}</button>
                     <button v-if="hasAutoPackagingByQty(item)" type="button" class="table-editor-btn" @click="openTableEditor(item)">Таблица</button>
                   </div>

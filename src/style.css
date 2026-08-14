@@ -414,6 +414,23 @@ select {
   flex-wrap: nowrap;
 }
 
+/* Скрытые позиции видны только редактору — приглушаем, чтобы их
+   нельзя было спутать с рабочими строками. */
+.row-hidden-entry {
+  opacity: 0.5;
+}
+
+.hidden-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #e4e6eb;
+  color: #5b6070;
+  font-size: 11px;
+  vertical-align: middle;
+}
+
 .sizes button {
   padding: 2px 5px;
   white-space: nowrap;
@@ -591,7 +608,7 @@ select {
 .row-actions {
   gap: 6px;
   flex-direction: row;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .auth-wrap {

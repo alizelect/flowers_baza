@@ -325,7 +325,11 @@ export const useFlowersStore = defineStore('flowers', () => {
     localStorage.setItem(ACTIVE_SECTION_KEY, value)
   }, { immediate: true })
 
-  const filteredBySection = computed(() => activeSection.value === 'priceTables' ? flowers.value : flowers.value.filter((item) => item.section === activeSection.value))
+  // Скрытые позиции видит только разблокированный редактор: посетителю они
+  // не показываются нигде, но остаются в файле и их можно вернуть обратно.
+  const visibleFlowers = computed(() => unlocked.value ? flowers.value : flowers.value.filter((item) => !item.isHidden))
+
+  const filteredBySection = computed(() => activeSection.value === 'priceTables' ? visibleFlowers.value : visibleFlowers.value.filter((item) => item.section === activeSection.value))
 
   function setUnlocked(value: boolean): void {
     unlocked.value = value
@@ -643,6 +647,33 @@ export const useFlowersStore = defineStore('flowers', () => {
     markDirtyAutoSave()
   }
 
+  function duplicateFlower(id: string): string | null {
+    const idx = flowers.value.findIndex((f) => f.id === id)
+    if (idx === -1) {
+      return null
+    }
+    const source = flowers.value[idx]
+    const newId = crypto?.randomUUID?.() ?? `flower-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const copy: FlowerItem = {
+      ...source,
+      id: newId,
+      // Копия копии всё равно ссылается на исходную позицию.
+      copyOfId: source.copyOfId ?? source.id,
+      flowerName: `${source.flowerName} (копия)`,
+      isHidden: false,
+      popularSizes: [...source.popularSizes],
+      ...(source.packagingTable ? { packagingTable: { ...source.packagingTable } } : {}),
+      ...(source.pistachioTable ? { pistachioTable: { ...source.pistachioTable } } : {}),
+    }
+    flowers.value.splice(idx + 1, 0, copy)
+    markDirtyAutoSave()
+    return newId
+  }
+
+  function setFlowerHidden(id: string, isHidden: boolean): void {
+    patchFlower(id, { isHidden })
+  }
+
   function deleteFlower(id: string): void {
     const removed = flowers.value.find((item) => item.id === id)
     if (removed) {
@@ -765,6 +796,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     loading,
     saveError,
     usingFallbackStorage,
+    visibleFlowers,
     filteredBySection,
     setUnlocked,
     bootstrap,
@@ -773,6 +805,8 @@ export const useFlowersStore = defineStore('flowers', () => {
     refreshFromSourceIfAvailable,
     saveNow,
     upsertFlower,
+    duplicateFlower,
+    setFlowerHidden,
     deleteFlower,
     restoreLastDeleted,
     recentlyDeleted,

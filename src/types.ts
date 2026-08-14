@@ -19,6 +19,12 @@ export interface FlowerItem {
   flowerGroup?: string
   sortOrder?: number
   maxQty?: number
+  // Скрытые позиции остаются в JSON, но не показываются посетителям —
+  // видны только редактору, чтобы их можно было вернуть обратно.
+  isHidden?: boolean
+  // Для копий: id исходной позиции. Вся логика, завязанная на конкретные id
+  // (таблицы упаковки, фисташка, размеры), у копии работает как у оригинала.
+  copyOfId?: string
 }
 
 export interface Divider {
