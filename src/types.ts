@@ -16,6 +16,14 @@ export interface FlowerItem {
   popularSizes: number[]
   packagingTable?: Record<number, number>
   pistachioTable?: Record<number, number>
+  // Эвкалипт — необязательное дополнение к букету. Количество может быть
+  // дробным (1,5 / 2,5), поэтому здесь не целое число.
+  hasEucalyptus?: boolean
+  eucalyptusQty?: number
+  eucalyptusUnitPrice?: number
+  // Количество эвкалипта можно задать отдельно для каждого размера букета,
+  // как и у фисташки; ключ — количество цветов.
+  eucalyptusTable?: Record<number, number>
   flowerGroup?: string
   sortOrder?: number
   maxQty?: number

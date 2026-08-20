@@ -20,6 +20,11 @@ export default defineConfig(({ mode }) => {
         },
       },
     ],
+    // Слушаем и IPv4, и IPv6: иначе Vite поднимается только на ::1, а браузер,
+    // который резолвит localhost в 127.0.0.1, получает ERR_CONNECTION_REFUSED.
+    server: {
+      host: true,
+    },
     base: env.BASE_PATH || '/',
   }
 })

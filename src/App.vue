@@ -57,6 +57,7 @@ function onDrop(e: DragEvent, targetId: string): void {
   if (dividersVisible.value) {
     const order = currentEntryOrder()
     if (!order.includes(sourceId) || !order.includes(targetId)) return
+    if (!hasRoomAroundAnchor(targetId, sourceId, dragAbove.value)) respaceSection()
     const newSort = dragAbove.value
       ? sortOrderBeforeAnchor(targetId, sourceId)
       : sortOrderAfterAnchor(targetId, sourceId)
@@ -152,6 +153,7 @@ const uiLabels = {
   flowerPrice: '\u0426\u0435\u043d\u0430 \u0446\u0432\u0435\u0442\u043a\u0430',
   packaging: '\u0423\u043f\u0430\u043a\u043e\u0432\u043a\u0430',
   pistachio: '\u0424\u0438\u0441\u0442\u0430\u0448\u043a\u0430',
+  eucalyptus: 'Эвкалипт',
   actions: '\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f',
   qtyResetOne: '\u0441\u0431\u0440\u043e\u0441 \u043d\u0430 1',
   pieces: '\u0448\u0442.',
@@ -666,6 +668,7 @@ type PriceTableRow = {
   qty: number
   withoutPromo: string
   pistachio: string
+  eucalyptus: string
   packaging: string
   promo10: string
   promo15: string
@@ -775,7 +778,10 @@ function dividersBeforeFlower(item: FlowerItem, index: number): Divider[] {
   const curSort = flowerSort(item, index)
   const prev = visibleRows.value[index - 1]
   const prevSort = prev ? flowerSort(prev, index - 1) : Number.NEGATIVE_INFINITY
-  return secDividers.filter((d) => d.sortOrder > prevSort && d.sortOrder < curSort)
+  // Half-open interval [prevSort, curSort): together with the trailing bucket
+  // (>= last row) these cover every possible sortOrder, so a divider that lands
+  // exactly on a flower's sortOrder still renders instead of vanishing.
+  return secDividers.filter((d) => d.sortOrder >= prevSort && d.sortOrder < curSort)
 }
 
 const trailingDividers = computed<Divider[]>(() => {
@@ -785,7 +791,7 @@ const trailingDividers = computed<Divider[]>(() => {
   const rows = visibleRows.value
   if (!rows.length) return secDividers
   const lastSort = flowerSort(rows[rows.length - 1], rows.length - 1)
-  return secDividers.filter((d) => d.sortOrder > lastSort)
+  return secDividers.filter((d) => d.sortOrder >= lastSort)
 })
 
 function currentEntryOrder(): string[] {
@@ -798,14 +804,18 @@ function currentEntryOrder(): string[] {
   return out
 }
 
-// Full section order (every flower type, not just the active filter) plus dividers
-// scoped to the active filter. Used to interpolate a new sortOrder for a single
-// moved/added entry without ever renumbering unrelated entries, so editing one
-// flower-filter tab can't shuffle rows belonging to other tabs.
+// Full section order (every flower type, not just the active filter) plus every
+// divider of the section, including those belonging to other flower-filter tabs.
+// Used to interpolate a new sortOrder for a single moved/added entry without ever
+// renumbering unrelated entries, so editing one flower-filter tab can't shuffle
+// rows belonging to other tabs. Dividers from other tabs are invisible here but
+// still count as anchors, so a dropped row can never land exactly on one of them.
 const fullOrderEntries = computed(() => {
   const sortedFlowers = [...store.filteredBySection].sort(compareFlowers)
   const flowerEntries = sortedFlowers.map((f, index) => ({ id: f.id, sortOrder: f.sortOrder ?? index * 10 }))
-  const dividerEntries = sortedSectionDividers.value.map((d) => ({ id: d.id, sortOrder: d.sortOrder }))
+  const dividerEntries = store.dividers
+    .filter((d) => d.section === store.activeSection)
+    .map((d) => ({ id: d.id, sortOrder: d.sortOrder }))
   return [...flowerEntries, ...dividerEntries].sort((a, b) => a.sortOrder - b.sortOrder)
 })
 
@@ -814,6 +824,32 @@ function entrySortOrder(id: string): number {
   if (f) return f.sortOrder ?? 0
   const d = store.dividers.find((x) => x.id === id)
   return d ? d.sortOrder : 0
+}
+
+// Соседи по общему порядку могут иметь одинаковый sortOrder (так получалось у
+// копий строк), и тогда между ними нет числового промежутка: середина совпадает
+// с самими соседями и перетаскивание никуда не переносит запись.
+function hasRoomAroundAnchor(anchorId: string, excludeId: string, above: boolean): boolean {
+  const entries = fullOrderEntries.value.filter((e) => e.id !== excludeId)
+  const idx = entries.findIndex((e) => e.id === anchorId)
+  if (idx === -1) return false
+  const neighbor = above ? entries[idx - 1] : entries[idx + 1]
+  return !neighbor || neighbor.sortOrder !== entries[idx].sortOrder
+}
+
+// Раздвигает номера всей секции с шагом 10, сохраняя текущий видимый порядок,
+// поэтому строки других вкладок не перемешиваются — меняется только шкала.
+function respaceSection(): void {
+  const flowerEntries = store.flowers
+    .filter((f) => f.section === store.activeSection)
+    .sort(compareFlowers)
+    .map((f, index) => ({ id: f.id, sortOrder: f.sortOrder ?? index * 10, isDivider: 0 }))
+  const dividerEntries = store.dividers
+    .filter((d) => d.section === store.activeSection)
+    .map((d) => ({ id: d.id, sortOrder: d.sortOrder, isDivider: 1 }))
+  const merged = [...flowerEntries, ...dividerEntries]
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.isDivider - b.isDivider)
+  merged.forEach((entry, index) => store.setEntrySortOrder(entry.id, index * 10))
 }
 
 function sortOrderAfterAnchor(anchorId: string, excludeId?: string): number {
@@ -865,7 +901,41 @@ function isCustomCategory(key: FlowerFilterKey): boolean {
   return store.categories.some((c) => c.section === store.activeSection && c.key === key)
 }
 
+const vAutofocus = {
+  mounted(el: HTMLInputElement): void {
+    el.focus()
+    el.select()
+  },
+}
+
+const renamingCategoryKey = ref<FlowerFilterKey | null>(null)
+const renameCategoryName = ref('')
+
+function startRenameCategory(key: FlowerFilterKey): void {
+  if (!store.unlocked || !isCustomCategory(key)) return
+  cancelAddCategory()
+  renamingCategoryKey.value = key
+  renameCategoryName.value = flowerFilterLabel(key)
+}
+
+function cancelRenameCategory(): void {
+  renamingCategoryKey.value = null
+  renameCategoryName.value = ''
+}
+
+function confirmRenameCategory(): void {
+  const key = renamingCategoryKey.value
+  const label = renameCategoryName.value.trim()
+  renamingCategoryKey.value = null
+  renameCategoryName.value = ''
+  if (!key || !label) return
+  const cat = store.categories.find((c) => c.section === store.activeSection && c.key === key)
+  if (!cat || cat.label === label) return
+  store.renameCategory(cat.id, label)
+}
+
 function removeCategory(key: FlowerFilterKey): void {
+  if (renamingCategoryKey.value === key) cancelRenameCategory()
   const cat = store.categories.find((c) => c.section === store.activeSection && c.key === key)
   if (!cat) return
   if (activeFlowerFilter.value === key) activeFlowerFilter.value = 'all'
@@ -978,6 +1048,11 @@ const mobilePriceMatrixSubtabs = computed<PriceTableGroup[]>(() => {
 })
 
 const mobilePriceMatrixHasSubtabs = computed(() => mobilePriceMatrixSubtabs.value.length > 1)
+
+const activePriceTableShowsEucalyptus = computed(() => {
+  const item = activePriceTableGroup.value?.item
+  return item ? hasEucalyptus(item) : false
+})
 
 const activePriceTableHidesPistachio = computed(() => {
   const item = activePriceTableGroup.value?.item
@@ -1233,6 +1308,25 @@ function behaviorId(item: FlowerItem): string {
 
 function isCarnationMix(item: FlowerItem): boolean {
   return behaviorId(item) === CARNATION_MIX_ID
+}
+
+// Позиция считается по двум ценам: цветки чередуются, поэтому при количестве N
+// ceil(N/2) штук идут по цене 1 и floor(N/2) — по цене 2. Режим включён, пока
+// вторая цена больше нуля; сразу после нажатия «+ 2-я цена» она ещё пустая,
+// поэтому такие строки держим открытыми через twoPriceDraftIds.
+const twoPriceDraftIds = reactive(new Set<string>())
+
+function hasTwoPrices(item: FlowerItem): boolean {
+  return (Number(item.secondaryUnitPrice) || 0) > 0 || twoPriceDraftIds.has(item.id)
+}
+
+function enableTwoPrices(item: FlowerItem): void {
+  twoPriceDraftIds.add(item.id)
+}
+
+function disableTwoPrices(item: FlowerItem): void {
+  twoPriceDraftIds.delete(item.id)
+  store.patchFlower(item.id, { secondaryUnitPrice: undefined })
 }
 
 function isPeonies(item: FlowerItem): boolean {
@@ -1492,6 +1586,7 @@ function calcWithoutPromoForRow(item: FlowerItem, qty: number): number {
       hasPistachio: !pistachioLocked,
       pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
       pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
+      eucalyptusQty: getEucalyptusQty(item, qty),
     },
     qty,
   )
@@ -1509,6 +1604,7 @@ function calcWithPromoForRow(item: FlowerItem, qty: number): number {
       hasPistachio: !pistachioLocked,
       pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
       pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
+      eucalyptusQty: getEucalyptusQty(item, qty),
     },
     qty,
   )
@@ -1676,7 +1772,7 @@ function getCompositionLabel(item: FlowerItem, qty: number): string {
   if (isGypsophilaComposition(item)) {
     return GYPSOPHILA_COMPOSITION_LABELS[qty] ?? ''
   }
-  if (isCarnationMix(item)) {
+  if (hasTwoPrices(item)) {
     const split = getMixQtySplit(qty)
     return `${split.primary} + ${split.secondary} \u0448\u0442.`
   }
@@ -1728,6 +1824,7 @@ function getPromoPriceForPercent(item: FlowerItem, qty: number, discountPercent:
       hasPistachio: !pistachioLocked,
       pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
       pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
+      eucalyptusQty: getEucalyptusQty(item, qty),
     },
     qty,
   )
@@ -1748,10 +1845,67 @@ function getPriceTableRows(item: FlowerItem): PriceTableRow[] {
     qty,
     withoutPromo: formatPriceWithRuble(calcWithoutPromoForRow(item, qty)),
     pistachio: getPistachioLabel(item, qty),
+    eucalyptus: getEucalyptusLabel(item, qty),
     packaging: isPackagingHidden(item) ? '-' : formatPriceWithRuble(getPackagingPrice(item, qty)),
     promo10: isPromoDisabledForQty(item, qty) ? '-' : formatPriceWithRuble(getPromoPriceForPercent(item, qty, 10)),
     promo15: isPromoDisabledForQty(item, qty) ? '-' : formatPriceWithRuble(getPromoPriceForPercent(item, qty, 15)),
   }))
+}
+
+// Эвкалипт задаётся вручную в карточке позиции: включён/выключен, количество
+// (можно дробное — 1,5) и цена за штуку. Автотаблиц по количеству цветов, как
+// у фисташки, тут нет.
+const eucalyptusQtyInputMap = reactive<Record<string, string>>({})
+
+function hasEucalyptus(item: FlowerItem): boolean {
+  return Boolean(item.hasEucalyptus)
+}
+
+function getEucalyptusQty(item: FlowerItem, qty?: number): number {
+  if (qty !== undefined && item.eucalyptusTable?.[qty] !== undefined) {
+    return Number(item.eucalyptusTable[qty]) || 0
+  }
+  return Number(item.eucalyptusQty) || 0
+}
+
+// Значение позиции без учёта таблицы по размерам — нужно редактору таблицы,
+// чтобы показывать «сколько будет по умолчанию».
+function getBaseEucalyptus(item: FlowerItem, qty: number): number {
+  return getEucalyptusQty({ ...item, eucalyptusTable: undefined }, qty)
+}
+
+function formatQtyValue(value: number): string {
+  return String(value).replace('.', ',')
+}
+
+function parseQtyValue(raw: string): number {
+  const value = Number(String(raw).replace(',', '.').trim())
+  return Number.isFinite(value) && value > 0 ? value : 0
+}
+
+// Пока в поле печатают, показываем ровно то, что набрано, иначе «1,» тут же
+// схлопнется в «1» и запятую не дадут дописать.
+function getEucalyptusQtyInput(item: FlowerItem, qty: number): string {
+  const draft = eucalyptusQtyInputMap[item.id]
+  return draft !== undefined ? draft : formatQtyValue(getEucalyptusQty(item, qty))
+}
+
+function onEucalyptusQtyInput(item: FlowerItem, raw: string): void {
+  eucalyptusQtyInputMap[item.id] = raw
+  store.patchFlower(item.id, { eucalyptusQty: parseQtyValue(raw) })
+}
+
+function onEucalyptusQtyBlur(item: FlowerItem): void {
+  delete eucalyptusQtyInputMap[item.id]
+}
+
+function getEucalyptusCostValue(item: FlowerItem, qty?: number): number {
+  return hasEucalyptus(item) ? getEucalyptusQty(item, qty) * (Number(item.eucalyptusUnitPrice) || 0) : 0
+}
+
+function getEucalyptusLabel(item: FlowerItem, qty: number): string {
+  if (!hasEucalyptus(item)) return '-'
+  return formatPriceWithRuble(getEucalyptusCostValue(item, qty)) + ' (' + formatQtyValue(getEucalyptusQty(item, qty)) + ')'
 }
 
 function isPistachioLocked(item: FlowerItem): boolean {
@@ -1843,8 +1997,16 @@ function openEdit(item: FlowerItem): void {
 }
 
 async function saveEditor(item: FlowerItem): Promise<void> {
+  const isNew = !editorItem.value
   await store.upsertFlower(item)
   editorOpen.value = false
+  // У новой позиции нет sortOrder, поэтому она уезжает в самый конец секции —
+  // мимо вкладки, на которой её добавляли. Ставим её сразу за последней
+  // видимой строкой текущего фильтра.
+  if (!isNew || item.sortOrder !== undefined) return
+  const rows = visibleRows.value.filter((row) => row.id !== item.id)
+  if (!rows.length) return
+  store.setEntrySortOrder(item.id, sortOrderAfterAnchor(rows[rows.length - 1].id, item.id))
 }
 
 function getBasePackaging(item: FlowerItem, qty: number): number {
@@ -1880,22 +2042,29 @@ function switchTableEditorItem(item: FlowerItem): void {
   tableEditorSaveError.value = ''
 }
 
-function handleTableEditorSave(
-  packagingTable: Record<number, number>,
-  pistachioTable: Record<number, number>,
-  flowerPrice: number,
-  pistachioPrice: number,
-  secondaryFlowerPrice: number | undefined,
-): void {
+function handleTableEditorSave(payload: {
+  packagingTable: Record<number, number>
+  pistachioTable: Record<number, number>
+  eucalyptusTable: Record<number, number>
+  flowerPrice: number
+  pistachioPrice: number
+  eucalyptusPrice: number
+  secondaryFlowerPrice: number | undefined
+}): void {
   if (!tableEditorItem.value) return
-  const pkgPatch = Object.keys(packagingTable).length ? packagingTable : undefined
-  const pstPatch = Object.keys(pistachioTable).length ? pistachioTable : undefined
-  store.patchFlower(tableEditorItem.value.id, {
+  const item = tableEditorItem.value
+  const pkgPatch = Object.keys(payload.packagingTable).length ? payload.packagingTable : undefined
+  const pstPatch = Object.keys(payload.pistachioTable).length ? payload.pistachioTable : undefined
+  const eucPatch = Object.keys(payload.eucalyptusTable).length ? payload.eucalyptusTable : undefined
+  store.patchFlower(item.id, {
     packagingTable: pkgPatch,
     pistachioTable: pstPatch,
-    unitPrice: flowerPrice,
-    pistachioUnitPrice: pistachioPrice,
-    ...(secondaryFlowerPrice !== undefined && { secondaryUnitPrice: secondaryFlowerPrice }),
+    unitPrice: payload.flowerPrice,
+    pistachioUnitPrice: payload.pistachioPrice,
+    // Таблицу эвкалипта трогаем только у позиций, где он включён, чтобы
+    // выключённый эвкалипт не оставлял за собой мусор в базе.
+    ...(hasEucalyptus(item) && { eucalyptusTable: eucPatch, eucalyptusUnitPrice: payload.eucalyptusPrice }),
+    ...(payload.secondaryFlowerPrice !== undefined && { secondaryUnitPrice: payload.secondaryFlowerPrice }),
   })
   tableEditorOpen.value = false
 }
@@ -2148,7 +2317,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="price-matrix-card-meta">
               <span>{{ uiLabels.flowerPrice }}: <span class="price-with-ruble"><span>{{ formatPriceWithRuble(activePriceTableGroup.item.unitPrice) }}</span><span class="price-ruble">&#8381;</span></span></span>
-              <span v-if="isCarnationMix(activePriceTableGroup.item)">{{ uiLabels.flowerPrice }} 2: <span class="price-with-ruble"><span>{{ formatPriceWithRuble(activePriceTableGroup.item.secondaryUnitPrice || 0) }}</span><span class="price-ruble">&#8381;</span></span></span>
+              <span v-if="hasTwoPrices(activePriceTableGroup.item)">{{ uiLabels.flowerPrice }} 2: <span class="price-with-ruble"><span>{{ formatPriceWithRuble(activePriceTableGroup.item.secondaryUnitPrice || 0) }}</span><span class="price-ruble">&#8381;</span></span></span>
+              <span v-if="hasEucalyptus(activePriceTableGroup.item)">{{ uiLabels.eucalyptus }}: <span class="price-with-ruble"><span>{{ formatPriceWithRuble(activePriceTableGroup.item.eucalyptusUnitPrice || 0) }}</span><span class="price-ruble">&#8381;</span></span></span>
             </div>
           </div>
 
@@ -2159,6 +2329,7 @@ onBeforeUnmount(() => {
                     <th></th>
                     <th>{{ uiLabels.withoutPromo }}</th>
                     <th v-if="!activePriceTableHidesPistachio">{{ uiLabels.pistachio }}</th>
+                    <th v-if="activePriceTableShowsEucalyptus">{{ uiLabels.eucalyptus }}</th>
                     <th>{{ uiLabels.packaging }}</th>
                     <template v-if="isMobileViewport">
                       <th>
@@ -2179,6 +2350,7 @@ onBeforeUnmount(() => {
                     <td>{{ row.qty }}</td>
                     <td><span class="price-with-ruble"><span>{{ row.withoutPromo }}</span><span class="price-ruble">&#8381;</span></span></td>
                     <td v-if="!activePriceTableHidesPistachio">{{ row.pistachio }}</td>
+                    <td v-if="activePriceTableShowsEucalyptus">{{ row.eucalyptus }}</td>
                     <td>
                       <template v-if="row.packaging === '-'">-</template>
                       <span v-else class="price-with-ruble"><span>{{ row.packaging }}</span><span class="price-ruble">&#8381;</span></span>
@@ -2230,21 +2402,41 @@ onBeforeUnmount(() => {
       <template v-else>
         <div class="price-matrix-tabs flower-filter-tabs">
           <span v-for="filterTab in flowerFilterTabs" :key="filterTab.key" class="filter-tab-wrap">
-            <button
-              type="button"
-              class="price-matrix-tab"
-              :class="{ active: activeFlowerFilter === filterTab.key }"
-              @click="onFlowerFilterChange(filterTab.key)"
-            >
-              {{ filterTab.label }}
-            </button>
-            <button
-              v-if="store.unlocked && isCustomCategory(filterTab.key)"
-              type="button"
-              class="category-remove-btn"
-              title="Удалить категорию"
-              @click="removeCategory(filterTab.key)"
-            >×</button>
+            <input
+              v-if="renamingCategoryKey === filterTab.key"
+              v-model="renameCategoryName"
+              v-autofocus
+              class="category-add-input"
+              placeholder="Название категории"
+              @keydown.enter="confirmRenameCategory"
+              @keydown.esc="cancelRenameCategory"
+              @blur="confirmRenameCategory"
+            />
+            <template v-else>
+              <button
+                type="button"
+                class="price-matrix-tab"
+                :class="{ active: activeFlowerFilter === filterTab.key }"
+                @click="onFlowerFilterChange(filterTab.key)"
+                @dblclick="startRenameCategory(filterTab.key)"
+              >
+                {{ filterTab.label }}
+              </button>
+              <button
+                v-if="store.unlocked && isCustomCategory(filterTab.key)"
+                type="button"
+                class="category-rename-btn"
+                title="Переименовать категорию"
+                @click="startRenameCategory(filterTab.key)"
+              >✎</button>
+              <button
+                v-if="store.unlocked && isCustomCategory(filterTab.key)"
+                type="button"
+                class="category-remove-btn"
+                title="Удалить категорию"
+                @click="removeCategory(filterTab.key)"
+              >×</button>
+            </template>
           </span>
           <span v-if="store.unlocked" class="filter-tab-wrap category-add-wrap">
             <input
@@ -2265,24 +2457,25 @@ onBeforeUnmount(() => {
           class="table-wrap desktop-table-wrap"
           :class="{ 'desktop-table-wrap-fit': store.activeSection === 'sezonnye' || (store.activeSection === 'osnovnye' && activeFlowerFilter !== 'rose') }"
         >
-        <table class="price-table">
+        <table class="price-table" :class="{ 'price-table-editable': store.unlocked }">
           <colgroup>
             <col v-if="store.unlocked" style="width: 24px" />
             <col style="width: 19%" />
-            <col style="width: 11%" />
+            <col style="width: 118px" />
             <col style="width: 18%" />
             <col style="width: 9%" />
             <col style="width: 14%" />
             <col style="width: 11%" />
             <col style="width: 11%" />
             <col style="width: 11%" />
+            <col style="width: 8%" />
             <col v-if="store.unlocked" style="width: 20%; min-width: 210px" />
           </colgroup>
           <thead>
             <tr>
               <th v-if="store.unlocked" class="drag-handle-th"></th>
               <th>{{ uiLabels.flowerKind }}</th>
-              <th>{{ uiLabels.qty }}</th>
+              <th class="qty-column">{{ uiLabels.qty }}</th>
               <th>
                 <span class="popular-sizes-title">{{ uiLabels.popularSizes }}</span>
               </th>
@@ -2291,6 +2484,7 @@ onBeforeUnmount(() => {
               <th class="price-divider">{{ uiLabels.flowerPrice }}</th>
               <th>{{ uiLabels.packaging }}</th>
               <th>{{ uiLabels.pistachio }}</th>
+              <th>{{ uiLabels.eucalyptus }}</th>
               <th v-if="store.unlocked">{{ uiLabels.actions }}</th>
             </tr>
           </thead>
@@ -2440,17 +2634,26 @@ onBeforeUnmount(() => {
                 </div>
               </td>
               <td class="price-divider">
-                <div v-if="!isCarnationMix(item)" class="currency-input-wrap">
-                  <input
-                    class="short-input center-input"
-                    :disabled="!store.unlocked"
-                    type="number"
-                    min="0"
-                    :value="item.unitPrice"
-                    @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                  />
-                  <span class="currency-input-sign">&#8381;</span>
-                </div>
+                <template v-if="!hasTwoPrices(item)">
+                  <div class="currency-input-wrap">
+                    <input
+                      class="short-input center-input"
+                      :disabled="!store.unlocked"
+                      type="number"
+                      min="0"
+                      :value="item.unitPrice"
+                      @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                    />
+                    <span class="currency-input-sign">&#8381;</span>
+                  </div>
+                  <button
+                    v-if="store.unlocked"
+                    type="button"
+                    class="two-price-toggle"
+                    title="Считать по двум ценам: половина цветков по цене 1, половина по цене 2"
+                    @click="enableTwoPrices(item)"
+                  >+ 2-я цена</button>
+                </template>
                 <div v-else class="mix-price-fields">
                   <div class="mix-price-item">
                     <div class="currency-input-wrap">
@@ -2480,6 +2683,13 @@ onBeforeUnmount(() => {
                     </div>
                     <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} {{ uiLabels.pieces }}</span>
                   </div>
+                  <button
+                    v-if="store.unlocked"
+                    type="button"
+                    class="two-price-toggle"
+                    title="Убрать вторую цену"
+                    @click="disableTwoPrices(item)"
+                  >− 2-я цена</button>
                 </div>
               </td>
               <td>
@@ -2516,6 +2726,23 @@ onBeforeUnmount(() => {
                   />
                 </div>
               </td>
+              <td>
+                <div v-if="!hasEucalyptus(item) || !hasQtySelection(item)" class="currency-input-wrap pistachio-cell">
+                  <input class="short-input center-input" disabled type="text" value="-" />
+                </div>
+                <div v-else class="currency-input-wrap pistachio-cell">
+                  <input
+                    class="short-input center-input"
+                    :disabled="!store.unlocked"
+                    type="text"
+                    inputmode="decimal"
+                    :value="getEucalyptusQtyInput(item, getQty(item))"
+                    :title="getEucalyptusLabel(item, getQty(item))"
+                    @input="onEucalyptusQtyInput(item, ($event.target as HTMLInputElement).value)"
+                    @blur="onEucalyptusQtyBlur(item)"
+                  />
+                </div>
+              </td>
               <td v-if="store.unlocked">
                 <div class="row-actions">
                   <button :disabled="!store.unlocked" @click="openEdit(item)">{{ uiLabels.edit }}</button>
@@ -2547,7 +2774,7 @@ onBeforeUnmount(() => {
               @label-input="store.setDividerLabel"
             />
             <tr v-if="!visibleRows.length && !trailingDividers.length">
-              <td :colspan="store.unlocked ? 9 : 8" class="empty">{{ uiLabels.empty }}</td>
+              <td :colspan="store.unlocked ? 10 : 9" class="empty">{{ uiLabels.empty }}</td>
             </tr>
           </tbody>
         </table>
@@ -2819,17 +3046,25 @@ onBeforeUnmount(() => {
                   <div class="mobile-card-row mobile-card-row-bottom">
                     <label class="mobile-field mobile-field-compact">
                       <span class="mobile-label">{{ uiLabels.flowerPrice }}</span>
-                      <div v-if="!isCarnationMix(item)" class="currency-input-wrap currency-input-wrap-mobile">
-                        <input
-                          class="short-input center-input mobile-input"
-                          :disabled="!store.unlocked"
-                          type="number"
-                          min="0"
-                          :value="item.unitPrice"
-                          @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
-                        />
-                        <span class="currency-input-sign">&#8381;</span>
-                      </div>
+                      <template v-if="!hasTwoPrices(item)">
+                        <div class="currency-input-wrap currency-input-wrap-mobile">
+                          <input
+                            class="short-input center-input mobile-input"
+                            :disabled="!store.unlocked"
+                            type="number"
+                            min="0"
+                            :value="item.unitPrice"
+                            @input="store.patchFlower(item.id, { unitPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
+                          />
+                          <span class="currency-input-sign">&#8381;</span>
+                        </div>
+                        <button
+                          v-if="store.unlocked"
+                          type="button"
+                          class="two-price-toggle"
+                          @click="enableTwoPrices(item)"
+                        >+ 2-я цена</button>
+                      </template>
                       <div v-else class="mix-price-fields mobile-mix-price-fields">
                         <div class="mix-price-item">
                           <div class="currency-input-wrap currency-input-wrap-mobile">
@@ -2859,6 +3094,12 @@ onBeforeUnmount(() => {
                           </div>
                           <span class="mix-price-qty">{{ getMixQtySplit(getQty(item)).secondary }} {{ uiLabels.pieces }}</span>
                         </div>
+                        <button
+                          v-if="store.unlocked"
+                          type="button"
+                          class="two-price-toggle"
+                          @click="disableTwoPrices(item)"
+                        >− 2-я цена</button>
                       </div>
                     </label>
 
@@ -2905,6 +3146,31 @@ onBeforeUnmount(() => {
                           min="0"
                           :value="isPistachioLocked(item) ? '' : getPistachioQty(item, getQty(item))"
                           @input="store.patchFlower(item.id, { pistachioQty: Number(($event.target as HTMLInputElement).value) || 0 })"
+                        />
+                      </div>
+                    </div>
+
+                    <div v-if="hasEucalyptus(item)" class="mobile-field mobile-field-compact mobile-field-pistachio">
+                      <div class="mobile-field-head mobile-field-head-inline">
+                        <span class="mobile-label">{{ uiLabels.eucalyptus }}</span>
+                      </div>
+                      <div class="currency-input-wrap currency-input-wrap-mobile pistachio-cell mobile-pistachio-cell">
+                        <input
+                          v-if="!hasQtySelection(item)"
+                          class="short-input center-input mobile-input"
+                          disabled
+                          type="text"
+                          value="-"
+                        />
+                        <input
+                          v-else
+                          class="short-input center-input mobile-input"
+                          :disabled="!store.unlocked"
+                          type="text"
+                          inputmode="decimal"
+                          :value="getEucalyptusQtyInput(item, getQty(item))"
+                          @input="onEucalyptusQtyInput(item, ($event.target as HTMLInputElement).value)"
+                          @blur="onEucalyptusQtyBlur(item)"
                         />
                       </div>
                     </div>
@@ -3049,6 +3315,7 @@ onBeforeUnmount(() => {
       :initial="editorItem"
       :section="store.activeSection === 'priceTables' ? 'osnovnye' : store.activeSection"
       :categories="editorCategoryOptions"
+      :default-group="activeFlowerFilter === 'all' ? '' : activeFlowerFilter"
       @close="editorOpen = false"
       @save="saveEditor"
     />
@@ -3061,8 +3328,10 @@ onBeforeUnmount(() => {
       :qty-options="getQtyOptions(tableEditorItem!)"
       :compute-packaging="(qty) => getBasePackaging(tableEditorItem!, qty)"
       :compute-pistachio="(qty) => getBasePistachio(tableEditorItem!, qty)"
+      :compute-eucalyptus="(qty) => getBaseEucalyptus(tableEditorItem!, qty)"
       :compute-sibling-packaging="(item, qty) => getBasePackaging(item, qty)"
       :show-pistachio="!isPistachioLocked(tableEditorItem)"
+      :show-eucalyptus="hasEucalyptus(tableEditorItem)"
       :save-error="tableEditorSaveError"
       @save="handleTableEditorSave"
       @switch-item="switchTableEditorItem"

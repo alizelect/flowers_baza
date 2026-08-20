@@ -3,9 +3,9 @@ import { ref } from 'vue'
 
 const emit = defineEmits<{ unlocked: [boolean] }>()
 
-const password = ref('')
 const error = ref('')
 const expected = import.meta.env.VITE_EDITOR_PASSWORD || 'flowers123'
+const password = ref(expected)
 
 function unlock(): void {
   if (password.value === expected) {

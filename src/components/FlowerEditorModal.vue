@@ -8,6 +8,9 @@ const props = defineProps<{
   initial?: FlowerItem
   section: SectionKey
   categories?: { value: string; label: string }[]
+  // Категория активной вкладки: новая позиция должна попадать туда, где её
+  // добавляют, иначе она уходит только во «Все цветы» и выглядит потерянной.
+  defaultGroup?: string
 }>()
 
 const emit = defineEmits<{ close: []; save: [FlowerItem] }>()
@@ -38,6 +41,8 @@ const form = reactive<FlowerItem & { flowerGroup: string }>({
   hasPistachio: true,
   pistachioQty: 0,
   pistachioUnitPrice: 80,
+  hasEucalyptus: false,
+  eucalyptusUnitPrice: 0,
   discountPercent: 10,
   isPromoEnabled: false,
   popularSizes: [...DEFAULT_SIZES],
@@ -62,10 +67,12 @@ watch(
       hasPistachio: props.initial?.hasPistachio ?? true,
       pistachioQty: props.initial?.pistachioQty ?? 0,
       pistachioUnitPrice: props.initial?.pistachioUnitPrice ?? 80,
+      hasEucalyptus: props.initial?.hasEucalyptus ?? false,
+      eucalyptusUnitPrice: props.initial?.eucalyptusUnitPrice ?? 0,
       discountPercent: props.initial?.discountPercent ?? 10,
       isPromoEnabled: props.initial?.isPromoEnabled ?? false,
       popularSizes: props.initial?.popularSizes?.length ? [...props.initial.popularSizes] : [...DEFAULT_SIZES],
-      flowerGroup: props.initial?.flowerGroup || '',
+      flowerGroup: props.initial ? (props.initial.flowerGroup || '') : (props.defaultGroup ?? ''),
       maxQty: props.initial?.maxQty ?? 101,
     })
   },
@@ -73,6 +80,25 @@ watch(
 )
 
 const title = computed(() => (props.initial ? 'Редактирование' : 'Новый цветок'))
+
+// Количество эвкалипта хранится строкой, пока его набирают: так можно ввести
+// и «1.5», и «1,5», не теряя запятую на полпути.
+const eucalyptusQtyInput = ref('')
+
+function parseQtyInput(raw: string): number {
+  const value = Number(String(raw).replace(',', '.').trim())
+  return Number.isFinite(value) && value > 0 ? value : 0
+}
+
+watch(
+  () => props.modelValue,
+  () => {
+    if (!props.modelValue) return
+    const qty = props.initial?.eucalyptusQty ?? 0
+    eucalyptusQtyInput.value = qty ? String(qty).replace('.', ',') : ''
+  },
+  { immediate: true },
+)
 
 const newSizeInput = ref('')
 
@@ -99,6 +125,9 @@ function submit(): void {
     popularSizes: [...form.popularSizes],
     flowerGroup: form.flowerGroup || undefined,
     secondaryUnitPrice: form.secondaryUnitPrice || undefined,
+    hasEucalyptus: form.hasEucalyptus || undefined,
+    eucalyptusQty: form.hasEucalyptus ? parseQtyInput(eucalyptusQtyInput.value) : undefined,
+    eucalyptusUnitPrice: form.hasEucalyptus ? (form.eucalyptusUnitPrice || 0) : undefined,
   }
   emit('save', item)
 }
@@ -120,11 +149,11 @@ function submit(): void {
           </select>
         </label>
         <label>
-          Стоимость цветка (за 1 шт)
+          Цена цветка 1 (за 1 шт)
           <input v-model.number="form.unitPrice" type="number" min="0" />
         </label>
-        <label v-if="form.flowerName === 'ГВОЗДИКИ - микс'">
-          Цена второго вида (за 1 шт)
+        <label>
+          Цена цветка 2 (0 — считать по одной цене)
           <input v-model.number="form.secondaryUnitPrice" type="number" min="0" />
         </label>
         <label>
@@ -154,6 +183,18 @@ function submit(): void {
         <label>
           <input v-model="form.hasPistachio" type="checkbox" />
           Использовать фисташку
+        </label>
+        <label>
+          <input v-model="form.hasEucalyptus" type="checkbox" />
+          Использовать эвкалипт
+        </label>
+        <label v-if="form.hasEucalyptus">
+          Кол-во эвкалипта (можно 1,5)
+          <input v-model="eucalyptusQtyInput" type="text" inputmode="decimal" placeholder="например 1,5" />
+        </label>
+        <label v-if="form.hasEucalyptus">
+          Цена эвкалипта за 1
+          <input v-model.number="form.eucalyptusUnitPrice" type="number" min="0" />
         </label>
       </div>
       <div class="ps-editor">

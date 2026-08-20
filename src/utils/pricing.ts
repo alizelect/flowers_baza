@@ -11,7 +11,10 @@ export function calcWithoutPromo(item: FlowerItem, qty: number): number {
     ? Math.ceil(qty / 2) * item.unitPrice + Math.floor(qty / 2) * secondaryUnitPrice
     : qty * item.unitPrice
   const pistachioCost = item.hasPistachio ? item.pistachioQty * item.pistachioUnitPrice : 0
-  return flowersCost + item.packagingPrice + pistachioCost
+  const eucalyptusCost = item.hasEucalyptus
+    ? (Number(item.eucalyptusQty) || 0) * (Number(item.eucalyptusUnitPrice) || 0)
+    : 0
+  return flowersCost + item.packagingPrice + pistachioCost + eucalyptusCost
 }
 
 export function applyPromoRounding(rawPrice: number): number {

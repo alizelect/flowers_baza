@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-14T09:35:51.250Z",
+  "updatedAt": "2026-08-20T05:08:08.968Z",
   "items": [
     {
       "id": "d0dc5c2b-3db1-4da0-bf0b-42e2fdf154f4",
@@ -1038,7 +1038,7 @@
     {
       "id": "e1d5f20e-85e1-43c7-9fa2-e1f677c259fa",
       "section": "sezonnye",
-      "flowerName": "ПОДСОЛНУХИ по 290",
+      "flowerName": "ПОДСОЛНУХИ",
       "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
       "unitPrice": 290,
       "packagingPrice": 0,
@@ -1048,11 +1048,12 @@
       "discountPercent": 10,
       "isPromoEnabled": true,
       "popularSizes": [
+        3,
+        5,
         7,
         9,
         11,
-        15,
-        25
+        15
       ],
       "flowerGroup": "подсолнухи",
       "packagingTable": {
@@ -1096,6 +1097,94 @@
       },
       "sortOrder": -10,
       "maxQty": 35
+    },
+    {
+      "id": "5fd33d46-befa-4e16-84ad-973c86125442",
+      "section": "sezonnye",
+      "flowerName": "ПОДСОЛНУХИ + эвкалипт",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 290,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 80,
+      "discountPercent": 10,
+      "isPromoEnabled": true,
+      "popularSizes": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        15
+      ],
+      "flowerGroup": "подсолнухи",
+      "packagingTable": {
+        "1": 115,
+        "3": 210,
+        "5": 225,
+        "7": 300,
+        "9": 395,
+        "11": 370,
+        "13": 490,
+        "15": 585,
+        "17": 605,
+        "19": 680,
+        "21": 720,
+        "23": 795,
+        "25": 815,
+        "27": 910,
+        "29": 930,
+        "31": 905,
+        "33": 1045,
+        "35": 1020
+      },
+      "pistachioTable": {
+        "3": 1,
+        "5": 1,
+        "7": 1,
+        "9": 2,
+        "11": 2,
+        "13": 2,
+        "15": 3,
+        "17": 3,
+        "19": 3,
+        "21": 4,
+        "23": 4,
+        "25": 4,
+        "27": 5,
+        "29": 5,
+        "31": 5,
+        "33": 6,
+        "35": 6
+      },
+      "sortOrder": 0,
+      "maxQty": 35,
+      "copyOfId": "e1d5f20e-85e1-43c7-9fa2-e1f677c259fa",
+      "isHidden": false,
+      "hasEucalyptus": true,
+      "eucalyptusQty": 0,
+      "eucalyptusUnitPrice": 290,
+      "eucalyptusTable": {
+        "1": 0.5,
+        "3": 1,
+        "5": 1.5,
+        "7": 2,
+        "9": 2.5,
+        "11": 3,
+        "13": 3,
+        "15": 3.5,
+        "17": 3.5,
+        "19": 4,
+        "21": 4,
+        "23": 4.5,
+        "25": 4.5,
+        "27": 5,
+        "29": 5,
+        "31": 5.5,
+        "33": 5.5,
+        "35": 6
+      }
     }
   ],
   "varieties": {
@@ -1293,16 +1382,16 @@
       "flowerFilter": "chryza"
     },
     {
-      "id": "08fd3efd-2362-4661-b3a8-3888cfaa3e6f",
+      "id": "44964efb-54aa-4419-a92f-5fc6fb9e0ffb",
       "section": "sezonnye",
-      "sortOrder": 0,
+      "sortOrder": 64.6875,
       "label": "",
       "flowerFilter": "all"
     },
     {
-      "id": "44964efb-54aa-4419-a92f-5fc6fb9e0ffb",
+      "id": "62536aea-e562-4cc6-b7b6-a4f0028c9043",
       "section": "sezonnye",
-      "sortOrder": 64.6875,
+      "sortOrder": 5,
       "label": "",
       "flowerFilter": "all"
     }

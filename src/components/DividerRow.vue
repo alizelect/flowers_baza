@@ -15,7 +15,7 @@ defineEmits<{
 <template>
   <tr class="section-divider-row">
     <td v-if="unlocked" class="drag-handle-cell">⠿</td>
-    <td :colspan="unlocked ? 9 : 8" class="section-divider-cell">
+    <td :colspan="unlocked ? 10 : 9" class="section-divider-cell">
       <div class="section-divider-inner">
         <template v-if="unlocked">
           <input

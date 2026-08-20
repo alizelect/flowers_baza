@@ -242,6 +242,14 @@ function normalizeItem(item: FlowerItem): FlowerItem {
     packagingPrice: Number(item.packagingPrice) || 0,
     pistachioQty: Number(item.pistachioQty) || 0,
     pistachioUnitPrice: 80,
+    // Поля эвкалипта пишем в JSON только у позиций, где он включён.
+    ...(item.hasEucalyptus
+      ? {
+          hasEucalyptus: true,
+          eucalyptusQty: Number(item.eucalyptusQty) || 0,
+          eucalyptusUnitPrice: Number(item.eucalyptusUnitPrice) || 0,
+        }
+      : { hasEucalyptus: undefined, eucalyptusQty: undefined, eucalyptusUnitPrice: undefined }),
     discountPercent: normalizeLoadedDiscountPercent(item),
     photoUrl: item.photoUrl || getPlaceholderImage(),
   }
@@ -647,6 +655,18 @@ export const useFlowersStore = defineStore('flowers', () => {
     markDirtyAutoSave()
   }
 
+  // Копия должна вставать сразу за оригиналом, но со своим номером: одинаковый
+  // sortOrder у двух строк не оставляет промежутка, в который можно поставить
+  // разделитель или перетащить другую строку.
+  function nextSortOrderAfter(source: FlowerItem): number {
+    const base = source.sortOrder ?? 0
+    const later = [
+      ...flowers.value.filter((f) => f.section === source.section).map((f) => f.sortOrder ?? 0),
+      ...dividers.value.filter((d) => d.section === source.section).map((d) => d.sortOrder),
+    ].filter((value) => value > base)
+    return later.length ? (base + Math.min(...later)) / 2 : base + 10
+  }
+
   function duplicateFlower(id: string): string | null {
     const idx = flowers.value.findIndex((f) => f.id === id)
     if (idx === -1) {
@@ -657,6 +677,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     const copy: FlowerItem = {
       ...source,
       id: newId,
+      sortOrder: nextSortOrderAfter(source),
       // Копия копии всё равно ссылается на исходную позицию.
       copyOfId: source.copyOfId ?? source.id,
       flowerName: `${source.flowerName} (копия)`,
@@ -664,6 +685,7 @@ export const useFlowersStore = defineStore('flowers', () => {
       popularSizes: [...source.popularSizes],
       ...(source.packagingTable ? { packagingTable: { ...source.packagingTable } } : {}),
       ...(source.pistachioTable ? { pistachioTable: { ...source.pistachioTable } } : {}),
+      ...(source.eucalyptusTable ? { eucalyptusTable: { ...source.eucalyptusTable } } : {}),
     }
     flowers.value.splice(idx + 1, 0, copy)
     markDirtyAutoSave()

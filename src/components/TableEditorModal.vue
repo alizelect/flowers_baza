@@ -9,27 +9,50 @@ const props = defineProps<{
   qtyOptions: number[]
   computePackaging: (qty: number) => number
   computePistachio: (qty: number) => number
+  computeEucalyptus: (qty: number) => number
   computeSiblingPackaging: (item: FlowerItem, qty: number) => number
   showPistachio: boolean
+  showEucalyptus: boolean
   saveError: string
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  'save': [packagingTable: Record<number, number>, pistachioTable: Record<number, number>, flowerPrice: number, pistachioPrice: number, secondaryFlowerPrice: number | undefined]
+  'save': [payload: {
+    packagingTable: Record<number, number>
+    pistachioTable: Record<number, number>
+    eucalyptusTable: Record<number, number>
+    flowerPrice: number
+    pistachioPrice: number
+    eucalyptusPrice: number
+    secondaryFlowerPrice: number | undefined
+  }]
   'switch-item': [item: FlowerItem]
 }>()
 
 const packagingOverrides = ref<Record<number, string>>({})
 const pistachioQtyOverrides = ref<Record<number, string>>({})
+const eucalyptusQtyOverrides = ref<Record<number, string>>({})
 const savedPackagingOverrides = ref<Record<number, string>>({})
 const savedPistachioQtyOverrides = ref<Record<number, string>>({})
+const savedEucalyptusQtyOverrides = ref<Record<number, string>>({})
 const flowerPriceInput = ref('')
 const secondaryFlowerPriceInput = ref('')
 const pistachioPriceInput = ref('')
+const eucalyptusPriceInput = ref('')
 const compareItemId = ref('')
 
 const hasMixPrice = computed(() => props.item.secondaryUnitPrice !== undefined)
+
+// Количество эвкалипта бывает дробным, поэтому принимаем и запятую, и точку.
+function parseQty(raw: string): number {
+  const value = Number(String(raw).replace(',', '.').trim())
+  return Number.isFinite(value) ? value : 0
+}
+
+function formatQty(value: number): string {
+  return String(value).replace('.', ',')
+}
 
 const siblingOptions = computed(() => props.siblingItems.filter(s => s.id !== props.item.id))
 
@@ -52,6 +75,15 @@ function initOverrides(): void {
       pst[Number(qty)] = String(val)
     }
   }
+  const euc: Record<number, string> = {}
+  if (props.item.eucalyptusTable) {
+    for (const [qty, val] of Object.entries(props.item.eucalyptusTable)) {
+      euc[Number(qty)] = formatQty(Number(val))
+    }
+  }
+  eucalyptusQtyOverrides.value = euc
+  savedEucalyptusQtyOverrides.value = { ...euc }
+  eucalyptusPriceInput.value = String(props.item.eucalyptusUnitPrice ?? 0)
   packagingOverrides.value = pkg
   pistachioQtyOverrides.value = pst
   savedPackagingOverrides.value = { ...pkg }
@@ -82,13 +114,33 @@ function getPistachioPrice(qty: number): number {
   return getPistachioQty(qty) * (Number(pistachioPriceInput.value) || 0)
 }
 
+function getEucalyptusQty(qty: number): number {
+  const ov = eucalyptusQtyOverrides.value[qty]
+  return ov !== undefined ? parseQty(ov) : props.computeEucalyptus(qty)
+}
+
+function getEucalyptusPrice(qty: number): number {
+  if (!props.showEucalyptus) return 0
+  return getEucalyptusQty(qty) * (Number(eucalyptusPriceInput.value) || 0)
+}
+
+function displayEucalyptusQty(qty: number): string {
+  return eucalyptusQtyOverrides.value[qty] !== undefined
+    ? eucalyptusQtyOverrides.value[qty]
+    : formatQty(props.computeEucalyptus(qty))
+}
+
+function onEucalyptusQtyInput(qty: number, value: string): void {
+  eucalyptusQtyOverrides.value = { ...eucalyptusQtyOverrides.value, [qty]: value }
+}
+
 function calcCost(qty: number): number {
   const price1 = Number(flowerPriceInput.value) || 0
   const price2 = Number(secondaryFlowerPriceInput.value) || 0
   const flowerCost = hasMixPrice.value && price2 > 0
     ? Math.ceil(qty / 2) * price1 + Math.floor(qty / 2) * price2
     : qty * price1
-  return flowerCost + getPistachioPrice(qty) + getPackaging(qty)
+  return flowerCost + getPistachioPrice(qty) + getEucalyptusPrice(qty) + getPackaging(qty)
 }
 
 function displayPackaging(qty: number): string {
@@ -100,12 +152,15 @@ function displayPistachioQty(qty: number): string {
 }
 
 function isRowOverridden(qty: number): boolean {
-  return packagingOverrides.value[qty] !== undefined || pistachioQtyOverrides.value[qty] !== undefined
+  return packagingOverrides.value[qty] !== undefined
+    || pistachioQtyOverrides.value[qty] !== undefined
+    || eucalyptusQtyOverrides.value[qty] !== undefined
 }
 
 function isRowDirty(qty: number): boolean {
   return packagingOverrides.value[qty] !== savedPackagingOverrides.value[qty]
     || pistachioQtyOverrides.value[qty] !== savedPistachioQtyOverrides.value[qty]
+    || eucalyptusQtyOverrides.value[qty] !== savedEucalyptusQtyOverrides.value[qty]
 }
 
 function onPackagingInput(qty: number, value: string): void {
@@ -136,10 +191,12 @@ function focusNext(qty: number, col: string): void {
   })
 }
 
-async function copyColumn(col: 'packaging' | 'pistachio'): Promise<void> {
-  const values = props.qtyOptions.map(qty =>
-    col === 'packaging' ? displayPackaging(qty) : displayPistachioQty(qty)
-  )
+async function copyColumn(col: 'packaging' | 'pistachio' | 'eucalyptus'): Promise<void> {
+  const values = props.qtyOptions.map(qty => {
+    if (col === 'packaging') return displayPackaging(qty)
+    if (col === 'eucalyptus') return displayEucalyptusQty(qty)
+    return displayPistachioQty(qty)
+  })
   await navigator.clipboard.writeText(values.join('\n'))
 }
 
@@ -152,6 +209,7 @@ function onPasteColumn(qty: number, col: string, event: ClipboardEvent): void {
     const targetQty = props.qtyOptions[startIdx + i]
     if (targetQty === undefined) return
     if (col === 'packaging') onPackagingInput(targetQty, val)
+    else if (col === 'eucalyptus') onEucalyptusQtyInput(targetQty, val)
     else onPistachioQtyInput(targetQty, val)
   })
 }
@@ -159,15 +217,19 @@ function onPasteColumn(qty: number, col: string, event: ClipboardEvent): void {
 function resetRow(qty: number): void {
   const pkg = { ...packagingOverrides.value }
   const pst = { ...pistachioQtyOverrides.value }
+  const euc = { ...eucalyptusQtyOverrides.value }
   delete pkg[qty]
   delete pst[qty]
+  delete euc[qty]
   packagingOverrides.value = pkg
   pistachioQtyOverrides.value = pst
+  eucalyptusQtyOverrides.value = euc
 }
 
 function resetAll(): void {
   packagingOverrides.value = {}
   pistachioQtyOverrides.value = {}
+  eucalyptusQtyOverrides.value = {}
 }
 
 function close(): void {
@@ -185,10 +247,24 @@ function handleSave(): void {
     const num = Number(val)
     if (Number.isFinite(num)) pistachioTable[Number(qty)] = num
   }
+  const eucalyptusTable: Record<number, number> = {}
+  for (const [qty, val] of Object.entries(eucalyptusQtyOverrides.value)) {
+    if (String(val).trim() === '') continue
+    eucalyptusTable[Number(qty)] = parseQty(val)
+  }
   const secondaryPrice = hasMixPrice.value ? (Number(secondaryFlowerPriceInput.value) || 0) : undefined
-  emit('save', packagingTable, pistachioTable, Number(flowerPriceInput.value) || 0, Number(pistachioPriceInput.value) || 0, secondaryPrice)
+  emit('save', {
+    packagingTable,
+    pistachioTable,
+    eucalyptusTable,
+    flowerPrice: Number(flowerPriceInput.value) || 0,
+    pistachioPrice: Number(pistachioPriceInput.value) || 0,
+    eucalyptusPrice: Number(eucalyptusPriceInput.value) || 0,
+    secondaryFlowerPrice: secondaryPrice,
+  })
   savedPackagingOverrides.value = { ...packagingOverrides.value }
   savedPistachioQtyOverrides.value = { ...pistachioQtyOverrides.value }
+  savedEucalyptusQtyOverrides.value = { ...eucalyptusQtyOverrides.value }
 }
 </script>
 
@@ -231,6 +307,15 @@ function handleSave(): void {
               @input="secondaryFlowerPriceInput = ($event.target as HTMLInputElement).value"
             />
           </label>
+          <label v-if="showEucalyptus" class="te-price-label">
+            Цена эвкалипта
+            <input
+              class="te-price-input"
+              inputmode="decimal"
+              :value="eucalyptusPriceInput"
+              @input="eucalyptusPriceInput = ($event.target as HTMLInputElement).value"
+            />
+          </label>
           <label v-if="showPistachio" class="te-price-label">
             Цена фисташки
             <input
@@ -249,11 +334,12 @@ function handleSave(): void {
                 <th class="te-th-qty" rowspan="2">Кол-во</th>
                 <th rowspan="2">Стоимость</th>
                 <th v-if="showPistachio" colspan="2" class="te-th-group">Фисташка</th>
+                <th v-if="showEucalyptus" colspan="2" class="te-th-group">Эвкалипт</th>
                 <th rowspan="2">
                   Упаковка
                   <button type="button" class="te-copy-btn" title="Копировать столбец" @click="copyColumn('packaging')">⎘</button>
                 </th>
-                <th v-if="siblingItems.length > 1" class="te-th-compare" :rowspan="showPistachio ? 2 : 1">
+                <th v-if="siblingItems.length > 1" class="te-th-compare" :rowspan="showPistachio || showEucalyptus ? 2 : 1">
                   <select v-model="compareItemId" class="te-compare-select">
                     <option value="">Сравнить</option>
                     <option v-for="s in siblingOptions" :key="s.id" :value="s.id">{{ s.flowerName }}</option>
@@ -261,12 +347,21 @@ function handleSave(): void {
                 </th>
                 <th class="te-th-reset" rowspan="2"></th>
               </tr>
-              <tr v-if="showPistachio">
-                <th class="te-th-sub">
-                  кол-во
-                  <button type="button" class="te-copy-btn" title="Копировать столбец" @click="copyColumn('pistachio')">⎘</button>
-                </th>
-                <th class="te-th-sub">цена</th>
+              <tr v-if="showPistachio || showEucalyptus">
+                <template v-if="showPistachio">
+                  <th class="te-th-sub">
+                    кол-во
+                    <button type="button" class="te-copy-btn" title="Копировать столбец" @click="copyColumn('pistachio')">⎘</button>
+                  </th>
+                  <th class="te-th-sub">цена</th>
+                </template>
+                <template v-if="showEucalyptus">
+                  <th class="te-th-sub">
+                    кол-во
+                    <button type="button" class="te-copy-btn" title="Копировать столбец" @click="copyColumn('eucalyptus')">⎘</button>
+                  </th>
+                  <th class="te-th-sub">цена</th>
+                </template>
               </tr>
             </thead>
             <tbody>
@@ -289,6 +384,18 @@ function handleSave(): void {
                   />
                 </td>
                 <td v-if="showPistachio" class="te-td-cost">{{ getPistachioPrice(qty) }} ₽</td>
+                <td v-if="showEucalyptus">
+                  <input
+                    :ref="(el) => setRef(`eucalyptus-${qty}`, el)"
+                    class="te-input"
+                    inputmode="decimal"
+                    :value="displayEucalyptusQty(qty)"
+                    @input="onEucalyptusQtyInput(qty, ($event.target as HTMLInputElement).value)"
+                    @keydown.enter.prevent="focusNext(qty, 'eucalyptus')"
+                    @paste="onPasteColumn(qty, 'eucalyptus', $event)"
+                  />
+                </td>
+                <td v-if="showEucalyptus" class="te-td-cost">{{ getEucalyptusPrice(qty) }} ₽</td>
                 <td>
                   <input
                     :ref="(el) => setRef(`packaging-${qty}`, el)"
