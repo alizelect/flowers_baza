@@ -9,3 +9,10 @@ node.zip
 *.tsbuildinfo
 .env.local
 .env.*.local
+
+# портативный Node — своя копия на каждой машине
+node_bin
+# логи запусков dev-сервера
+.vite-run.*
+# локальные разрешения Claude Code; launch.json при этом остаётся в репозитории
+.claude/settings.local.json
