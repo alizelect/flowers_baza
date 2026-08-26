@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-20T05:14:02.514Z",
+  "updatedAt": "2026-08-26T13:37:44.318Z",
   "items": [
     {
       "id": "d0dc5c2b-3db1-4da0-bf0b-42e2fdf154f4",
@@ -1193,8 +1193,7 @@
         "title": "РОЗЫ по 150",
         "columns": [
           [
-            "российская",
-            "Sophia Loren"
+            "российская"
           ]
         ]
       },
@@ -1202,7 +1201,8 @@
         "title": "РОЗЫ по 200",
         "columns": [
           [
-            "Mandala"
+            "Mandala",
+            "Sophia Loren"
           ]
         ]
       },
