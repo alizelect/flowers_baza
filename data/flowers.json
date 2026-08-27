@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-26T13:37:44.318Z",
+  "updatedAt": "2026-08-27T12:31:54.536Z",
   "items": [
     {
       "id": "d0dc5c2b-3db1-4da0-bf0b-42e2fdf154f4",
@@ -22,7 +22,8 @@
         15
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 0
+      "sortOrder": 0,
+      "priceSortOrder": 0
     },
     {
       "id": "2d6c2000-1111-4222-8333-200200200200",
@@ -45,7 +46,8 @@
         15
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 10
+      "sortOrder": 10,
+      "priceSortOrder": 10
     },
     {
       "id": "1354086d-4d1d-4bea-b5b9-060321c104e7",
@@ -67,7 +69,8 @@
         11,
         15
       ],
-      "sortOrder": 15
+      "sortOrder": 15,
+      "priceSortOrder": 20
     },
     {
       "id": "409c4663-69f2-40a6-a24b-c9c7b82c0248",
@@ -90,7 +93,8 @@
         15
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 17.5
+      "sortOrder": 17.5,
+      "priceSortOrder": 30
     },
     {
       "id": "4d6c4000-1111-4222-8333-400400400400",
@@ -113,7 +117,8 @@
         15
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 20
+      "sortOrder": 20,
+      "priceSortOrder": 50
     },
     {
       "id": "d9821a47-a022-4147-a88e-4857ed43deb9",
@@ -134,7 +139,8 @@
         11,
         15
       ],
-      "sortOrder": 70
+      "sortOrder": 70,
+      "priceSortOrder": 130
     },
     {
       "id": "e44cee36-55f1-4532-8ab3-9d60ea7175dc",
@@ -208,7 +214,8 @@
         "99": 830,
         "101": 830
       },
-      "sortOrder": 108.125
+      "sortOrder": 108.125,
+      "priceSortOrder": 80
     },
     {
       "id": "ff7772fb-f770-4702-8963-f717440d617c",
@@ -282,7 +289,8 @@
         "99": 860,
         "101": 900
       },
-      "sortOrder": 111.25
+      "sortOrder": 111.25,
+      "priceSortOrder": 90
     },
     {
       "id": "9f340ce7-5f4a-4f3d-8e8f-1e165566aa01",
@@ -312,7 +320,8 @@
       "pistachioTable": {
         "1": 0
       },
-      "sortOrder": 117.5
+      "sortOrder": 117.5,
+      "priceSortOrder": 100
     },
     {
       "id": "b3d0d1d2-4fd5-4a12-9ea8-220220220220",
@@ -358,7 +367,7 @@
         11,
         15
       ],
-      "sortOrder": 133.125,
+      "sortOrder": 133.59375,
       "copyOfId": "b3d0d1d2-4fd5-4a12-9ea8-220220220220",
       "isHidden": false,
       "maxQty": 101,
@@ -414,7 +423,88 @@
         "97": 1590,
         "99": 1590,
         "101": 1590
-      }
+      },
+      "priceSortOrder": 150
+    },
+    {
+      "id": "1b7112e0-abf4-45bb-a0aa-5e6990d6857f",
+      "section": "osnovnye",
+      "flowerName": "САНТИНИ по 180",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 180,
+      "packagingPrice": 0,
+      "hasPistachio": false,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 80,
+      "discountPercent": 10,
+      "isPromoEnabled": true,
+      "popularSizes": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        15
+      ],
+      "sortOrder": 133.4375,
+      "copyOfId": "b3d0d1d2-4fd5-4a12-9ea8-220220220220",
+      "isHidden": false,
+      "maxQty": 101,
+      "packagingTable": {
+        "1": 110,
+        "3": 150,
+        "5": 190,
+        "7": 230,
+        "9": 270,
+        "11": 310,
+        "13": 350,
+        "15": 390,
+        "17": 330,
+        "19": 470,
+        "21": 510,
+        "23": 450,
+        "25": 590,
+        "27": 530,
+        "29": 570,
+        "31": 710,
+        "33": 650,
+        "35": 690,
+        "37": 730,
+        "39": 770,
+        "41": 810,
+        "43": 850,
+        "45": 890,
+        "47": 830,
+        "49": 970,
+        "51": 1010,
+        "53": 950,
+        "55": 1090,
+        "57": 1030,
+        "59": 1070,
+        "61": 1110,
+        "63": 1050,
+        "65": 1190,
+        "67": 1130,
+        "69": 1170,
+        "71": 1210,
+        "73": 1250,
+        "75": 1290,
+        "77": 1230,
+        "79": 1270,
+        "81": 1410,
+        "83": 1350,
+        "85": 1390,
+        "87": 1330,
+        "89": 1470,
+        "91": 1510,
+        "93": 1450,
+        "95": 1490,
+        "97": 1530,
+        "99": 1570,
+        "101": 1610
+      },
+      "flowerGroup": "chryza",
+      "priceSortOrder": 140
     },
     {
       "id": "72e51316-081c-46c8-8be2-86871bd63ec1",
@@ -482,7 +572,8 @@
         "97": 1940,
         "99": 1940,
         "101": 1940
-      }
+      },
+      "priceSortOrder": 160
     },
     {
       "id": "d30dc4f7-bba6-4ca5-88bf-11bb46dca6de",
@@ -509,7 +600,89 @@
       },
       "pistachioTable": {
         "7": 1
-      }
+      },
+      "isHidden": true
+    },
+    {
+      "id": "b6ee5876-a6a2-4009-bd5e-acc9c0728a51",
+      "section": "osnovnye",
+      "flowerName": "ХРИЗА - одноголовая",
+      "photoUrl": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80",
+      "unitPrice": 300,
+      "packagingPrice": 0,
+      "hasPistachio": true,
+      "pistachioQty": 0,
+      "pistachioUnitPrice": 80,
+      "discountPercent": 10,
+      "isPromoEnabled": false,
+      "popularSizes": [
+        3,
+        5,
+        7,
+        9,
+        11
+      ],
+      "sortOrder": 160,
+      "packagingTable": {
+        "1": 90,
+        "3": 170,
+        "5": 210,
+        "7": 210,
+        "9": 230,
+        "11": 330,
+        "13": 330,
+        "15": 430,
+        "17": 430,
+        "19": 550,
+        "21": 550,
+        "23": 650,
+        "25": 650,
+        "27": 750,
+        "29": 750,
+        "31": 870,
+        "33": 870,
+        "35": 870,
+        "37": 970,
+        "39": 970,
+        "41": 970,
+        "43": 1070,
+        "45": 1070,
+        "47": 1070,
+        "49": 1070,
+        "51": 1190,
+        "53": 1190,
+        "55": 1190,
+        "57": 1190,
+        "59": 1190,
+        "61": 1290,
+        "63": 1290,
+        "65": 1290,
+        "67": 1290,
+        "69": 1290,
+        "71": 1390,
+        "73": 1310,
+        "75": 1310,
+        "77": 1310,
+        "79": 1310,
+        "81": 1410,
+        "83": 1410,
+        "85": 1410,
+        "87": 1410,
+        "89": 1410,
+        "91": 1510,
+        "93": 1530,
+        "95": 1530,
+        "97": 1530,
+        "99": 1530,
+        "101": 1630
+      },
+      "pistachioTable": {
+        "7": 1
+      },
+      "copyOfId": "d30dc4f7-bba6-4ca5-88bf-11bb46dca6de",
+      "isHidden": false,
+      "maxQty": 101,
+      "priceSortOrder": 190
     },
     {
       "id": "49771275-f9ae-4bd3-9fe6-d42bda7b5dfd",
@@ -532,7 +705,8 @@
         11
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 180
+      "sortOrder": 180,
+      "priceSortOrder": 120
     },
     {
       "id": "5d8d5e68-cbd2-4e9a-a2ea-9fd6b7f9c201",
@@ -555,7 +729,8 @@
         15
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 200
+      "sortOrder": 200,
+      "priceSortOrder": 60
     },
     {
       "id": "0f3b0a0d-6b0c-4cf0-8d32-7e5f49d0b902",
@@ -577,7 +752,8 @@
         25
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 210
+      "sortOrder": 210,
+      "priceSortOrder": 70
     },
     {
       "id": "300b8e1a-0000-4fb9-8e4d-300300300300",
@@ -805,7 +981,8 @@
         "97": 1790,
         "99": 1790,
         "101": 1890
-      }
+      },
+      "priceSortOrder": 170
     },
     {
       "id": "c2dcf0a6-f7fb-4c48-b2a4-290290290290",
@@ -828,7 +1005,8 @@
         25
       ],
       "secondaryUnitPrice": 0,
-      "sortOrder": 230
+      "sortOrder": 230,
+      "priceSortOrder": 110
     },
     {
       "id": "1c6c846a-fbde-4ce9-a5df-27fbf5bad341",
@@ -957,7 +1135,8 @@
         "97": 8,
         "99": 8,
         "101": 8
-      }
+      },
+      "priceSortOrder": 40
     },
     {
       "id": "9936d04d-1da4-49b7-b227-f4de9298205a",
@@ -1033,7 +1212,8 @@
         "97": 1840,
         "99": 1840,
         "101": 1940
-      }
+      },
+      "priceSortOrder": 180
     },
     {
       "id": "e1d5f20e-85e1-43c7-9fa2-e1f677c259fa",
@@ -1300,7 +1480,7 @@
         ]
       },
       {
-        "title": "ОДНОГОЛОВЫЕ по 250",
+        "title": "ОДНОГОЛОВЫЕ по 300",
         "columns": [
           [
             "вся одноголовая"
@@ -1359,13 +1539,6 @@
       "sortOrder": 220,
       "label": "",
       "flowerFilter": "all"
-    },
-    {
-      "id": "2f313ba5-b930-462a-a07e-ea2a7996eee1",
-      "section": "osnovnye",
-      "sortOrder": 145,
-      "label": "",
-      "flowerFilter": "chryza"
     },
     {
       "id": "479952ad-1c6a-4ff2-af87-311dc1f7a8fa",
