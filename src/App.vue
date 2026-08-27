@@ -102,7 +102,7 @@ function onPtDrop(e: DragEvent, targetId: string): void {
   const newToIdx = groups.findIndex((g) => g.item.id === targetId)
   if (newToIdx === -1) return
   groups.splice(dragAbove.value ? newToIdx : newToIdx + 1, 0, item)
-  store.reorderFlowers(groups.map((g) => g.item.id))
+  store.reorderPriceTables(groups.map((g) => g.item.id))
 }
 
 const qtyMap = reactive<Record<string, number>>({})
@@ -729,20 +729,23 @@ function getRoseVarietyTable(item: FlowerItem): VarietyTable | null {
   return ROSE_VARIETY_TABLES.value.find((table) => table.title === item.flowerName.trim()) ?? null
 }
 
+// Таблицу сортов ищем по названию позиции, а не по индексу в массиве:
+// таблицы можно добавлять и переставлять, и тогда индексы съезжают на соседей.
 function getChryzaVarietyTable(item: FlowerItem): VarietyTable | null {
-  if (behaviorId(item) === CHRYZA_BUSH_220_ID) {
+  if (getFlowerGroup(item) !== 'chryza') {
     return null
   }
-  if (behaviorId(item) === CHRYZA_BUSH_250_ID) {
-    return CHRYZA_VARIETY_TABLES.value[0]
+  const name = item.flowerName.toUpperCase()
+  const kind = name.includes('ОДНОГОЛОВ') ? 'ОДНОГОЛОВ' : name.includes('КУСТОВ') ? 'КУСТОВ' : ''
+  if (!kind) {
+    return null
   }
-  if (behaviorId(item) === CHRYZA_BUSH_300_ID) {
-    return CHRYZA_VARIETY_TABLES.value[1]
+  const tables = CHRYZA_VARIETY_TABLES.value.filter((table) => table.title.toUpperCase().includes(kind))
+  const price = name.match(/\d+/)?.[0]
+  if (!price) {
+    return tables[0] ?? null
   }
-  if (behaviorId(item) === CHRYZA_SINGLE_ID) {
-    return CHRYZA_VARIETY_TABLES.value[2]
-  }
-  return null
+  return tables.find((table) => table.title.includes(price)) ?? null
 }
 
 function getPeonyVarietyTable(item: FlowerItem): VarietyTable | null {
@@ -958,9 +961,20 @@ const initialPriceMatrixState = loadStoredPriceMatrixState()
 const selectedPriceTableId = ref<string>(initialPriceMatrixState.selectedPriceTableId)
 const priceTableSection = ref<BaseSectionKey>(initialPriceMatrixState.priceTableSection)
 
+// Позиции, которые ещё ни разу не перетаскивали, идут после расставленных
+// вручную — в обычном порядке основного списка.
+function comparePriceTables(a: FlowerItem, b: FlowerItem): number {
+  const ao = a.priceSortOrder
+  const bo = b.priceSortOrder
+  if (ao !== undefined && bo !== undefined) return ao - bo
+  if (ao !== undefined) return -1
+  if (bo !== undefined) return 1
+  return compareFlowers(a, b)
+}
+
 const priceTableGroups = computed<PriceTableGroup[]>(() => [...store.visibleFlowers]
-  .filter((item) => item.section === priceTableSection.value)
-  .sort(compareFlowers)
+  .filter((item) => item.section === priceTableSection.value && !item.isHidden)
+  .sort(comparePriceTables)
   .map((item) => ({
     item,
     rows: getPriceTableRows(item),

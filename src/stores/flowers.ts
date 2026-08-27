@@ -723,6 +723,16 @@ export const useFlowersStore = defineStore('flowers', () => {
     markDirtyAutoSave()
   }
 
+  // Порядок вкладок на странице таблиц цен. Живёт в отдельном поле, поэтому
+  // список на «Основных» / «Сезонных» остаётся нетронутым.
+  function reorderPriceTables(orderedIds: string[]): void {
+    orderedIds.forEach((id, idx) => {
+      const i = flowers.value.findIndex((f) => f.id === id)
+      if (i !== -1) flowers.value[i] = { ...flowers.value[i], priceSortOrder: idx * 10 }
+    })
+    markDirtyAutoSave()
+  }
+
   function setEntrySortOrder(id: string, sortOrder: number): void {
     const fi = flowers.value.findIndex((f) => f.id === id)
     if (fi !== -1) {
@@ -834,6 +844,7 @@ export const useFlowersStore = defineStore('flowers', () => {
     recentlyDeleted,
     patchFlower,
     reorderFlowers,
+    reorderPriceTables,
     setEntrySortOrder,
     addDivider,
     removeDivider,

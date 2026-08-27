@@ -26,6 +26,9 @@ export interface FlowerItem {
   eucalyptusTable?: Record<number, number>
   flowerGroup?: string
   sortOrder?: number
+  // Порядок вкладок на странице «Таблицы цен». Он отдельный от sortOrder:
+  // перетаскивание вкладок не должно менять список на «Основных».
+  priceSortOrder?: number
   maxQty?: number
   // Скрытые позиции остаются в JSON, но не показываются посетителям —
   // видны только редактору, чтобы их можно было вернуть обратно.
