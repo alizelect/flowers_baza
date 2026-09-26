@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-26T10:03:11.737Z",
+  "updatedAt": "2026-09-26T10:15:00.482Z",
   "items": [
     {
       "id": "d0dc5c2b-3db1-4da0-bf0b-42e2fdf154f4",
@@ -647,7 +647,8 @@
       "pistachioTable": {
         "7": 1
       },
-      "isHidden": false
+      "isHidden": false,
+      "maxQty": 101
     },
     {
       "id": "b6ee5876-a6a2-4009-bd5e-acc9c0728a51",
@@ -666,8 +667,7 @@
         5,
         7,
         9,
-        11,
-        15
+        11
       ],
       "sortOrder": 160,
       "packagingTable": {
