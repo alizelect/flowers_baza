@@ -71,7 +71,7 @@ watch(
       eucalyptusUnitPrice: props.initial?.eucalyptusUnitPrice ?? 0,
       discountPercent: props.initial?.discountPercent ?? 10,
       isPromoEnabled: props.initial?.isPromoEnabled ?? false,
-      popularSizes: props.initial?.popularSizes?.length ? [...props.initial.popularSizes] : [...DEFAULT_SIZES],
+      popularSizes: props.initial?.popularSizes ? [...props.initial.popularSizes] : [...DEFAULT_SIZES],
       flowerGroup: props.initial ? (props.initial.flowerGroup || '') : (props.defaultGroup ?? ''),
       maxQty: props.initial?.maxQty ?? 101,
     })

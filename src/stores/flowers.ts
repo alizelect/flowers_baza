@@ -219,19 +219,9 @@ function ensureRequiredItems(items: FlowerItem[]): FlowerItem[] {
 
 function normalizeItem(item: FlowerItem): FlowerItem {
   const normalizedFlowerName = item.id === CARNATION_MIX_ID ? 'ГВОЗДИКИ - микс' : item.flowerName
-  const popularSizes = item.id === HYDRANGEA_ID
-    ? [1, 3, 5, 7, 9, 11]
-    : item.id === CHRYZA_SINGLE_ID
-      ? [3, 5, 7, 9, 11]
-      : item.id === CARNATION_COMMON_ID || item.id === CARNATION_MOON_ID || item.id === CARNATION_MIX_ID
-        ? [9, 11, 15, 25, 35]
-        : item.id === CHRYZA_BUSH_220_ID || item.id === CHRYZA_BUSH_250_ID || item.id === CHRYZA_BUSH_300_ID
-          ? [3, 5, 7, 9, 11, 15]
-          : item.id === ALSTROMERII_ID
-            ? [5, 7, 9, 11, 15]
-            : item.id === TANACETUM_ID
-              ? [5, 7, 9, 11, 15, 25]
-            : item.popularSizes?.length ? item.popularSizes.map((s) => Number(s)) : [...DEFAULT_SIZES]
+  const popularSizes = Array.isArray(item.popularSizes)
+    ? item.popularSizes.map((size) => Number(size))
+    : [...DEFAULT_SIZES]
 
   return {
     ...item,
