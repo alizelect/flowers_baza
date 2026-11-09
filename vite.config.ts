@@ -1,17 +1,32 @@
 ﻿import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { readFileSync } from 'node:fs'
 import path from 'path'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  const catalogPath = path.resolve('public/data/flowers.json')
+  const { updatedAt } = JSON.parse(readFileSync(catalogPath, 'utf8')) as { updatedAt?: string }
+  const catalogDate = new Date(updatedAt ?? '')
+  const catalogLastUpdated = Number.isNaN(catalogDate.getTime())
+    ? '—'
+    : new Intl.DateTimeFormat('ru-RU', {
+        timeZone: 'Asia/Novosibirsk',
+        dateStyle: 'short',
+        timeStyle: 'short',
+        hourCycle: 'h23',
+      }).format(catalogDate).replace(',', '')
 
   return {
+    define: {
+      'import.meta.env.VITE_CATALOG_LAST_UPDATED': JSON.stringify(catalogLastUpdated),
+    },
     plugins: [
       vue(),
       {
         name: 'watch-public-data',
         configureServer(server) {
-          server.watcher.add(path.resolve('public/data/flowers.json'))
+          server.watcher.add(catalogPath)
           server.watcher.on('change', (file) => {
             if (file.includes('flowers.json')) {
               server.ws.send({ type: 'full-reload' })
