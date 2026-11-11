@@ -2233,7 +2233,7 @@ onBeforeUnmount(() => {
       :active-price-tables-section="priceTableSection"
       @change="onSectionChange"
       @change-price-tables-section="onPriceTablesSectionChange"
-    ><span class="last-updated">Сайт обновлён<br>{{ LAST_UPDATED }}</span></SidebarMenu>
+    ><span class="last-updated">Данные обновлены<br>{{ LAST_UPDATED }}</span></SidebarMenu>
 
     <main class="content" :class="{ 'content-fixed': store.activeSection !== 'priceTables' }">
       <header class="toolbar">
