@@ -1218,7 +1218,8 @@ function getMinQty(item: FlowerItem): number {
 }
 
 function getMaxQty(item: FlowerItem): number {
-  return Math.min(101, Math.max(getMinQty(item), toOdd(item.maxQty ?? 101)))
+  const max = item.maxQty ?? 101
+  return Math.min(101, Math.max(getMinQty(item), isGypsophila(item) ? Math.round(max) : toOdd(max)))
 }
 
 function normalizeQty(item: FlowerItem, value: number): number {
@@ -1239,16 +1240,13 @@ function normalizeQty(item: FlowerItem, value: number): number {
     }
     return nearest
   }
-  const odd = toOdd(value)
-  const min = getMinQty(item)
-  const max = getMaxQty(item)
-  if (odd < min) return min
-  if (odd > max) return max
-  return odd
+  const qty = isGypsophila(item) ? Math.round(value) : toOdd(value)
+  return Math.min(getMaxQty(item), Math.max(getMinQty(item), qty))
 }
 
 function getQtyOptions(item: FlowerItem): number[] {
   if (isGypsophilaComposition(item)) return item.popularSizes
+  if (isGypsophila(item)) return Array.from({ length: getMaxQty(item) }, (_, i) => i + 1)
   const count = (getMaxQty(item) - 1) / 2 + 1
   const options = oddOptions.slice(0, count)
   return isCarnationMix(item) ? options.slice(1) : options
@@ -1401,7 +1399,7 @@ function hasAutoPackagingByQty(item: FlowerItem): boolean {
   }
   return isRose150(item) || isRose200(item) || isRose250(item) || isRose300(item) || isRose350(item) || isRose400(item) || isAlstroemerii(item) || isCarnationCommon(item) || isCarnationMoon(item) || isCarnationMix(item) || isHydrangea(item) || isGypsophila(item) || isGypsophilaComposition(item) || isTanacetum(item) || isPeonies(item) || isTulips(item) || isChryzaSingle(item) || isChryzaBush220(item) || isChryzaBush250(item) || isChryzaBush300(item)
 }
-function getPackagingPrice(item: FlowerItem, qty: number): number {
+function getPackagingPrice(item: FlowerItem, qty: number): number | undefined {
   if (item.packagingTable !== undefined && item.packagingTable[qty] !== undefined) {
     return item.packagingTable[qty]
   }
@@ -1513,7 +1511,7 @@ function getPackagingPrice(item: FlowerItem, qty: number): number {
     return GYPSOPHILA_COMPOSITION_PACKAGING_BY_QTY[qty] ?? item.packagingPrice
   }
   if (isGypsophila(item)) {
-    return getArrayValue(GYPSOPHILA_PACKAGING_BY_ODD, idx, item.packagingPrice)
+    return qty % 2 === 0 ? undefined : getArrayValue(GYPSOPHILA_PACKAGING_BY_ODD, idx, item.packagingPrice)
   }
   if (isChryzaSingle(item)) {
     return getChryzaSinglePackagingPrice(
@@ -1596,7 +1594,7 @@ function calcWithoutPromoForRow(item: FlowerItem, qty: number): number {
   return calcWithoutPromo(
     {
       ...item,
-      packagingPrice: getPackagingPrice(item, qty),
+      packagingPrice: getPackagingPrice(item, qty) ?? 0,
       hasPistachio: !pistachioLocked,
       pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
       pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
@@ -1614,7 +1612,7 @@ function calcWithPromoForRow(item: FlowerItem, qty: number): number {
   return calcWithPromo(
     {
       ...item,
-      packagingPrice: getPackagingPrice(item, qty),
+      packagingPrice: getPackagingPrice(item, qty) ?? 0,
       hasPistachio: !pistachioLocked,
       pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
       pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
@@ -1834,7 +1832,7 @@ function getPromoPriceForPercent(item: FlowerItem, qty: number, discountPercent:
       ...item,
       discountPercent,
       isPromoEnabled: true,
-      packagingPrice: getPackagingPrice(item, qty),
+      packagingPrice: getPackagingPrice(item, qty) ?? 0,
       hasPistachio: !pistachioLocked,
       pistachioQty: pistachioLocked ? 0 : getPistachioQty(item, qty),
       pistachioUnitPrice: PISTACHIO_UNIT_PRICE,
@@ -1855,15 +1853,18 @@ function getCurrentPromoLabel(item: FlowerItem, qty: number): string {
 }
 
 function getPriceTableRows(item: FlowerItem): PriceTableRow[] {
-  return getQtyOptions(item).map((qty) => ({
-    qty,
-    withoutPromo: formatPriceWithRuble(calcWithoutPromoForRow(item, qty)),
-    pistachio: getPistachioLabel(item, qty),
-    eucalyptus: getEucalyptusLabel(item, qty),
-    packaging: isPackagingHidden(item) ? '-' : formatPriceWithRuble(getPackagingPrice(item, qty)),
-    promo10: isPromoDisabledForQty(item, qty) ? '-' : formatPriceWithRuble(getPromoPriceForPercent(item, qty, 10)),
-    promo15: isPromoDisabledForQty(item, qty) ? '-' : formatPriceWithRuble(getPromoPriceForPercent(item, qty, 15)),
-  }))
+  return getQtyOptions(item).map((qty) => {
+    const packaging = getPackagingPrice(item, qty)
+    return {
+      qty,
+      withoutPromo: formatPriceWithRuble(calcWithoutPromoForRow(item, qty)),
+      pistachio: getPistachioLabel(item, qty),
+      eucalyptus: getEucalyptusLabel(item, qty),
+      packaging: isPackagingHidden(item) ? '-' : packaging === undefined ? '' : formatPriceWithRuble(packaging),
+      promo10: isPromoDisabledForQty(item, qty) ? '-' : formatPriceWithRuble(getPromoPriceForPercent(item, qty, 10)),
+      promo15: isPromoDisabledForQty(item, qty) ? '-' : formatPriceWithRuble(getPromoPriceForPercent(item, qty, 15)),
+    }
+  })
 }
 
 // Эвкалипт задаётся вручную в карточке позиции: включён/выключен, количество
@@ -2023,7 +2024,7 @@ async function saveEditor(item: FlowerItem): Promise<void> {
   store.setEntrySortOrder(item.id, sortOrderAfterAnchor(rows[rows.length - 1].id, item.id))
 }
 
-function getBasePackaging(item: FlowerItem, qty: number): number {
+function getBasePackaging(item: FlowerItem, qty: number): number | undefined {
   return getPackagingPrice({ ...item, packagingTable: undefined }, qty)
 }
 
@@ -2367,7 +2368,7 @@ onBeforeUnmount(() => {
                     <td v-if="activePriceTableShowsEucalyptus">{{ row.eucalyptus }}</td>
                     <td>
                       <template v-if="row.packaging === '-'">-</template>
-                      <span v-else class="price-with-ruble"><span>{{ row.packaging }}</span><span class="price-ruble">&#8381;</span></span>
+                      <span v-else-if="row.packaging" class="price-with-ruble"><span>{{ row.packaging }}</span><span class="price-ruble">&#8381;</span></span>
                     </td>
                     <template v-if="isMobileViewport">
                       <td>
@@ -2561,7 +2562,7 @@ onBeforeUnmount(() => {
                         type="number"
                         :min="getMinQty(item)"
                         :max="getMaxQty(item)"
-                        step="2"
+                        :step="isGypsophila(item) ? 1 : 2"
                         :value="getQtyInputValue(item)"
                         :placeholder="uiLabels.qtyPlaceholder"
                         @input="updateQtyInput(item, ($event.target as HTMLInputElement).value)"
@@ -2719,10 +2720,10 @@ onBeforeUnmount(() => {
                     :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
                     type="number"
                     min="0"
-                    :value="getPackagingPrice(item, getQty(item))"
+                    :value="getPackagingPrice(item, getQty(item)) ?? ''"
                     @input="store.patchFlower(item.id, { packagingPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
                   />
-                  <span class="currency-input-sign">&#8381;</span>
+                  <span v-if="getPackagingPrice(item, getQty(item)) !== undefined" class="currency-input-sign">&#8381;</span>
                 </div>
               </td>
               <td>
@@ -2962,7 +2963,7 @@ onBeforeUnmount(() => {
                               type="number"
                               :min="getMinQty(item)"
                               :max="getMaxQty(item)"
-                              step="2"
+                              :step="isGypsophila(item) ? 1 : 2"
                               :value="getQtyInputValue(item)"
                               :placeholder="uiLabels.qtyPlaceholder"
                               @input="updateQtyInput(item, ($event.target as HTMLInputElement).value)"
@@ -3131,10 +3132,10 @@ onBeforeUnmount(() => {
                           :disabled="hasAutoPackagingByQty(item) || !store.unlocked"
                           type="number"
                           min="0"
-                          :value="getPackagingPrice(item, getQty(item))"
+                          :value="getPackagingPrice(item, getQty(item)) ?? ''"
                           @input="store.patchFlower(item.id, { packagingPrice: Number(($event.target as HTMLInputElement).value) || 0 })"
                         />
-                        <span class="currency-input-sign">&#8381;</span>
+                        <span v-if="getPackagingPrice(item, getQty(item)) !== undefined" class="currency-input-sign">&#8381;</span>
                       </div>
                     </label>
 

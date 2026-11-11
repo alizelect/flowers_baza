@@ -7,10 +7,10 @@ const props = defineProps<{
   item: FlowerItem
   siblingItems: FlowerItem[]
   qtyOptions: number[]
-  computePackaging: (qty: number) => number
+  computePackaging: (qty: number) => number | undefined
   computePistachio: (qty: number) => number
   computeEucalyptus: (qty: number) => number
-  computeSiblingPackaging: (item: FlowerItem, qty: number) => number
+  computeSiblingPackaging: (item: FlowerItem, qty: number) => number | undefined
   showPistachio: boolean
   showEucalyptus: boolean
   saveError: string
@@ -58,7 +58,7 @@ const siblingOptions = computed(() => props.siblingItems.filter(s => s.id !== pr
 
 const compareItem = computed(() => siblingOptions.value.find(s => s.id === compareItemId.value) ?? null)
 
-function getComparePackaging(sibling: FlowerItem, qty: number): number {
+function getComparePackaging(sibling: FlowerItem, qty: number): number | undefined {
   return sibling.packagingTable?.[qty] ?? props.computeSiblingPackaging(sibling, qty)
 }
 
@@ -107,7 +107,7 @@ function getPistachioQty(qty: number): number {
 
 function getPackaging(qty: number): number {
   const ov = packagingOverrides.value[qty]
-  return ov !== undefined ? (Number(ov) || 0) : props.computePackaging(qty)
+  return ov !== undefined ? (Number(ov) || 0) : (props.computePackaging(qty) ?? 0)
 }
 
 function getPistachioPrice(qty: number): number {
@@ -144,7 +144,7 @@ function calcCost(qty: number): number {
 }
 
 function displayPackaging(qty: number): string {
-  return packagingOverrides.value[qty] !== undefined ? packagingOverrides.value[qty] : String(props.computePackaging(qty))
+  return packagingOverrides.value[qty] ?? String(props.computePackaging(qty) ?? '')
 }
 
 function displayPistachioQty(qty: number): string {
@@ -240,6 +240,7 @@ function handleSave(): void {
   const packagingTable: Record<number, number> = {}
   const pistachioTable: Record<number, number> = {}
   for (const [qty, val] of Object.entries(packagingOverrides.value)) {
+    if (val.trim() === '' && props.computePackaging(Number(qty)) === undefined) continue
     const num = Number(val)
     if (Number.isFinite(num)) packagingTable[Number(qty)] = num
   }
