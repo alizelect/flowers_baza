@@ -1,1 +1,1 @@
-export const LAST_UPDATED: string = import.meta.env.VITE_CATALOG_LAST_UPDATED
+export const LAST_UPDATED: string = import.meta.env.VITE_SITE_BUILD_TIME
